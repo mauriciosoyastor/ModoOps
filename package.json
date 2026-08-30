@@ -1,11 +1,13 @@
 {
+  "name": "modoops",
   "private": true,
   "workspaces": [
     "web"
   ],
   "scripts": {
     "build": "npm --prefix web install && npm --prefix web run build",
-    "deploy": "wrangler deploy --config wrangler.toml --no-autoconfig"
+    "deploy": "wrangler deploy --config wrangler.toml --no-autoconfig",
+    "check:deploy-contract": "node tools/check-cf-deploy-contract.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.127.1"
