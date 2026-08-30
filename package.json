@@ -1,6 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "build": "npm --prefix web install && npm --prefix web run build"
+    "build": "npm --prefix web install && npm --prefix web run build",
+    "deploy": "wrangler deploy --config wrangler.toml --no-autoconfig"
+  },
+  "devDependencies": {
+    "wrangler": "^4.127.1"
   }
 }
