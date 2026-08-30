@@ -1,0 +1,195 @@
+// modoops — pantalla de login (/web/login)
+// Tema oscuro Liquid Glass v2 — cargar en web.assets_frontend
+
+.mo-login-page {
+    --mo-bg-deep: #{$mo-bg-deep};
+    --mo-bg-charcoal: #{$mo-bg-charcoal};
+    --mo-text-on-dark: #{$mo-text-on-dark};
+    --mo-text-muted-dark: #{$mo-text-muted-dark};
+    --mo-glass-fill: rgba(255, 255, 255, 0.08);
+    --mo-glass-fill-strong: rgba(255, 255, 255, 0.14);
+    --mo-glass-border: rgba(255, 255, 255, 0.12);
+    --mo-glass-rim: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    --mo-flame-orange: #{$mo-flame-orange};
+
+    font-family: var(--mo-font-family);
+    min-height: 100vh;
+    background: $mo-bg-ambient !important;
+    background-color: $mo-bg-deep !important;
+    color: var(--mo-text-on-dark);
+
+    #wrapwrap {
+        background: transparent;
+        min-height: 100vh;
+    }
+
+    main {
+        background: transparent;
+    }
+}
+
+.mo-login-frame {
+    width: 100%;
+}
+
+.mo-login-glass-panel {
+    @include sg-glass-surface($elevated: true, $on-dark: true);
+    padding: 0;
+}
+
+.mo-login-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.mo-login-mark {
+    display: block;
+    width: 72px;
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.mo-login-brand-name {
+    color: $mo-text-on-dark;
+    font-family: $mo-font-family;
+    font-size: 1.65rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+}
+
+.mo-login-logo {
+    max-height: 120px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+}
+
+.mo-login-page .form-label,
+.mo-login-page .col-form-label {
+    color: var(--mo-text-on-dark);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.mo-login-page .form-control {
+    font-family: var(--mo-font-family);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--mo-glass-border);
+    border-radius: $mo-radius-card;
+    color: var(--mo-text-on-dark);
+    min-height: 44px;
+    padding: 0.625rem 0.875rem;
+
+    &::placeholder {
+        color: var(--mo-text-muted-dark);
+    }
+
+    &:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--mo-flame-orange);
+        box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.25);
+        color: var(--mo-text-on-dark);
+    }
+}
+
+.mo-login-page .input-group {
+    .form-control {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .o_show_password,
+    .mo-login-btn-secondary {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: var(--mo-glass-border);
+        color: var(--mo-text-muted-dark);
+        min-height: 44px;
+
+        &:hover,
+        &:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--mo-flame-orange);
+            color: var(--mo-text-on-dark);
+        }
+    }
+}
+
+.mo-login-page .oe_login_buttons {
+    .mo-login-submit,
+    .btn-primary {
+        @include sg-flame-cta;
+        border-radius: $mo-radius-pill;
+        min-height: 48px;
+        font-size: 1rem;
+        padding: 0.75rem 1.5rem;
+        width: 100%;
+    }
+}
+
+.mo-login-page .alert-danger {
+    background: rgba(230, 74, 25, 0.15);
+    border: 1px solid rgba(230, 74, 25, 0.4);
+    border-radius: $mo-radius-card;
+    color: #ffb4a2;
+}
+
+.mo-login-page .alert-success {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--mo-glass-border);
+    border-radius: $mo-radius-card;
+    color: var(--mo-text-on-dark);
+}
+
+.mo-login-page .mo-login-superuser,
+.mo-login-page .btn-link {
+    color: var(--mo-text-muted-dark) !important;
+
+    &:hover {
+        color: var(--mo-text-on-dark) !important;
+    }
+}
+
+.mo-login-footer {
+    border-top: 1px solid var(--mo-glass-border);
+}
+
+.mo-login-db-link {
+    color: var(--mo-text-muted-dark);
+    text-decoration: none;
+    font-size: 0.8125rem;
+
+    &:hover {
+        color: var(--mo-text-on-dark);
+        text-decoration: underline;
+    }
+}
+
+// Entrada suave de la card
+.mo-view-enter {
+    animation: sg-login-enter 480ms ease-out both;
+}
+
+@keyframes sg-login-enter {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mo-login-page .mo-view-enter {
+        animation: none;
+    }
+
+    .mo-login-page .oe_login_buttons .btn-primary:active {
+        transform: none;
+    }
+}

@@ -1,0 +1,28 @@
+---
+import Button from '../ui/Button.astro';
+import { contact, hero } from '../../data/business';
+---
+
+<section class="relative flex min-h-[min(88vh,52rem)] items-center overflow-hidden text-canvas-white">
+  <div class="hero-content-scrim absolute inset-0" aria-hidden="true"></div>
+
+  <div
+    class="relative z-10 mx-auto w-full max-w-[var(--width-content)] px-6 py-[calc(var(--spacing-section)*1.4)] md:px-10"
+  >
+    <h1
+      class="max-w-3xl text-[length:var(--text-display)] font-semibold leading-tight tracking-tight text-star-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.85)]"
+    >
+      {hero.title}
+    </h1>
+    <p
+      class="mt-6 max-w-2xl text-[length:var(--text-body-lg)] text-star-white/90 drop-shadow-[0_1px_12px_rgba(0,0,0,0.75)]"
+    >
+      {hero.subtitle}
+    </p>
+    <div class="mt-10 flex flex-wrap gap-4">
+      <Button href="#contacto" variant="primary">Pedir descubrimiento</Button>
+      <Button href={contact.whatsapp} variant="ghost-dark">WhatsApp</Button>
+      <Button href={`mailto:${contact.email}`} variant="ghost-dark">Email</Button>
+    </div>
+  </div>
+</section>

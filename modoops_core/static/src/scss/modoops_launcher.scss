@@ -1,0 +1,414 @@
+// modoops — App Launcher post-login + SalesHub (Liquid Glass v2)
+// Layout horizontal: cuerpo + barra lateral con métrica (paleta login)
+
+.mo-launcher-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: var(--mo-paper);
+    font-family: var(--mo-font-family);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            radial-gradient(
+                ellipse 70% 45% at 15% 0%,
+                rgba(245, 124, 0, 0.1) 0%,
+                transparent 55%
+            ),
+            radial-gradient(
+                ellipse 55% 35% at 85% 100%,
+                rgba(230, 74, 25, 0.08) 0%,
+                transparent 50%
+            );
+    }
+}
+
+.mo-launcher-shell--root {
+    .mo-launcher-header__toolbar {
+        display: none;
+    }
+
+    // Home sin título: aire superior del canvas.
+    // Contrato: resolveLauncherHomeGridInset().paddingTop
+    .mo-launcher-body {
+        padding-top: 3.25rem;
+    }
+
+    .mo-launcher-grid {
+        padding-top: 0;
+    }
+}
+
+.mo-launcher-shell--hub {
+    .mo-launcher-header__toolbar {
+        margin-bottom: 0;
+    }
+
+    // Hub sin header (SECCIÓN vive en el rail): aire superior del canvas.
+    // Contrato: resolveHubKpiGridInset().paddingTop — también en section-body
+    // porque el shorthand `.mo-launcher-grid { padding: 0 … }` compite en bundles viejos.
+    .mo-hub-section-body,
+    .mo-launcher-body {
+        padding-top: 3.25rem;
+    }
+
+    .mo-launcher-grid {
+        padding-top: 0;
+    }
+
+    .mo-hub-group .mo-launcher-grid {
+        padding-top: 0.75rem;
+    }
+
+    .mo-hub-group--first {
+        padding-top: 0;
+    }
+}
+
+.mo-launcher-shell--compact {
+    .mo-launcher-header {
+        padding-bottom: 0.5rem;
+    }
+
+    &.mo-launcher-shell--root .mo-launcher-header {
+        display: none;
+    }
+}
+
+.mo-hub-section {
+    &__title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: rgba(26, 26, 26, 0.45);
+        padding: 1.5rem 1.5rem 0.75rem;
+        max-width: 80rem;
+        margin-inline: auto;
+    }
+
+    &--first .mo-hub-section__title {
+        padding-top: 0.75rem;
+    }
+}
+
+.mo-launcher-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    position: relative;
+    z-index: 1;
+}
+
+.mo-launcher-header {
+    padding: 1.25rem 1.5rem 1rem;
+    max-width: 80rem;
+    margin-inline: auto;
+    width: 100%;
+
+    &__toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+}
+
+.mo-launcher-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0;
+    border: 1px solid rgba(26, 26, 26, 0.08);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    color: rgba(26, 26, 26, 0.7);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+
+    &:hover {
+        background: #ffffff;
+        color: var(--mo-text-on-light);
+        box-shadow: 0 2px 8px rgba(26, 26, 26, 0.1);
+    }
+
+    &:focus-visible {
+        outline: 2px solid $mo-flame-orange;
+        outline-offset: 2px;
+    }
+
+    &--placeholder {
+        visibility: hidden;
+        pointer-events: none;
+    }
+}
+
+.mo-launcher-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--mo-text-on-light);
+    margin: 0;
+}
+
+.mo-launcher-subtitle {
+    font-size: 0.95rem;
+    color: rgba(26, 26, 26, 0.55);
+    margin: 0.35rem 0 0;
+}
+
+.mo-launcher-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    padding: 0 1.5rem 2.5rem;
+    max-width: 80rem;
+    margin-inline: auto;
+}
+
+.mo-launcher-grid--loading {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.mo-hub-group {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-bottom: 0.5rem;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem 0.25rem;
+    }
+
+    &__icon {
+        font-size: 0.9rem;
+        color: rgba(26, 26, 26, 0.4);
+    }
+
+    &__title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgba(26, 26, 26, 0.45);
+        margin: 0;
+    }
+
+    .mo-launcher-grid {
+        padding-top: 0.75rem;
+    }
+}
+
+.mo-hub-empty {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: rgba(26, 26, 26, 0.5);
+    font-size: 0.95rem;
+}
+
+// --- Tile horizontal (referencia KPI cards con barra lateral) ---
+
+.mo-launcher-tile {
+    display: flex;
+    min-height: 120px;
+    border-radius: $mo-radius-card;
+    background: #ffffff;
+    border: 1px solid rgba(26, 26, 26, 0.06);
+    box-shadow: 0 4px 16px rgba(26, 26, 26, 0.08);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 150ms ease, box-shadow 150ms ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(230, 74, 25, 0.15);
+    }
+
+    &:focus-visible {
+        outline: 2px solid $mo-flame-orange;
+        outline-offset: 2px;
+    }
+
+    &__body {
+        flex: 1;
+        padding: 1.25rem;
+        min-width: 0;
+    }
+
+    &__icon {
+        font-size: 1.25rem;
+        color: rgba(26, 26, 26, 0.45);
+        margin-bottom: 0.5rem;
+        line-height: 1;
+    }
+
+    &__label {
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--mo-text-on-light);
+        margin: 0;
+        line-height: 1.25;
+    }
+
+    &__hint {
+        font-size: 0.8rem;
+        color: rgba(26, 26, 26, 0.55);
+        margin: 0.35rem 0 0;
+        line-height: 1.4;
+    }
+
+    &__accent {
+        width: 18%;
+        min-width: 3.5rem;
+        max-width: 4.5rem;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 1rem 0.35rem;
+        color: $mo-text-on-dark;
+        flex-shrink: 0;
+    }
+
+    &__metric {
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.2;
+        text-align: center;
+        word-break: break-word;
+    }
+
+    &__metric--loading {
+        display: inline-block;
+        width: 2rem;
+        height: 1.25rem;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.35);
+        animation: sg-launcher-metric-shimmer 1.2s ease-in-out infinite;
+    }
+}
+
+// Paleta preestablecida (login / modoops_tokens.scss)
+$mo-launcher-accents: (
+    "flame-yellow": $mo-flame-yellow,
+    "flame-orange": $mo-flame-orange,
+    "flame-deep": $mo-flame-deep,
+    "flame-rust": $mo-flame-rust,
+    "ember-amber": $mo-ember-amber,
+    "ember-coral": $mo-ember-coral,
+    "ember-scarlet": $mo-ember-scarlet,
+    "ember-wine": $mo-ember-wine,
+    "bg-mid": $mo-bg-mid,
+    "bg-charcoal": $mo-bg-charcoal,
+    "bg-deep": $mo-bg-deep,
+);
+
+@each $key, $color in $mo-launcher-accents {
+    .mo-launcher-tile--#{$key} .mo-launcher-tile__accent {
+        background: $color;
+    }
+}
+
+.mo-launcher-tile--flame-yellow .mo-launcher-tile__accent {
+    color: $mo-text-on-light;
+
+    .mo-launcher-tile__metric--loading {
+        background: rgba(26, 26, 26, 0.12);
+    }
+}
+
+@keyframes sg-launcher-metric-shimmer {
+    0% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.5;
+    }
+}
+
+.mo-view-enter {
+    animation: sg-view-fade-in 280ms ease;
+}
+
+.mo-stagger-item {
+    animation: sg-view-fade-in 320ms ease backwards;
+}
+
+@for $i from 1 through 12 {
+    .mo-stagger-item:nth-child(#{$i}) {
+        animation-delay: #{($i - 1) * 45ms};
+    }
+}
+
+@keyframes sg-view-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 1024px) {
+    .mo-launcher-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .mo-launcher-header {
+        padding-inline: 1rem;
+    }
+
+    .mo-launcher-grid {
+        grid-template-columns: 1fr;
+        padding-inline: 1rem;
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .mo-launcher-tile {
+        min-height: 100px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mo-view-enter,
+    .mo-stagger-item,
+    .mo-launcher-shell .mo-view-enter,
+    .mo-launcher-shell .mo-stagger-item {
+        animation: none !important;
+    }
+
+    .mo-launcher-tile,
+    .mo-launcher-nav-btn {
+        transition: none !important;
+
+        &:hover {
+            transform: none;
+        }
+    }
+
+    .mo-launcher-tile__metric--loading {
+        animation: none !important;
+    }
+}

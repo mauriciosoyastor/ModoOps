@@ -1,0 +1,41 @@
+// modoops — overrides de variables Odoo (bundle web._assets_primary_variables)
+// Reemplaza morado community (#71639e) por paleta llama.
+// Valores alineados con modoops_tokens.scss
+
+$mo-flame-orange: #f57c00;
+$mo-flame-deep: #e64a19;
+$mo-flame-rust: #bf360c;
+$mo-bg-charcoal: #2b2b2b;
+
+$o-community-color: $mo-flame-deep;
+$o-brand-odoo: $mo-flame-deep;
+$o-brand-primary: $mo-flame-deep;
+$o-action: $mo-flame-deep;
+$o-main-link-color: $mo-flame-rust;
+$o-input-border-required: $mo-flame-deep;
+$o-component-active-border: $mo-flame-deep;
+$o-component-active-bg: mix($mo-flame-deep, $o-gray-100, 18%);
+
+$o-navbar-background: transparent;
+$o-navbar-border-bottom: 2px solid $mo-flame-deep;
+$o-navbar-entry-bg--hover: rgba($mo-flame-orange, 0.18);
+$o-navbar-entry-bg--active: rgba($mo-flame-deep, 0.38);
+
+$o-btns-bs-override: map-merge(
+    $o-btns-bs-override,
+    (
+        "primary": (
+            background: $mo-flame-deep,
+            border: $mo-flame-deep,
+            color: $o-white,
+
+            hover-background: $mo-flame-rust,
+            hover-border: darken($mo-flame-rust, 5%),
+            hover-color: $o-white,
+
+            active-background: darken($mo-flame-rust, 10%),
+            active-border: darken($mo-flame-rust, 10%),
+            active-color: $o-white,
+        ),
+    )
+);

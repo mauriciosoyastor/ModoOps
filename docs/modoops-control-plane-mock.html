@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>ModoOps Admin — Mock v0.1</title>
+<style>
+ body{font-family:Inter,system-ui,sans-serif;background:#0f1115;color:#e6e8ec;margin:0}
+ .wrap{max-width:1100px;margin:32px auto;padding:0 20px}
+ h1{font-size:22px;margin:0 0 6px}
+ .sub{color:#9aa0aa;font-size:13px;margin-bottom:18px}
+ table{width:100%;border-collapse:collapse;background:#171a20;border-radius:10px;overflow:hidden}
+ th{ text-align:left;font-size:12px;color:#9aa0aa;padding:10px 12px;background:#1e232c}
+ td{padding:10px 12px;font-size:13px;border-top:1px solid #232836}
+ .badge{padding:3px 8px;border-radius:999px;font-size:11px}
+ .ok{background:#12331a;color:#7ee081}
+ .bad{background:#33131a;color:#ff8a8a}
+ .btn{padding:6px 10px;border-radius:7px;border:1px solid #2a3140;background:#212636;color:#e6e8ec;font-size:12px;cursor:pointer}
+ .btn-hi{background:#2a5bd7;border-color:#2a5bd7}
+ .card{background:#171a20;border-radius:12px;padding:16px;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ModoOps Admin — Control Plane</h1>
+<div class="sub">Base <b>modoops_master</b> en VPS central Multi-DB · MVP v0.1 (instalar/quitar · suspender por mora gracia 7 días)</div>
+<table>
+<tr><th>Cliente / Tenant</th><th>DB</th><th>Vertical</th><th>Estado</th><th>Vto abono</th><th>Módulos</th><th></th></tr>
+<tr>
+<td>Pinturería Centro</td><td>modoops_pintureria_centro</td><td>Retail</td><td><span class="badge ok">Activo</span></td><td>2026-09-30</td><td>Mostrador, Depósito, Fiscal AR</td><td><button class="btn">Instalar/Quitar</button> <button class="btn">Suspender</button></td>
+</tr>
+<tr>
+<td>Ferretería Sur</td><td>modoops_ferreteria_sur</td><td>Retail</td><td><span class="badge bad">Suspendido</span></td><td>2026-08-28</td><td>Mostrador, Depósito</td><td><button class="btn">Reactivar</button></td>
+</tr>
+<tr>
+<td>Servigas (caso)</td><td>modoops_servigas</td><td>Retail</td><td><span class="badge ok">Activo</span></td><td>2026-09-30</td><td>Catálogo completo</td><td><button class="btn">Logs</button></td>
+</tr>
+</table>
+<div class="card">
+<b>Flujo:</b> Seleccionás tenant → "Instalar/Quitar módulo" (elige del Catálogo ModoOps) → ejecuta <code>odoo-bin -d &lt;tenant&gt; -i &lt;modulo&gt;</code> en su base. Suspender bloquea login (no borra DB). Gracia 7 días con aviso WhatsApp.
+</div>
+</div>
+</body>
+</html>

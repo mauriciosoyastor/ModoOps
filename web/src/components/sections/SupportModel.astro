@@ -1,0 +1,26 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { supportModel } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="linen" id="soporte" embedded={embedded}>
+  <SectionHeading title={supportModel.title} lead={supportModel.lead} />
+  <ol class="grid gap-4 md:grid-cols-3">
+    {
+      supportModel.phases.map((phase) => (
+        <li class="galaxy-card rounded-[var(--radius-card)] p-6">
+          <p class="text-sm font-medium text-trust-slate">{phase.duration}</p>
+          <p class="mt-2 text-[length:var(--text-subheading)] font-medium">{phase.name}</p>
+          <p class="mt-2 text-ash-gray">{phase.detail}</p>
+        </li>
+      ))
+    }
+  </ol>
+</Section>

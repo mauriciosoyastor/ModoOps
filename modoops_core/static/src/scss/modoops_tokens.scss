@@ -1,0 +1,166 @@
+// =============================================================================
+// modoops — design tokens (marca + Liquid Glass v2)
+// Análisis: docs/design/modoops-brand.md
+// =============================================================================
+
+// --- Marca: llama ---
+$mo-flame-yellow: #ffd600;
+$mo-flame-yellow-hover: #ffe033;
+$mo-flame-orange: #f57c00;
+$mo-flame-deep: #e64a19;
+$mo-flame-rust: #bf360c;
+
+// --- Acentos ember (tiles secundarias del launcher; cálidos, distintos de flame-*) ---
+$mo-ember-amber: #ffb300;
+$mo-ember-coral: #ff7043;
+$mo-ember-scarlet: #ef5350;
+$mo-ember-wine: #c62828;
+
+$mo-bg-deep: #1a1a1a;
+$mo-bg-charcoal: #2b2b2b;
+$mo-bg-mid: #333333;
+
+$mo-paper: #f7f5f2;
+$mo-canvas: #efecea;
+
+$mo-text-on-dark: #ffffff;
+$mo-text-muted-dark: rgba(255, 255, 255, 0.72);
+$mo-text-on-light: #1a1a1a;
+
+$mo-radius-card: 12px;
+$mo-radius-pill: 999px;
+$mo-glass-blur: 16px;
+
+$mo-font-family: "Montserrat", "Segoe UI", system-ui, sans-serif;
+
+$mo-flame-gradient: linear-gradient(
+    135deg,
+    $mo-flame-yellow 0%,
+    $mo-flame-orange 45%,
+    $mo-flame-deep 100%
+);
+
+$mo-flame-gradient-hover: linear-gradient(
+    135deg,
+    $mo-flame-yellow-hover 0%,
+    $mo-flame-orange 45%,
+    $mo-flame-rust 100%
+);
+
+$mo-bg-ambient: radial-gradient(
+        ellipse 80% 50% at 20% 0%,
+        rgba(245, 124, 0, 0.18) 0%,
+        transparent 55%
+    ),
+    radial-gradient(
+        ellipse 60% 40% at 80% 100%,
+        rgba(230, 74, 25, 0.12) 0%,
+        transparent 50%
+    ),
+    linear-gradient(165deg, $mo-bg-mid 0%, $mo-bg-deep 55%, #111111 100%);
+
+// --- Mixins (compatible libsass / Odoo) ---
+@mixin sg-glass-surface($elevated: false, $on-dark: true) {
+    @if $on-dark {
+        @if $elevated {
+            background: rgba(255, 255, 255, 0.14);
+        } @else {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    } @else {
+        @if $elevated {
+            background: rgba(255, 255, 255, 0.72);
+        } @else {
+            background: rgba(255, 255, 255, 0.55);
+        }
+        border: 1px solid rgba(230, 74, 25, 0.12);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+    backdrop-filter: blur($mo-glass-blur);
+    -webkit-backdrop-filter: blur($mo-glass-blur);
+    border-radius: $mo-radius-card;
+}
+
+@mixin sg-flame-cta {
+    background: $mo-flame-gradient;
+    border: none;
+    color: $mo-text-on-dark !important;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 14px rgba(230, 74, 25, 0.35);
+
+    &:hover,
+    &:focus {
+        background: $mo-flame-gradient-hover;
+        color: $mo-text-on-dark !important;
+        box-shadow: 0 6px 18px rgba(230, 74, 25, 0.45);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+}
+
+// --- Tokens globales (backend claro) ---
+:root {
+    --mo-flame-yellow: #{$mo-flame-yellow};
+    --mo-flame-orange: #{$mo-flame-orange};
+    --mo-flame-deep: #{$mo-flame-deep};
+    --mo-flame-rust: #{$mo-flame-rust};
+
+    --mo-ember-amber: #{$mo-ember-amber};
+    --mo-ember-coral: #{$mo-ember-coral};
+    --mo-ember-scarlet: #{$mo-ember-scarlet};
+    --mo-ember-wine: #{$mo-ember-wine};
+
+    --mo-paper: #{$mo-paper};
+    --mo-canvas: #{$mo-canvas};
+    --mo-text-on-light: #{$mo-text-on-light};
+
+    --mo-font-family: #{$mo-font-family};
+    --mo-radius-card: #{$mo-radius-card};
+    --mo-radius-pill: #{$mo-radius-pill};
+    --mo-glass-blur: #{$mo-glass-blur};
+
+    --mo-glass-fill: rgba(255, 255, 255, 0.55);
+    --mo-glass-fill-strong: rgba(255, 255, 255, 0.72);
+    --mo-glass-border: rgba(230, 74, 25, 0.12);
+    --mo-glass-rim: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+    --mo-accent: #{$mo-flame-orange};
+    --mo-accent-alt: #{$mo-flame-deep};
+    --mo-primary: #{$mo-flame-deep};
+
+    --mo-rail-width-collapsed: 3.5rem;
+    --mo-rail-width-expanded: 17.5rem;
+    --mo-rail-transition: 220ms ease;
+}
+
+// --- Tokens POS (tema oscuro = logo) ---
+.pos {
+    --mo-bg-deep: #{$mo-bg-deep};
+    --mo-bg-charcoal: #{$mo-bg-charcoal};
+    --mo-text-on-dark: #{$mo-text-on-dark};
+    --mo-text-muted-dark: #{$mo-text-muted-dark};
+
+    --mo-glass-fill: rgba(255, 255, 255, 0.08);
+    --mo-glass-fill-strong: rgba(255, 255, 255, 0.14);
+    --mo-glass-border: rgba(255, 255, 255, 0.12);
+    --mo-glass-rim: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+    --mo-accent: #{$mo-flame-yellow};
+    --mo-accent-alt: #{$mo-flame-orange};
+    --mo-primary: #{$mo-flame-deep};
+
+    --navbar-logo: url("/modoops_core/static/src/img/modoops_logo.png");
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mo-motion-control,
+    .pay-order-button {
+        transition: none !important;
+        transform: none !important;
+    }
+}

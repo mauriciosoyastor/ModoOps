@@ -1,0 +1,33 @@
+---
+import '../styles/global.css';
+import SiteHeader from '../components/ui/SiteHeader.astro';
+import FloatingWhatsApp from '../components/ui/FloatingWhatsApp.astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <SiteHeader />
+    <slot />
+    <FloatingWhatsApp />
+  </body>
+</html>

@@ -1,0 +1,19 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { problem } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="linen" id="problema" embedded={embedded}>
+  <SectionHeading title={problem.title} lead={problem.lead} />
+  <ul class="grid max-w-3xl gap-3 text-[length:var(--text-body-lg)]">
+    {problem.pains.map((pain) => <li>{pain}</li>)}
+  </ul>
+  <p class="mt-8 max-w-2xl text-ash-gray">{problem.closing}</p>
+</Section>

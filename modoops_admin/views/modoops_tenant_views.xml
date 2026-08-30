@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_modoops_tenant_tree" model="ir.ui.view">
+        <field name="name">modoops.tenant.tree</field>
+        <field name="model">modoops.tenant</field>
+        <field name="arch" type="xml">
+            <list string="Tenants ModoOps">
+                <field name="name"/>
+                <field name="db_name"/>
+                <field name="vertical"/>
+                <field name="state" decoration-danger="state=='suspendido'" decoration-muted="state=='baja'"/>
+                <field name="abono_due_date"/>
+                <field name="last_backup"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_modoops_tenant_form" model="ir.ui.view">
+        <field name="name">modoops.tenant.form</field>
+        <field name="model">modoops.tenant</field>
+        <field name="arch" type="xml">
+            <form string="Tenant ModoOps">
+                <header>
+                    <button name="action_install_module" type="object" string="Instalar/Quitar módulo" icon="fa-cogs" class="oe_highlight"/>
+                    <button name="action_suspend" type="object" string="Suspender (mora)" icon="fa-ban" confirm="¿Suspender login de este tenant? Gracia 7 días ya avisada."/>
+                    <button name="action_reactivate" type="object" string="Reactivar" icon="fa-check"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Pinturería Centro"/></h1>
+                    </div>
+                    <group>
+                        <group string="Infra">
+                            <field name="db_name" placeholder="modoops_pintureria_centro"/>
+                            <field name="slug"/>
+                            <field name="vertical"/>
+                            <field name="state" widget="badge" decoration-success="state=='activo'"/>
+                        </group>
+                        <group string="Gestión">
+                            <field name="abono_due_date"/>
+                            <field name="last_backup"/>
+                        </group>
+                    </group>
+                    <group string="Módulos del Catálogo ModoOps">
+                        <field name="modules_installed" placeholder="Mostrador, Depósito Inteligente, Compras, Fiscal AR"/>
+                    </group>
+                    <group string="Notas">
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_modoops_tenant" model="ir.actions.act_window">
+        <field name="name">Tenants ModoOps</field>
+        <field name="res_model">modoops.tenant</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

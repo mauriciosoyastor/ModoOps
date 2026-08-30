@@ -1,0 +1,167 @@
+// modoops — Backend Odoo (acentos marca sobre tema claro operativo)
+// Cargar después de modoops_tokens.scss en web.assets_backend.
+
+body.o_web_client {
+    font-family: var(--mo-font-family);
+}
+
+.o_main_navbar {
+    --NavBar-entry-backgroundColor: transparent;
+    --NavBar-entry-backgroundColor--hover: #{rgba($mo-flame-orange, 0.18)};
+    --NavBar-entry-backgroundColor--focus: #{rgba($mo-flame-orange, 0.22)};
+    --NavBar-entry-backgroundColor--active: #{rgba($mo-flame-deep, 0.38)};
+    --NavBar-entry-color: #{$mo-text-muted-dark};
+    --NavBar-entry-color--hover: #{$mo-text-on-dark};
+    --NavBar-entry-color--active: #{$mo-flame-yellow};
+    --NavBar-brand-color: #{$mo-flame-orange};
+    --o-navbar-badge-bg: #{$mo-flame-deep};
+
+    background: linear-gradient(
+        90deg,
+        $mo-bg-deep 0%,
+        $mo-bg-charcoal 40%,
+        $mo-bg-mid 100%
+    ) !important;
+    border-bottom: 2px solid $mo-flame-deep;
+    font-family: var(--mo-font-family);
+}
+
+.o_main_navbar .o_menu_brand,
+.o_main_navbar .dropdown-toggle,
+.o_main_navbar .o_nav_entry {
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+// Sección de submenús (Clientes, Proveedores, etc.) — reemplaza morado Odoo
+.o_main_navbar .o_menu_sections {
+    .o_nav_entry,
+    .dropdown-toggle {
+        background: var(--NavBar-entry-backgroundColor) !important;
+        color: var(--NavBar-entry-color);
+        border-color: transparent;
+
+        &:hover {
+            background: var(--NavBar-entry-backgroundColor--hover) !important;
+            color: var(--NavBar-entry-color--hover);
+        }
+
+        &:focus {
+            background: var(--NavBar-entry-backgroundColor--focus) !important;
+        }
+
+        &:active {
+            background: var(--NavBar-entry-backgroundColor--active) !important;
+            color: var(--NavBar-entry-color--active);
+        }
+    }
+
+    .dropdown.show > .dropdown-toggle {
+        background: var(--NavBar-entry-backgroundColor--active) !important;
+        border-color: rgba($mo-flame-deep, 0.55);
+        color: var(--NavBar-entry-color--active);
+    }
+}
+
+// Botones y acentos — gradiente llama (sustituye morado Odoo en toda la UI)
+@mixin sg-btn-flame {
+    background: $mo-flame-gradient;
+    border: none;
+    color: $mo-text-on-dark !important;
+    font-family: var(--mo-font-family);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+
+    &:hover,
+    &:focus,
+    &:active {
+        background: $mo-flame-gradient-hover;
+        border: none;
+        color: $mo-text-on-dark !important;
+    }
+}
+
+.o_web_client {
+    .btn-primary,
+    .btn-fill-primary,
+    .o_statusbar_status .btn-primary,
+    .o-kanban-button-new,
+    .o_list_button_add {
+        @include sg-btn-flame;
+    }
+
+    .btn-outline-primary {
+        color: $mo-flame-deep;
+        border-color: $mo-flame-deep;
+        font-family: var(--mo-font-family);
+        font-weight: 600;
+
+        &:hover,
+        &:focus,
+        &:active {
+            background: rgba($mo-flame-deep, 0.1);
+            border-color: $mo-flame-rust;
+            color: $mo-flame-rust;
+        }
+    }
+
+    .text-primary,
+    .text-action {
+        color: $mo-flame-deep !important;
+    }
+
+    .nav-pills .nav-link.active,
+    .nav-tabs .nav-link.active {
+        background: $mo-flame-gradient;
+        border-color: transparent;
+        color: $mo-text-on-dark;
+    }
+
+    .form-control:focus,
+    .o_input:focus {
+        border-color: $mo-flame-orange;
+        box-shadow: 0 0 0 0.2rem rgba($mo-flame-deep, 0.18);
+    }
+
+    .form-check-input:checked {
+        background-color: $mo-flame-deep;
+        border-color: $mo-flame-deep;
+    }
+
+    .o_field_widget.o_field_many2one .o_external_button {
+        color: $mo-flame-deep;
+
+        &:hover {
+            color: $mo-flame-rust;
+        }
+    }
+}
+
+.o_action_manager,
+.o_content {
+    background-color: var(--mo-paper);
+}
+
+.o_form_view .o_form_sheet_bg {
+    background: var(--mo-canvas);
+}
+
+.o_form_view .o_form_sheet {
+    @include sg-glass-surface($elevated: false, $on-dark: false);
+}
+
+.o_web_client a:not(.btn) {
+    color: $mo-flame-deep;
+
+    &:hover {
+        color: $mo-flame-rust;
+    }
+}
+
+.o_form_view .oe_button_box .oe_stat_button {
+    font-family: var(--mo-font-family);
+}
+
+.oe_stat_button .o_stat_value {
+    color: $mo-flame-deep;
+}

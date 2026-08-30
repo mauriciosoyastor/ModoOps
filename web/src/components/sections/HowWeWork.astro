@@ -1,0 +1,18 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { howWeWork } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="linen" embedded={embedded}>
+  <SectionHeading title={howWeWork.title} lead={howWeWork.lead} />
+  <ul class="grid max-w-3xl gap-4 text-[length:var(--text-body-lg)]">
+    {howWeWork.rules.map((rule) => <li>{rule}</li>)}
+  </ul>
+</Section>

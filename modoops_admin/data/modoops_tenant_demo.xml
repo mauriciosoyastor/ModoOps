@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="demo_tenant_pintureria" model="modoops.tenant">
+        <field name="name">Pinturería Centro (demo)</field>
+        <field name="db_name">modoops_pintureria_centro</field>
+        <field name="slug">pintureria_centro</field>
+        <field name="vertical">retail</field>
+        <field name="state">activo</field>
+        <field name="abono_due_date">2026-09-30</field>
+        <field name="modules_installed">Mostrador, Depósito Inteligente, Compras, Fiscal AR, Plataforma ModoOps</field>
+        <field name="notes">Tenant demo creado desde ejemplo descubrimiento retail. Gracia mora: 7 días.</field>
+    </record>
+</odoo>

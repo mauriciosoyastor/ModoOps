@@ -1,0 +1,24 @@
+{
+    "name": "ModoOps Admin — Control Plane",
+    "summary": "Panel interno para gestionar Tenants Multi-DB (instalar módulos, suspender por mora)",
+    "description": """
+Control Plane ModoOps en base modoops_master.
+Lista de Tenants (modoops_<cliente>), instalar/quitar Módulos ModoOps del Catálogo, logs, suspender/reactivar con gracia 7 días.
+Mock v0.1 — sin billing auto ni editor runtime.
+    """,
+    "author": "ModoOps",
+    "website": "https://modoops.com",
+    "category": "ModoOps",
+    "version": "19.0.1.0.1",
+    "license": "LGPL-3",
+    "depends": ["base", "web", "mail"],
+    "data": [
+        "security/ir.model.access.csv",
+        "views/modoops_tenant_views.xml",
+        "views/modoops_admin_menus.xml",
+        "data/modoops_tenant_demo.xml",
+    ],
+    "assets": {},
+    "installable": True,
+    "application": True,
+}

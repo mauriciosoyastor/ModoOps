@@ -1,0 +1,123 @@
+- main [ref=e2]:
+  - generic [ref=e4]:
+    - paragraph [ref=e5]: Mauricio Matasini — consultor independiente
+    - heading "Stock, compras y caja en un solo sistema." [level=1] [ref=e6]
+    - paragraph [ref=e7]: Consultoría de sistemas de gestión para comercios — Argentina, PYME retail, una sucursal.
+    - generic [ref=e8]:
+      - link "Pedir descubrimiento" [ref=e9] [cursor=pointer]:
+        - /url: "#contacto"
+      - link "WhatsApp" [ref=e10] [cursor=pointer]:
+        - /url: https://wa.me/5493547532008
+      - link "Email" [ref=e11] [cursor=pointer]:
+        - /url: mailto:consultoria.matasini@gmail.com
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - heading "Cuando la operación está fragmentada" [level=2] [ref=e15]
+      - paragraph [ref=e16]: Planillas, caja y stock desconectados cuestan tiempo y generan errores.
+    - list [ref=e17]:
+      - listitem [ref=e18]: Stock desactualizado (faltantes y sobrestock).
+      - listitem [ref=e19]: Tiempo perdido cargando lo mismo en varios lugares.
+      - listitem [ref=e20]: Errores en precios y reposición.
+      - listitem [ref=e21]: Poca visibilidad para decidir qué comprar y qué promover.
+    - paragraph [ref=e22]: "Con una sucursal y un equipo chico no hace falta un sistema gigante: hace falta una operación clara en un solo lugar."
+  - generic [ref=e24]:
+    - generic [ref=e25]:
+      - 'heading "Hoy: Odoo para tu mostrador" [level=2] [ref=e26]'
+      - paragraph [ref=e27]: Implementación con alcance cerrado. Otras plataformas e integraciones, cotizadas aparte.
+    - list [ref=e28]:
+      - listitem [ref=e29]:
+        - strong [ref=e30]: Punto de venta (POS)
+        - text: — hasta 2 cajas, 1 sucursal.
+      - listitem [ref=e31]:
+        - strong [ref=e32]: Inventario, compras y contactos
+        - text: integrados.
+      - listitem [ref=e33]:
+        - strong [ref=e34]: Contabilidad operativa
+        - text: alineada a ventas (cierre mensual con tu estudio).
+      - listitem [ref=e35]:
+        - strong [ref=e36]: Catálogo
+        - text: con variantes básicas (ej. volumen y color).
+  - generic [ref=e38]:
+    - generic [ref=e39]:
+      - heading "Cómo empezamos" [level=2] [ref=e40]
+      - paragraph [ref=e41]: Primero diagnóstico, después implementación y soporte.
+    - list [ref=e42]:
+      - listitem [ref=e43]:
+        - paragraph [ref=e44]: Paso 1
+        - paragraph [ref=e45]: Descubrimiento
+        - paragraph [ref=e46]: 3 días · informe + propuesta con alcance y precio.
+      - listitem [ref=e47]:
+        - paragraph [ref=e48]: Paso 2
+        - paragraph [ref=e49]: Implementación
+        - paragraph [ref=e50]: Retail acotado · staging y go-live con hitos.
+      - listitem [ref=e51]:
+        - paragraph [ref=e52]: Paso 3
+        - paragraph [ref=e53]: Soporte
+        - paragraph [ref=e54]: Hipercare incluido; después, abono mensual acordado.
+    - paragraph [ref=e55]: Los montos de implementación y soporte se definen en la propuesta tras el descubrimiento.
+  - generic [ref=e58]:
+    - generic [ref=e59]:
+      - heading "Descubrimiento pago" [level=2] [ref=e60]
+      - paragraph [ref=e61]: El único precio publicado en esta página.
+    - paragraph [ref=e62]: $155.000 ARS
+    - paragraph [ref=e63]: 3 jornadas · informe de diagnóstico + propuesta comercial (documentos separados).
+    - list [ref=e64]:
+      - listitem [ref=e65]: Proceso actual, riesgos y recomendación técnica.
+      - listitem [ref=e66]: Alcance, exclusiones y plazos orientativos para implementación.
+      - listitem [ref=e67]: "Jornada extra: $52.000 si hace falta ampliar."
+    - link "Pedir descubrimiento" [ref=e69] [cursor=pointer]:
+      - /url: "#contacto"
+  - generic [ref=e71]:
+    - heading "¿Es para tu negocio?" [level=2] [ref=e73]
+    - generic [ref=e74]:
+      - generic [ref=e75]:
+        - heading "Sí, si…" [level=3] [ref=e76]
+        - list [ref=e77]:
+          - listitem [ref=e78]: "PYME comercial en Argentina: retail, pinturerías, ferreterías, mostrador."
+          - listitem [ref=e79]: Una sucursal (o empezar por una), equipo ~5 personas.
+          - listitem [ref=e80]: Querés caja, stock y compras en un solo sistema.
+          - listitem [ref=e81]: Aceptás empezar con descubrimiento antes del proyecto.
+      - generic [ref=e82]:
+        - heading "No, si…" [level=3] [ref=e83]
+        - list [ref=e84]:
+          - listitem [ref=e85]: Necesitás muchas sucursales o B2B complejo desde día 1.
+          - listitem [ref=e86]: Solo querés integrar otro sistema, sin operar en Odoo.
+          - listitem [ref=e87]: Buscás desarrollo ilimitado sin alcance cerrado.
+          - listitem [ref=e88]: No podés dedicar tiempo a datos, fiscal con tu contador e infra propia.
+  - generic [ref=e90]:
+    - generic [ref=e91]:
+      - heading "Cómo trabajamos" [level=2] [ref=e92]
+      - paragraph [ref=e93]: Alcance claro, sin sorpresas.
+    - list [ref=e94]:
+      - listitem [ref=e95]: Alcance y exclusiones por escrito antes de empezar.
+      - listitem [ref=e96]: "Licencia Odoo: la contrata el cliente; yo implemento y acompaño."
+      - listitem [ref=e97]: Pagos por hitos con criterios de aceptación (staging y go-live).
+      - listitem [ref=e98]: "Fiscal: anexo con tu contador; pruebas en homologación antes de producción."
+      - listitem [ref=e99]: Infraestructura del cliente; sin SLA de disponibilidad del servidor.
+  - generic [ref=e101]:
+    - generic [ref=e102]:
+      - heading "Contacto" [level=2] [ref=e103]
+      - paragraph [ref=e104]: Formulario, email o WhatsApp comercial.
+    - generic [ref=e105]:
+      - generic [ref=e106]:
+        - generic [ref=e107]: Nombre
+        - textbox "Nombre" [ref=e108]
+      - generic [ref=e109]:
+        - generic [ref=e110]: Empresa
+        - textbox "Empresa" [ref=e111]
+      - generic [ref=e112]:
+        - generic [ref=e113]: Rubro
+        - textbox "Rubro" [ref=e114]
+      - generic [ref=e115]:
+        - generic [ref=e116]: Email
+        - textbox "Email" [ref=e117]
+      - generic [ref=e118]:
+        - generic [ref=e119]: Mensaje
+        - textbox "Mensaje" [ref=e120]
+      - button "Enviar consulta" [ref=e121]
+    - paragraph [ref=e122]:
+      - link "consultoria.matasini@gmail.com" [ref=e123] [cursor=pointer]:
+        - /url: mailto:consultoria.matasini@gmail.com
+      - text: ·
+      - link "WhatsApp +54 9 354 753-2008" [ref=e124] [cursor=pointer]:
+        - /url: https://wa.me/5493547532008

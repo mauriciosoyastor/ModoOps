@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--
+          Menús hub OWL se desactivan en post_init / setup si existen.
+          No forzar <record> aquí: en install fresco los xmlid no existen y
+          crear ir.ui.menu solo con active=False falla (name requerido).
+        -->
+        <function model="mo.hub.card" name="setup_all_hub_card_accents"/>
+    </data>
+</odoo>

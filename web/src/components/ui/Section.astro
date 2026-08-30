@@ -1,0 +1,34 @@
+---
+interface Props {
+  variant?: 'dark' | 'linen' | 'white';
+  id?: string;
+  narrow?: boolean;
+  embedded?: boolean;
+}
+
+const { variant = 'white', id, narrow = false, embedded = false } = Astro.props;
+
+const bg = {
+  dark: 'bg-space-void text-canvas-white',
+  linen: 'bg-space-mist text-canvas-white',
+  white: 'bg-galaxy-deep text-canvas-white',
+}[variant];
+
+const inner = narrow ? 'max-w-2xl' : 'max-w-[var(--width-content)]';
+---
+
+{
+  embedded ? (
+    <div id={id} class="w-full text-canvas-white">
+      <div class:list={['mx-auto w-full', narrow ? 'max-w-2xl' : 'max-w-none']}>
+        <slot />
+      </div>
+    </div>
+  ) : (
+    <section id={id} class:list={['px-6 py-[var(--spacing-section)] md:px-10', bg]}>
+      <div class:list={['mx-auto w-full', inner]}>
+        <slot />
+      </div>
+    </section>
+  )
+}

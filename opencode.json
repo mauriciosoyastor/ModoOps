@@ -1,0 +1,6 @@
+﻿{
+  "$schema": "https://opencode.ai/schema.json",
+  "name": "ModoOps",
+  "description": "ModoOps — Sistema de Gestion Modular (Control Plane SaaS Multi-DB)",
+  "type": "workspace"
+}

@@ -1,0 +1,27 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { path } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="linen" id="camino" embedded={embedded}>
+  <SectionHeading title={path.title} lead={path.lead} />
+  <ol class="grid gap-6 md:grid-cols-3">
+    {
+      path.steps.map((step) => (
+        <li class="galaxy-card rounded-[var(--radius-card)] p-6">
+          <p class="text-sm font-medium text-ash-gray">{step.step}</p>
+          <p class="mt-2 text-[length:var(--text-subheading)] font-medium">{step.title}</p>
+          <p class="mt-2 text-ash-gray">{step.detail}</p>
+        </li>
+      ))
+    }
+  </ol>
+  <p class="mt-8 text-sm text-ash-gray">{path.footnote}</p>
+</Section>

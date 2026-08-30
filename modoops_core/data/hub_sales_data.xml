@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Secciones rail — Ventas -->
+        <record id="hub_section_sales_summary" model="mo.hub.section">
+            <field name="app">sales</field>
+            <field name="code">summary</field>
+            <field name="name">Resumen</field>
+            <field name="icon">fa-th-large</field>
+            <field name="sequence">1</field>
+        </record>
+        <record id="hub_section_sales_quotations" model="mo.hub.section">
+            <field name="app">sales</field>
+            <field name="code">quotations</field>
+            <field name="name">Cotizaciones</field>
+            <field name="icon">fa-file-text-o</field>
+            <field name="sequence">2</field>
+        </record>
+        <record id="hub_section_sales_orders" model="mo.hub.section">
+            <field name="app">sales</field>
+            <field name="code">orders</field>
+            <field name="name">Pedidos</field>
+            <field name="icon">fa-shopping-cart</field>
+            <field name="sequence">3</field>
+        </record>
+        <record id="hub_section_sales_customers" model="mo.hub.section">
+            <field name="app">sales</field>
+            <field name="code">customers</field>
+            <field name="name">Clientes</field>
+            <field name="icon">fa-users</field>
+            <field name="sequence">4</field>
+        </record>
+        <record id="hub_section_sales_reporting" model="mo.hub.section">
+            <field name="app">sales</field>
+            <field name="code">reporting</field>
+            <field name="name">Informes</field>
+            <field name="icon">fa-bar-chart</field>
+            <field name="sequence">5</field>
+        </record>
+        <record id="hub_section_sales_config" model="mo.hub.section">
+            <field name="app">sales</field>
+            <field name="code">config</field>
+            <field name="name">Configuración</field>
+            <field name="icon">fa-cog</field>
+            <field name="sequence">6</field>
+        </record>
+
+        <!-- Cards — Resumen -->
+        <record id="hub_card_sales_summary_confirmed" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">summary</field>
+            <field name="show_in_summary" eval="True"/>
+            <field name="sequence">10</field>
+            <field name="label">Pedidos confirmados</field>
+            <field name="hint">Pedidos en estado venta</field>
+            <field name="icon">fa-check-circle</field>
+            <field name="enter_label">Ver pedidos →</field>
+            <field name="action_id" ref="sale.action_orders"/>
+            <field name="domain">[('state', '=', 'sale')]</field>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[('state', '=', 'sale')]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_summary_quotations" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">summary</field>
+            <field name="show_in_summary" eval="True"/>
+            <field name="sequence">20</field>
+            <field name="label">Cotizaciones</field>
+            <field name="hint">Borrador y enviadas</field>
+            <field name="icon">fa-file-text-o</field>
+            <field name="enter_label">Ver cotizaciones →</field>
+            <field name="action_id" ref="sale.action_quotations"/>
+            <field name="domain">[('state', 'in', ('draft', 'sent'))]</field>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[('state', 'in', ('draft', 'sent'))]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_summary_to_invoice" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">summary</field>
+            <field name="show_in_summary" eval="True"/>
+            <field name="sequence">30</field>
+            <field name="label">Ventas por facturar</field>
+            <field name="hint">Pendientes de facturación</field>
+            <field name="icon">fa-money</field>
+            <field name="variant">warning</field>
+            <field name="enter_label">Ver listado →</field>
+            <field name="action_id" ref="sale.action_orders_to_invoice"/>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[('invoice_status', '=', 'to invoice')]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_summary_customers" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">summary</field>
+            <field name="show_in_summary" eval="True"/>
+            <field name="sequence">40</field>
+            <field name="label">Clientes</field>
+            <field name="hint">Contactos con rol cliente</field>
+            <field name="icon">fa-users</field>
+            <field name="enter_label">Ver clientes →</field>
+            <field name="action_id" ref="account.res_partner_action_customer"/>
+            <field name="metric_model">res.partner</field>
+            <field name="metric_domain">[('customer_rank', '>', 0)]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_summary_pos_today" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">summary</field>
+            <field name="show_in_summary" eval="True"/>
+            <field name="sequence">50</field>
+            <field name="label">Ventas de mostrador hoy</field>
+            <field name="hint">Pedidos de mostrador del día</field>
+            <field name="icon">fa-desktop</field>
+            <field name="enter_label">Ver ventas de caja →</field>
+            <field name="action_id" ref="point_of_sale.action_pos_pos_form"/>
+            <field name="metric_model">pos.order</field>
+            <field name="metric_domain">[('state', 'in', ('paid', 'done'))]</field>
+            <field name="metric_date_field">date_order</field>
+            <field name="metric_date_scope">today</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_summary_amount_today" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">summary</field>
+            <field name="show_in_summary" eval="True"/>
+            <field name="sequence">60</field>
+            <field name="label">Monto vendido hoy</field>
+            <field name="hint">Total pedidos confirmados hoy</field>
+            <field name="icon">fa-line-chart</field>
+            <field name="enter_label">Ver pedidos →</field>
+            <field name="action_id" ref="sale.action_orders"/>
+            <field name="domain">[('state', '=', 'sale')]</field>
+            <field name="context">{'search_default_my_sale_orders_filter': 0}</field>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[('state', '=', 'sale')]</field>
+            <field name="metric_field">amount_total</field>
+            <field name="metric_aggregate">sum</field>
+            <field name="metric_date_field">date_order</field>
+            <field name="metric_date_scope">today</field>
+            <field name="metric_suffix"> $</field>
+        </record>
+
+        <!-- Cards — Cotizaciones -->
+        <record id="hub_card_sales_quotations_open" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">quotations</field>
+            <field name="sequence">10</field>
+            <field name="label">Cotizaciones</field>
+            <field name="hint">Borradores y enviadas</field>
+            <field name="icon">fa-file-text-o</field>
+            <field name="enter_label">Ver cotizaciones →</field>
+            <field name="action_id" ref="sale.action_quotations"/>
+            <field name="domain">[('state', 'in', ('draft', 'sent'))]</field>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[('state', 'in', ('draft', 'sent'))]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_quotations_history" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">quotations</field>
+            <field name="sequence">20</field>
+            <field name="label">Historial de cotizaciones</field>
+            <field name="hint">Todas las cotizaciones y pedidos</field>
+            <field name="icon">fa-history</field>
+            <field name="enter_label">Ver historial →</field>
+            <field name="action_id" ref="sale.action_quotations_with_onboarding"/>
+            <field name="domain">[]</field>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+        <!-- Cards — Pedidos (Cotizaciones vive en su pestaña; no duplicar acá) -->
+        <record id="hub_card_sales_orders_quotations" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">orders</field>
+            <field name="sequence">10</field>
+            <field name="active" eval="False"/>
+            <field name="label">Cotizaciones</field>
+            <field name="icon">fa-file-text-o</field>
+            <field name="action_id" ref="sale.action_quotations_with_onboarding"/>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[('state', 'in', ('draft', 'sent'))]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_orders_orders" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">orders</field>
+            <field name="sequence">20</field>
+            <field name="label">Pedidos confirmados</field>
+            <field name="icon">fa-shopping-cart</field>
+            <field name="action_id" ref="sale.action_orders"/>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[('state', '=', 'sale')]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_orders_to_invoice" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">orders</field>
+            <field name="sequence">40</field>
+            <field name="label">Ventas por facturar</field>
+            <field name="icon">fa-money</field>
+            <field name="action_id" ref="sale.action_orders_to_invoice"/>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[('invoice_status', '=', 'to invoice')]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_orders_upselling" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">orders</field>
+            <field name="sequence">50</field>
+            <field name="label">Ventas con saldo por facturar</field>
+            <field name="icon">fa-level-up</field>
+            <field name="action_id" ref="sale.action_orders_upselling"/>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[('invoice_status', '=', 'upselling')]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_orders_pos" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">orders</field>
+            <field name="sequence">60</field>
+            <field name="label">Ventas del mostrador</field>
+            <field name="hint">Historial de caja</field>
+            <field name="icon">fa-desktop</field>
+            <field name="action_id" ref="point_of_sale.action_pos_pos_form"/>
+            <field name="metric_model">pos.order</field>
+            <field name="metric_domain">[]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+        <!-- Cards — Clientes -->
+        <record id="hub_card_sales_customers_all" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">customers</field>
+            <field name="sequence">10</field>
+            <field name="label">Todos los clientes</field>
+            <field name="icon">fa-users</field>
+            <field name="action_id" ref="account.res_partner_action_customer"/>
+            <field name="metric_model">res.partner</field>
+            <field name="metric_domain">[('customer_rank', '>', 0)]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_customers_with_orders" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">customers</field>
+            <field name="sequence">20</field>
+            <field name="label">Con pedidos de venta</field>
+            <field name="icon">fa-handshake-o</field>
+            <field name="action_id" ref="account.res_partner_action_customer"/>
+            <field name="domain">[('sale_order_ids', '!=', False)]</field>
+            <field name="metric_model">res.partner</field>
+            <field name="metric_domain">[('sale_order_ids', '!=', False)]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+        <!-- Cards — Informes -->
+        <record id="hub_card_sales_report_all" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">reporting</field>
+            <field name="sequence">10</field>
+            <field name="label">Análisis de ventas</field>
+            <field name="icon">fa-bar-chart</field>
+            <field name="action_id" ref="sale.action_order_report_all"/>
+            <field name="metric_model">sale.report</field>
+            <field name="metric_domain">[]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_report_products" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">reporting</field>
+            <field name="sequence">20</field>
+            <field name="label">Ventas por producto</field>
+            <field name="icon">fa-cube</field>
+            <field name="action_id" ref="sale.action_order_report_products"/>
+            <field name="metric_model">sale.report</field>
+            <field name="metric_domain">[]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_report_customers" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">reporting</field>
+            <field name="sequence">30</field>
+            <field name="label">Ventas por cliente</field>
+            <field name="icon">fa-user</field>
+            <field name="action_id" ref="sale.action_order_report_customers"/>
+            <field name="metric_model">sale.report</field>
+            <field name="metric_domain">[]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_report_salesperson" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">reporting</field>
+            <field name="sequence">40</field>
+            <field name="label">Ventas por vendedor</field>
+            <field name="icon">fa-id-badge</field>
+            <field name="action_id" ref="sale.action_order_report_salesperson"/>
+            <field name="metric_model">sale.report</field>
+            <field name="metric_domain">[]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+        <!-- Cards — Configuración -->
+        <record id="hub_card_sales_cfg_teams" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">config</field>
+            <field name="sequence">10</field>
+            <field name="label">Equipos de venta</field>
+            <field name="icon">fa-users</field>
+            <field name="action_id" ref="sales_team.crm_team_action_config"/>
+            <field name="metric_model">crm.team</field>
+            <field name="metric_domain">[]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_cfg_tags" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">config</field>
+            <field name="sequence">20</field>
+            <field name="label">Etiquetas de venta</field>
+            <field name="icon">fa-tags</field>
+            <field name="action_id" ref="sales_team.sales_team_crm_tag_action"/>
+            <field name="metric_model">crm.tag</field>
+            <field name="metric_domain">[]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_cfg_payment_terms" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">config</field>
+            <field name="sequence">30</field>
+            <field name="label">Plazos de pago</field>
+            <field name="icon">fa-calendar</field>
+            <field name="action_id" ref="account.action_payment_term_form"/>
+            <field name="metric_model">account.payment.term</field>
+            <field name="metric_domain">[]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+        <record id="hub_card_sales_cfg_products" model="mo.hub.card">
+            <field name="app">sales</field>
+            <field name="section">config</field>
+            <field name="sequence">40</field>
+            <field name="label">Productos vendibles</field>
+            <field name="icon">fa-cube</field>
+            <field name="action_id" ref="sale.product_template_action"/>
+            <field name="metric_model">product.template</field>
+            <field name="metric_domain">[('sale_ok', '=', True)]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+    </data>
+</odoo>

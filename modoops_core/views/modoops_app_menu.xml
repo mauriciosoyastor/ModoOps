@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Día D: menú OWL residual solo Settings; operativos navegan por Astro. -->
+    <menuitem
+        id="menu_modoops_root"
+        name="modoops"
+        web_icon="modoops_core,static/description/icon.png"
+        action="action_modoops_app_launcher"
+        groups="base.group_system"
+        sequence="1"
+    />
+    <record id="menu_modoops_root" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_system')])]"/>
+    </record>
+</odoo>

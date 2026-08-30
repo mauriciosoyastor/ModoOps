@@ -1,0 +1,21 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { audience } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="white" embedded={embedded}>
+  <SectionHeading title={audience.title} />
+  <div class="max-w-2xl">
+    <h3 class="text-[length:var(--text-subheading)] font-medium">{audience.yesTitle}</h3>
+    <ul class="mt-4 grid gap-2 text-[length:var(--text-body-lg)]">
+      {audience.yes.map((item) => <li>{item}</li>)}
+    </ul>
+  </div>
+</Section>

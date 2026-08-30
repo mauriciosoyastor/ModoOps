@@ -1,0 +1,27 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mo_app_tile_user,mo.app.tile user,model_mo_app_tile,base.group_user,1,0,0,0
+access_mo_app_tile_system,mo.app.tile system,model_mo_app_tile,base.group_system,1,1,1,1
+access_mo_hub_section_user,mo.hub.section user,model_mo_hub_section,base.group_user,1,0,0,0
+access_mo_hub_section_stock_manager,mo.hub.section stock manager,model_mo_hub_section,stock.group_stock_manager,1,1,1,1
+access_mo_hub_section_sale_manager,mo.hub.section sale manager,model_mo_hub_section,sales_team.group_sale_manager,1,1,1,1
+access_mo_hub_section_purchase_manager,mo.hub.section purchase manager,model_mo_hub_section,purchase.group_purchase_manager,1,1,1,1
+access_mo_hub_section_account_manager,mo.hub.section account manager,model_mo_hub_section,account.group_account_manager,1,1,1,1
+access_mo_hub_card_user,mo.hub.card user,model_mo_hub_card,base.group_user,1,0,0,0
+access_mo_hub_card_stock_manager,mo.hub.card stock manager,model_mo_hub_card,stock.group_stock_manager,1,1,1,1
+access_mo_hub_card_sale_manager,mo.hub.card sale manager,model_mo_hub_card,sales_team.group_sale_manager,1,1,1,1
+access_mo_hub_card_purchase_manager,mo.hub.card purchase manager,model_mo_hub_card,purchase.group_purchase_manager,1,1,1,1
+access_mo_hub_card_account_manager,mo.hub.card account manager,model_mo_hub_card,account.group_account_manager,1,1,1,1
+access_mo_price_list_import_wizard_user,mo.price.list.import.wizard user,model_mo_price_list_import_wizard,base.group_user,1,1,1,1
+access_mo_price_list_import_wizard_stock_manager,mo.price.list.import.wizard stock manager,model_mo_price_list_import_wizard,stock.group_stock_manager,1,1,1,1
+access_mo_price_list_import_line_user,mo.price.list.import.line user,model_mo_price_list_import_line,base.group_user,1,1,1,1
+access_mo_price_list_import_line_stock_manager,mo.price.list.import.line stock manager,model_mo_price_list_import_line,stock.group_stock_manager,1,1,1,1
+access_mo_price_list_import_log_user,mo.price.list.import.log user,model_mo_price_list_import_log,base.group_user,1,0,0,0
+access_mo_price_list_import_log_stock_manager,mo.price.list.import.log stock manager,model_mo_price_list_import_log,stock.group_stock_manager,1,1,1,0
+access_mo_cash_session_user,mo.cash.session user,model_mo_cash_session,base.group_user,1,1,1,0
+access_mo_cash_session_system,mo.cash.session system,model_mo_cash_session,base.group_system,1,1,1,1
+access_mo_cash_movement_user,mo.cash.movement user,model_mo_cash_movement,base.group_user,1,1,1,0
+access_mo_cash_movement_system,mo.cash.movement system,model_mo_cash_movement,base.group_system,1,1,1,1
+access_mo_appliance_user,mo.appliance user,model_mo_appliance,base.group_user,1,1,1,0
+access_mo_appliance_system,mo.appliance system,model_mo_appliance,base.group_system,1,1,1,1
+access_mo_work_order_user,mo.work.order user,model_mo_work_order,base.group_user,1,1,1,1
+access_mo_work_order_system,mo.work.order system,model_mo_work_order,base.group_system,1,1,1,1

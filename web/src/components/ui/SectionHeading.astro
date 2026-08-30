@@ -1,0 +1,29 @@
+---
+interface Props {
+  title?: string;
+  lead?: string;
+  invert?: boolean;
+}
+
+const { title, lead, invert = false } = Astro.props;
+---
+
+<header class="mb-10 max-w-3xl">
+  {
+    title && (
+      <h2
+        class:list={[
+          'text-[length:var(--text-display-sm)] font-medium tracking-tight',
+          invert ? 'text-canvas-white' : 'text-core-cream',
+        ]}
+      >
+        {title}
+      </h2>
+    )
+  }
+  {
+    lead && (
+      <p class:list={['text-[length:var(--text-body-lg)] text-ash-gray', title && 'mt-4']}>{lead}</p>
+    )
+  }
+</header>

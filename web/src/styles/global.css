@@ -1,0 +1,76 @@
+@import 'tailwindcss';
+
+/* GalaxyGroup — paleta extraída de imagen galaxia */
+@theme {
+  --color-space-void: #000000;
+  --color-space-mist: #101020;
+  --color-galaxy-deep: #2a3444;
+  --color-galaxy-blue: #3c5b87;
+  --color-nebula-cyan: #496a95;
+  --color-dust-gray: #747375;
+  --color-lavender-dust: #867f7f;
+  --color-core-cream: #d4bfb3;
+  --color-star-white: #f3ecf2;
+  --color-star-warm: #c05a42;
+  --color-star-glow: #b65e49;
+
+  /* Alias semánticos (componentes existentes) */
+  --color-midnight-void: #000000;
+  --color-canvas-white: #f3ecf2;
+  --color-soft-linen: #101020;
+  --color-ash-gray: #867f7f;
+  --color-trust-slate: #496a95;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --text-display: 3rem;
+  --text-display-sm: 2.5rem;
+  --text-heading: 2rem;
+  --text-subheading: 1.5rem;
+  --text-body-lg: 1.125rem;
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+
+  --spacing-section: 3.125rem;
+  --spacing-element: 0.75rem;
+  --radius-button: 5rem;
+  --radius-card: 1.25rem;
+  --width-content: 70rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.5;
+    color: var(--color-star-white);
+    background-color: var(--color-space-void);
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-galaxy-blue) 55%, transparent);
+    color: var(--color-star-white);
+  }
+}
+
+@layer utilities {
+  .galaxy-card {
+    border: 1px solid color-mix(in srgb, var(--color-nebula-cyan) 32%, transparent);
+    background-color: color-mix(in srgb, var(--color-galaxy-deep) 72%, transparent);
+    backdrop-filter: blur(10px);
+  }
+
+  .hero-content-scrim {
+    background: linear-gradient(
+      105deg,
+      color-mix(in srgb, var(--color-space-void) 88%, transparent) 0%,
+      color-mix(in srgb, var(--color-space-void) 55%, transparent) 50%,
+      color-mix(in srgb, var(--color-space-void) 70%, transparent) 100%
+    );
+  }
+
+}

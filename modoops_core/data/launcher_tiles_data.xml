@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="launcher_tile_sales" model="mo.app.tile">
+            <field name="label">Ventas</field>
+            <field name="hint">Pedidos y cotizaciones</field>
+            <field name="icon">fa-line-chart</field>
+            <field name="sequence">10</field>
+            <field name="accent_key">flame-yellow</field>
+            <field name="target_type">hub</field>
+            <field name="client_tag">modoops_sales_hub</field>
+            <field name="metric_model">sale.order</field>
+            <field name="metric_domain">[('state', 'in', ['sale', 'done'])]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+        <record id="launcher_tile_customers" model="mo.app.tile">
+            <field name="label">Clientes</field>
+            <field name="hint">Agenda de clientes</field>
+            <field name="icon">fa-users</field>
+            <field name="sequence">15</field>
+            <field name="accent_key">flame-yellow</field>
+            <field name="target_type">action</field>
+            <field name="client_tag">customers</field>
+            <field name="action_id" ref="account.res_partner_action_customer"/>
+            <field name="metric_model">res.partner</field>
+            <field name="metric_domain">[('customer_rank', '>', 0)]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+        <record id="launcher_tile_inventory" model="mo.app.tile">
+            <field name="label">Stock</field>
+            <field name="hint">Productos, stock y operaciones</field>
+            <field name="icon">fa-cubes</field>
+            <field name="sequence">20</field>
+            <field name="accent_key">flame-orange</field>
+            <field name="target_type">hub</field>
+            <field name="client_tag">modoops_inventory_hub</field>
+            <field name="metric_model">product.product</field>
+            <field name="metric_domain">[('active', '=', True)]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+        <record id="launcher_tile_purchase" model="mo.app.tile">
+            <field name="label">Compras</field>
+            <field name="hint">Pedidos y proveedores</field>
+            <field name="icon">fa-shopping-cart</field>
+            <field name="sequence">30</field>
+            <field name="accent_key">flame-deep</field>
+            <field name="target_type">hub</field>
+            <field name="client_tag">modoops_purchase_hub</field>
+            <field name="metric_model">purchase.order</field>
+            <field name="metric_domain">[('state', 'in', ['draft', 'sent', 'to approve'])]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+        <record id="launcher_tile_accounting" model="mo.app.tile">
+            <field name="label">Cobros</field>
+            <field name="hint">Facturas, pagos y cobros</field>
+            <field name="icon">fa-file-text-o</field>
+            <field name="sequence">40</field>
+            <field name="accent_key">flame-rust</field>
+            <field name="target_type">hub</field>
+            <field name="client_tag">modoops_accounting_hub</field>
+            <field name="metric_model">account.move</field>
+            <field name="metric_domain">[('state', '=', 'draft'), ('move_type', 'in', ['out_invoice', 'in_invoice'])]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+        <record id="launcher_tile_workshop" model="mo.app.tile">
+            <field name="label">Taller</field>
+            <field name="hint">Órdenes de trabajo y artefactos</field>
+            <field name="icon">fa-wrench</field>
+            <field name="sequence">45</field>
+            <field name="accent_key">ember-amber</field>
+            <field name="target_type">hub</field>
+            <field name="client_tag">modoops_workshop_hub</field>
+            <field name="metric_model">mo.work.order</field>
+            <field name="metric_domain">[('state', '=', 'draft')]</field>
+            <field name="metric_aggregate">count</field>
+        </record>
+
+        <record id="launcher_tile_pos" model="mo.app.tile">
+            <field name="label">Mostrador</field>
+            <field name="hint">Ventas del mostrador modoops</field>
+            <field name="icon">fa-shopping-basket</field>
+            <field name="sequence">50</field>
+            <field name="accent_key">bg-mid</field>
+            <field name="target_type">action</field>
+            <field name="action_id" ref="point_of_sale.action_pos_config_kanban"/>
+        </record>
+
+        <record id="launcher_tile_apps" model="mo.app.tile">
+            <field name="label">Aplicaciones</field>
+            <field name="hint">Instalar y gestionar módulos</field>
+            <field name="icon">fa-puzzle-piece</field>
+            <field name="sequence">70</field>
+            <field name="accent_key">bg-deep</field>
+            <field name="target_type">action</field>
+            <field name="groups_id" eval="[(4, ref('base.group_system'))]"/>
+            <field name="action_id" ref="base.open_module_tree"/>
+        </record>
+
+        <record id="launcher_tile_settings" model="mo.app.tile">
+            <field name="label">Ajustes</field>
+            <field name="hint">Configuración general</field>
+            <field name="icon">fa-cog</field>
+            <field name="sequence">80</field>
+            <field name="accent_key">bg-deep</field>
+            <field name="target_type">action</field>
+            <field name="groups_id" eval="[(4, ref('base.group_system'))]"/>
+            <field name="action_id" ref="base_setup.action_general_configuration"/>
+        </record>
+    </data>
+
+    <!-- Actualiza accent_key / copy en bases ya instaladas (noupdate=1 en registros arriba) -->
+    <data>
+        <record id="launcher_tile_sales" model="mo.app.tile">
+            <field name="accent_key">flame-yellow</field>
+            <field name="hint">Pedidos y cotizaciones</field>
+        </record>
+        <record id="launcher_tile_customers" model="mo.app.tile">
+            <field name="label">Clientes</field>
+            <field name="hint">Agenda de clientes</field>
+            <field name="icon">fa-users</field>
+            <field name="sequence">15</field>
+            <field name="accent_key">flame-yellow</field>
+            <field name="target_type">action</field>
+            <field name="client_tag">customers</field>
+            <field name="action_id" ref="account.res_partner_action_customer"/>
+            <field name="metric_model">res.partner</field>
+            <field name="metric_domain">[('customer_rank', '>', 0)]</field>
+            <field name="metric_aggregate">count</field>
+            <field name="active" eval="True"/>
+        </record>
+        <record id="launcher_tile_inventory" model="mo.app.tile">
+            <field name="accent_key">flame-orange</field>
+        </record>
+        <record id="launcher_tile_purchase" model="mo.app.tile">
+            <field name="accent_key">flame-deep</field>
+        </record>
+        <record id="launcher_tile_accounting" model="mo.app.tile">
+            <field name="accent_key">flame-rust</field>
+        </record>
+        <record id="launcher_tile_pos" model="mo.app.tile">
+            <field name="accent_key">bg-mid</field>
+            <field name="action_id" ref="point_of_sale.action_pos_config_kanban"/>
+        </record>
+        <record id="launcher_tile_apps" model="mo.app.tile">
+            <field name="accent_key">bg-deep</field>
+        </record>
+        <record id="launcher_tile_settings" model="mo.app.tile">
+            <field name="accent_key">bg-deep</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,22 @@
+---
+import { nav, brand } from '../../data/business';
+---
+
+<header
+  class="sticky top-0 z-20 border-b border-nebula-cyan/20 bg-space-void/55 backdrop-blur-lg"
+>
+  <div
+    class="mx-auto flex max-w-[var(--width-content)] flex-wrap items-center justify-between gap-4 px-6 py-4 md:px-10"
+  >
+    <a href="#" class="text-sm font-semibold tracking-wide text-core-cream">{brand.name}</a>
+    <nav aria-label="Secciones" class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+      {
+        nav.map((item) => (
+          <a href={item.href} class="text-ash-gray transition-colors hover:text-nebula-cyan">
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</header>
