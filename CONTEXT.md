@@ -281,6 +281,26 @@ _Avoid_: dims distintas sin ADR + reindex; `--pdg` como requisito de paridad MVP
 Conjunto vivo de Herramientas validadas por ModoOps, definido en `modoops_master` y ejecutado siempre en la DB del Tenant. Las credenciales externas (ej: API key MercadoPago del Cliente) se resuelven en el Tenant ejecutante, no en el catálogo central.
 _Avoid_: credenciales de Tenant en master, herramienta sin dueño Tenant.
 
+**Memoria del Agente**:
+Historial y preferencias del Agente persistidas en la DB del Tenant (`modoops_<slug>`), cifrada y con retención purgable (default 90 días). Nunca en `modoops_master`.
+_Avoid_: memoria centralizada cross-tenant, PII en logs del BFF o en master.
+
+**Ejecución del Agente (Corrida)**:
+Invocación única auditada `BFF → Tenant` con `Contexto Tenant` + `tool` + `input` → `output` + `modoops.tenant.log`. Una corrida invoca una Herramienta; una tarea puede requerir N corridas.
+_Avoid_: corrida sin `db_name`, corrida multi-tenant, ejecución directa sin log.
+
+**Falla cerrada / Modo borrador**:
+Si no existe Herramienta para la tarea, el Agente no improvisa escrituras; genera borrador revisable (CSV/preview) o deriva a humano vía `mail.activity`. Si hay valor, se cotiza como **Cambio** o **Add-on**.
+_Avoid_: `env['model'].write` sin Herramienta, hallucinar faltante como éxito, auto-escalar a `group_system`.
+
+**Techo IA**:
+Cuota mensual de ejecuciones/tokens incluida en el **Abono mensual** y enforzada en el **Orquestador** antes de tocar Odoo. Exceso bloquea o requiere **Add-on IA** / bolsa a **Tarifa hora adicional**.
+_Avoid_: IA ilimitada dentro del abono, costo LLM sin contador, bypass del Orquestador.
+
+**Namespace `modoops.*` vs `mo.*`**:
+Todo código IA nuevo nace en `modoops.*` (`modoops.agent`, `modoops.agent.tool`, `modoops_ia/logic/` puro sin ORM + wrapper). `mo.*` queda como legacy Servigas congelado.
+_Avoid_: `mo.agent`, mezclar lógica pura con ORM en el mismo archivo, nuevo código en `mo.*`.
+
 ## Relationships
 
 - Un **Prospecto** puede contratar un **Descubrimiento pago** antes del **Paquete ancla**.
@@ -301,6 +321,11 @@ _Avoid_: credenciales de Tenant en master, herramienta sin dueño Tenant.
 - **ModoOps es marca blanca comercial**: en marketing/propuesta no se menciona Odoo; en anexo técnico/licencia sí se lista Odoo CE 19 + Módulos ModoOps. El **Catálogo ModoOps** es el universo ofrecible.
 - **Infra Centralizada Multi-DB**: 1 VPS central → N tenants (bases `modoops_<cliente>` aisladas). Fase 1 backups/S3, Fase 2 hot standby. Selección de módulos (incluida IA) por tenant vía Configurador + **Control Plane**.
 - **Control Plane**: `modoops_admin` en base `modoops_master` gestiona Tenants; no es base de Cliente. Suspensión por mora con gracia 7 días.
+- **Agente ModoOps** opera solo vía **Orquestador** con **Contexto Tenant**; cada **Herramienta** es invocada en una **Ejecución** auditada en `modoops.tenant.log`.
+- **Catálogo de Herramientas IA** vive en `modoops_master`; la **Memoria** vive en el Tenant; ambas respetan **Suspensión por mora** (suspendido = BFF bloquea corridas).
+- Sin **Herramienta** no hay escritura: aplica **Falla cerrada / Modo borrador** y eventual **Cambio/Add-on**.
+- **Techo IA** se enforza en el Orquestador y protege el margen del **Abono mensual**; exceso no consume **Hipercare**.
+- Código IA respeta **Namespace `modoops.*` vs `mo.*`**: lógica pura en `modoops_ia/logic/` (sin ORM, como `mo_price_list_import_logic.py:1`) + wrapper Odoo.
 
 ## Example dialogue
 
@@ -535,6 +560,8 @@ Documento **separado** del informe. Secciones:
 - **Composable:** el cliente elige módulos del Catálogo, pero el **Ancla** es combo base cerrado por vertical (híbrido), no suma Lego ilimitada sin techo.
 - **Infra Fase 1 vs 2:** Fase 1 backups/S3, RTO 60min, sin VPS réplica; Fase 2 hot standby, RTO 2–5min. Failover solo cuando recurrente >$400/mes.
 - **Control Plane Fase 1:** lista tenants, instalar/quitar Módulos Catálogo, suspender/reactivar, logs. No edita vistas ni factura automático (manual).
+- **Grafo GitNexus** (`graph+fts+vector 384 dims`): requisito de paridad **congelado** para agentes IA; validar con `npx gitnexus analyze --force --embeddings` (no `--pdg` en MVP).
+- **IA en producción:** `Agente` estricto herramental + `Herramienta` única vía + `Aduana BFF` obligatoria + `Falla cerrada` + `Techo IA` en `Orquestador` + `Memoria` en Tenant + código nuevo en `modoops.*`. Sin `Herramienta` no hay `write`.
 
 ## Precios — referencia acordada (ModoOps, USD)
 
