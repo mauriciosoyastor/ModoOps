@@ -22,12 +22,16 @@
             <form string="Tenant ModoOps">
                 <header>
                     <button name="action_install_module" type="object" string="Instalar/Quitar módulo" icon="fa-cogs" class="oe_highlight"/>
-                    <button name="action_suspend" type="object" string="Suspender (mora)" icon="fa-ban" confirm="¿Suspender login de este tenant? Gracia 7 días ya avisada."/>
-                    <button name="action_reactivate" type="object" string="Reactivar" icon="fa-check"/>
+                    <button name="action_suspend" type="object" string="Suspender (mora)" icon="fa-ban" confirm="¿Confirmar Suspender? Día 8 de mora, gracia vencida. WhatsApp avisado día 1 y 5." invisible="state != 'activo'"/>
+                    <button name="action_reactivate" type="object" string="Reactivar" icon="fa-check" invisible="state != 'suspendido'"/>
+                    <button name="action_mark_baja" type="object" string="Baja (backup final)" icon="fa-trash" confirm="¿Baja definitiva día 15? Requiere backup final y confirmación explícita. No borra DB automáticamente." invisible="state != 'suspendido'" class="oe_highlight"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="name" placeholder="Pinturería Centro"/></h1>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="state != 'activo' or not suspend_grace_until">
+                        Gracia hasta <field name="suspend_grace_until" readonly="1" nolabel="1" class="d-inline"/> — suspender solo desde día 8.
                     </div>
                     <group>
                         <group string="Infra">
@@ -38,15 +42,25 @@
                         </group>
                         <group string="Gestión">
                             <field name="abono_due_date"/>
+                            <field name="suspend_grace_until" readonly="1"/>
+                            <field name="last_warning_sent"/>
                             <field name="last_backup"/>
                         </group>
                     </group>
                     <group string="Módulos del Catálogo ModoOps">
                         <field name="modules_installed" placeholder="Mostrador, Depósito Inteligente, Compras, Fiscal AR"/>
+                        <div class="text-muted">Solo Catálogo ModoOps. Wizard mock valida; ejecución real vía provision_tenant.py.</div>
                     </group>
                     <group string="Notas">
                         <field name="notes"/>
                     </group>
+                    <notebook>
+                        <page string="Chatter" name="chatter">
+                            <field name="message_ids" widget="mail_thread"/>
+                            <field name="message_follower_ids" widget="mail_followers"/>
+                            <field name="activity_ids" widget="mail_activity"/>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

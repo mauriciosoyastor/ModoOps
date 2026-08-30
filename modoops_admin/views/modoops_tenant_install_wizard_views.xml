@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_modoops_tenant_install_wizard_form" model="ir.ui.view">
+        <field name="name">modoops.tenant.install.wizard.form</field>
+        <field name="model">modoops.tenant.install.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Instalar/Quitar módulo (Catálogo ModoOps)">
+                <group>
+                    <field name="tenant_id" readonly="1"/>
+                    <field name="module_key" widget="selection"/>
+                    <field name="action" widget="radio"/>
+                </group>
+                <group string="Notas">
+                    <field name="notes" placeholder="Ticket, validación, motivo (mock no ejecuta odoo-bin real)"/>
+                </group>
+                <div class="text-muted">
+                    Solo módulos del Catálogo ModoOps. Mock: escribe modules_installed + log. Ejecución real: odoo-bin -d &lt;tenant&gt; -i &lt;modulo&gt; (ver tools/modoops_provision/README).
+                </div>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirmar (mock)" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

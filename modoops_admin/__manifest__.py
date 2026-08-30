@@ -14,7 +14,10 @@ Mock v0.1 — sin billing auto ni editor runtime.
     "depends": ["base", "web", "mail"],
     "data": [
         "security/ir.model.access.csv",
+        "security/modoops_tenant_log_access.xml",
         "views/modoops_tenant_views.xml",
+        "views/modoops_tenant_install_wizard_views.xml",
+        "views/modoops_tenant_log_views.xml",
         "views/modoops_admin_menus.xml",
         "data/modoops_tenant_demo.xml",
     ],
