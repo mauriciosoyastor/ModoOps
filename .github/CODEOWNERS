@@ -1,0 +1,6 @@
+# CODEOWNERS — review obligatorio para áreas críticas
+*       @mauriciosoyastor
+/docs/  @mauriciosoyastor
+modoops_ia/ @mauriciosoyastor
+worker.js @mauriciosoyastor
+wrangler.toml @mauriciosoyastor

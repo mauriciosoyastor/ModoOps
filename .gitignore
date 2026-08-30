@@ -1,6 +1,13 @@
 node_modules/
 .wrangler/
 .dev.vars
+.env
 *.log
 .gitnexus/
 .playwright-mcp/
+__pycache__/
+.pytest_cache/
+*.pyc
+dist/
+.coverage
+htmlcov/
