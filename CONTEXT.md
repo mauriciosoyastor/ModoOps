@@ -255,6 +255,32 @@ Bloqueo de acceso Tenant por falta de pago Abono $45/mes. Regla: **gracia 7 día
 **Emergencia (WhatsApp)**:
 Incidente que impide vender o emitir comprobantes por falla atribuible al trabajo entregado; fuera de horario comercial solo si se definió así por escrito.
 
+### Agentes IA (ModoOps IA — `modoops_ia`)
+
+**Agente ModoOps**:
+Proceso herramental que resuelve una tarea invocando **Herramientas ModoOps** dentro de un único **Tenant**. El chat es solo UI sobre el mismo Agente.
+_Avoid_: "agente" genérico sin Tenant, "chatbot" con escrituras directas, agente multi-tenant.
+
+**Herramienta ModoOps (Tool)**:
+Unidad invocable por un Agente que envuelve una operación Odoo con contrato cerrado (`input_schema` + permisos `groups_id` + auditoría). No es **Add-on** ni **Integración Fase 2** ni `ir.actions`.
+_Avoid_: Add-on, Integración, Acción, Skill.
+
+**Orquestador ModoOps (BFF Astro)**:
+Aduana obligatoria entre Agente y Odoo. Valida api_key por Tenant, enforza **Contexto Tenant**, rate-limit, y audita en `modoops.tenant.log` antes de tocar Odoo.
+_Avoid_: Odoo expuesto directo a IA con `auth='public'` o cookie de sesión, bypass del BFF.
+
+**Contexto Tenant**:
+Par `db_name` + `tenant_id` inyectado en toda invocación IA que fija el cursor ORM a `modoops_<slug>`. Sin él no hay ejecución.
+_Avoid_: `user_id` suelto, cursor implícito, agente sin `db_name`.
+
+**Grafo GitNexus ModoOps**:
+Índice local `.gitnexus/` del repo ModoOps con capas `graph + FTS (ladybugdb-fts) + vectorSearch/embeddings` (modelo local `snowflake-arctic-embed-xs`, **384 dims** congeladas, ~90 MB modelo / +2–5 MB índice) consumible por el agente IA vía MCP (`query` → `context` → `impact` → `cypher`), offline-first, reindex con `npx gitnexus analyze --force --embeddings`; `fts/vector: available` + `Semantic mode: vector` + `stats.embeddings>0` + `embeddingDims==384` es el criterio de paridad. Sin `--pdg` en MVP (fog). Plantilla reutilizable si un tenant requiriera grafo propio.
+_Avoid_: dims distintas sin ADR + reindex; `--pdg` como requisito de paridad MVP; grafo por tenant como infra multi-DB hoy.
+
+**Catálogo de Herramientas IA**:
+Conjunto vivo de Herramientas validadas por ModoOps, definido en `modoops_master` y ejecutado siempre en la DB del Tenant. Las credenciales externas (ej: API key MercadoPago del Cliente) se resuelven en el Tenant ejecutante, no en el catálogo central.
+_Avoid_: credenciales de Tenant en master, herramienta sin dueño Tenant.
+
 ## Relationships
 
 - Un **Prospecto** puede contratar un **Descubrimiento pago** antes del **Paquete ancla**.
