@@ -70,6 +70,11 @@ class SgPriceListImportWizard(models.TransientModel):
             raise UserError(parsed["error"])
         if not parsed.get("rows"):
             raise UserError(_("El archivo no tiene filas de datos."))
+        if len(parsed["rows"]) > logic.MAX_IMPORT_ROWS:
+            raise UserError(
+                _("El archivo tiene %(n)s filas; el límite por lote es %(max)s. Dividí en archivos más chicos.")
+                % {"n": len(parsed["rows"]), "max": logic.MAX_IMPORT_ROWS}
+            )
         headers = parsed["headers"]
         mapping = logic.suggest_mapping(headers)
         self.write(
@@ -113,6 +118,11 @@ class SgPriceListImportWizard(models.TransientModel):
             raw_rows = json.loads(self.rows_json or "[]")
         except json.JSONDecodeError as exc:
             raise UserError(_("No se pudieron leer las filas parseadas.")) from exc
+        if len(raw_rows) > logic.MAX_IMPORT_ROWS:
+            raise UserError(
+                _("Preview con %(n)s filas; el límite es %(max)s por lote.")
+                % {"n": len(raw_rows), "max": logic.MAX_IMPORT_ROWS}
+            )
 
         indexes = self._build_indexes()
         classified = logic.classify_rows(raw_rows, mapping, indexes)
@@ -155,6 +165,11 @@ class SgPriceListImportWizard(models.TransientModel):
 
     def action_apply(self):
         self.ensure_one()
+        if len(self.line_ids) > logic.MAX_IMPORT_ROWS:
+            raise UserError(
+                _("No se pueden importar más de %(max)s filas por lote (actual: %(n)s).")
+                % {"max": logic.MAX_IMPORT_ROWS, "n": len(self.line_ids)}
+            )
         ProductTemplate = self.env["product.template"]
         created = 0
         updated = 0

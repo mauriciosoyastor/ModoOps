@@ -10,11 +10,11 @@
 | **Depósito Inteligente** | `stock` | `base`, `product` | ✅ (1 almacén) | Ubicaciones Recepción/Depósito/Mostrador. Hub Inventario KPI cards. |
 | **Ventas** | `sale_management` | `stock`, `product` | ✅ | Flujo ligado a POS/facturación operativa. Hub Ventas. |
 | **Compras** | `purchase` | `stock`, `product` | ✅ | Órdenes + recepciones 1 almacén. Hub Compras. |
-| **Fiscal AR** | `account` + `l10n_ar` (EDI) | `base` | ✅ (según anexo) | Contabilidad operativa + Factura Web puente. Requiere anexo fiscal cerrado + asesor fiscal. |
+| **Fiscal AR** | `account` + `l10n_ar` (OCA, CE 19) | `base`, `l10n_ar` | ✅ (según anexo) | Contabilidad operativa + Factura Web puente. `modoops_core` depende `l10n_ar` pero emisión bloqueada por `ir.config_parameter` `modoops.fiscal_enabled=False` hasta firma anexo + validación asesor fiscal (`modoops_fiscal_guard.py`). |
 | **Contactos** | `base`, `product` (Contactos) | — | ✅ | Clientes/proveedores básicos. |
 | **Plataforma ModoOps** | `servigas_core` renombrado → `modoops_core` | `web`, `mail`, `product` | ✅ (siempre) | Shell Astro BFF + Liquid Glass v2, hubs, launcher, rail, onboarding. No se cobra como módulo. |
 | **Puente Factura Web** | `servigas_integrations` → `modoops_integrations` | `modoops_core` | ✅ (manual) | Tile launcher + cards Factura Web/portales. Planilla `datos/import/planilla_puente_factura_web.xlsx`. |
-| **Taller** | `sg_workshop` (custom Servigas) | `stock`, `sale` | ⬜ Add-on $155 (o días×$52) | Hub Taller / órdenes de trabajo. `sg_workshop_views.xml`, `hub_workshop_data.xml`. Decisión 2026-08-29: **Add-on**, no en Ancla Retail. |
+| **Taller** | `sg_workshop` → `mo.work.order`/`mo.appliance` en `modoops_core` | `stock`, `sale` | ⬜ Add-on $155 (o días×$52) | Hub Taller / órdenes de trabajo. En core pero oculto por grupo `modoops_core.group_modoops_workshop` (`mo_workshop_views.xml` actions con `groups_id`). Activación Add-on = asignar grupo. Decisión 2026-08-30: **mantener en core con visibilidad condicional** (no extraer módulo). |
 
 ## Módulos candidatos (requieren Descubrimiento + validación antes de entrar al Catálogo)
 
@@ -25,7 +25,7 @@
 | **eCommerce** | `website_sale` | Excluido | Fase 2 |
 | **Integración Mercado Libre / TiendaNube** | API externa | No en Servigas | Fase 2 integración mín $104 (2 días) |
 | **MRP Ligero** | `mrp` | No validado | Requiere descubrimiento extenso |
-| **Migración Excel** | scripts `datos/import/*.py` | Validado 8.767 SKU, Maestro `maestro_import_odoo_final.xlsx` | Add-on $155 (≤500 prod) |
+| **Migración Excel** | `mo.price.list.import.wizard` + `mo_price_list_import_logic.py` | Validado 8.767 SKU, Maestro `maestro_import_odoo_final.xlsx` | Add-on $155 (≤500 prod) | Wizard E2E `CSV/XLSX → preview/classify_rows → create/update` con tope `MAX_IMPORT_ROWS=500` (validado en `wizard:63,116,156`). |
 
 ## Configurador ModoOps (herramienta interna) — reglas
 
@@ -36,8 +36,9 @@
 
 ## Validación pendiente
 
-- [ ] Confirmar si `sg_workshop` queda en Catálogo inicial o pasa a candidato.
-- [ ] Definir `l10n_ar` módulo exacto (versión/ rama) para Fiscal AR en CE 19.
+- [x] `sg_workshop` → Add-on $155 en core con grupo `group_modoops_workshop` (2026-08-30)
+- [x] `l10n_ar` OCA CE 19 en `depends` + feature-flag `modoops.fiscal_enabled` (2026-08-30)
+- [x] Price List wizard E2E + tope 500 (`MAX_IMPORT_ROWS`) (2026-08-30)
 - [ ] Extraer `odoo-19/addons` lista para dependencias transitivas (no listar todo OCA).
 
 > Este catálogo es el universo ofrecible ModoOps hoy. "Todo Odoo" = todo lo de esta tabla. Crece solo tras validar en proyecto real (ADR 0005).

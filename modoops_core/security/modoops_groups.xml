@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Grupo Taller — activa visibilidad del Add-on $155. Sin grupo, menus ocultos. -->
+    <record id="group_modoops_workshop" model="res.groups">
+        <field name="name">ModoOps / Taller</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="comment">Ver Artefactos y Órdenes de trabajo (Add-on Taller $155). Asignar vía Control Plane al contratar.</field>
+    </record>
+</odoo>

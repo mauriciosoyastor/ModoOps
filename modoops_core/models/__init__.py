@@ -12,3 +12,4 @@ from . import mo_appliance
 from . import mo_work_order
 from . import report_modoops_brand
 from . import product_template
+from . import modoops_fiscal_guard

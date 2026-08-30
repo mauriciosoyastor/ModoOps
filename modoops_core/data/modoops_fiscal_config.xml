@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Feature-flag fiscal: bloquea account.move.action_post hasta anexo firmado -->
+        <record id="config_modoops_fiscal_enabled" model="ir.config_parameter">
+            <field name="key">modoops.fiscal_enabled</field>
+            <field name="value">False</field>
+        </record>
+    </data>
+</odoo>

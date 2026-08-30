@@ -86,6 +86,8 @@ FIELD_ALIASES = {
     },
 }
 
+MAX_IMPORT_ROWS = 500
+
 TEMPLATE_CSV = (
     "barcode,default_code,name,list_price,standard_price\n"
     "7790000000000,SKU-EJEMPLO,Producto ejemplo,1500.00,900.00\n"

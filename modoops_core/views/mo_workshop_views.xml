@@ -48,6 +48,7 @@
         <field name="name">Artefactos</field>
         <field name="res_model">mo.appliance</field>
         <field name="view_mode">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [ref('modoops_core.group_modoops_workshop')])]"/>
     </record>
 
     <record id="view_mo_work_order_tree" model="ir.ui.view">
@@ -103,6 +104,7 @@
         <field name="name">Órdenes de trabajo</field>
         <field name="res_model">mo.work.order</field>
         <field name="view_mode">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [ref('modoops_core.group_modoops_workshop')])]"/>
     </record>
     <record id="action_mo_work_order_new" model="ir.actions.act_window">
         <field name="name">Nueva OT</field>
@@ -110,5 +112,6 @@
         <field name="view_mode">form</field>
         <field name="target">current</field>
         <field name="context">{'default_state': 'draft'}</field>
+        <field name="groups_id" eval="[(6, 0, [ref('modoops_core.group_modoops_workshop')])]"/>
     </record>
 </odoo>
