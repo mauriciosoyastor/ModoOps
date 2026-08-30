@@ -1,5 +1,5 @@
 name = "modoops"
-type = "javascript"
+main = "worker.js"
 compatibility_date = "2026-08-30"
 
 [assets]
