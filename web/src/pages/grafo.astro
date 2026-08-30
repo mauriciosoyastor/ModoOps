@@ -1,0 +1,310 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { grafoData } from "../lib/grafo/data";
+
+const title = "Grafo de código — ModoOps";
+const description = `Grafo de código ModoOps: ${grafoData.meta.stats.nodes} nodos, ${grafoData.meta.stats.edges} aristas. Visualización interactiva file-level.`;
+---
+
+<BaseLayout {title} {description}>
+  <main class="min-h-screen bg-[#0a0a12] text-zinc-100">
+    <!-- Header grafo -->
+    <section class="border-b border-white/10 bg-white/[0.02]">
+      <div class="mx-auto max-w-[1400px] px-6 py-6 md:px-10">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold tracking-widest text-cyan-400 uppercase">ModoOps · Grafo de código</p>
+            <h1 class="mt-2 text-2xl font-semibold tracking-tight text-white md:text-3xl">Grafo file-level + comunidades</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+              {grafoData.meta.description}
+              Índice <span class="text-zinc-200">{grafoData.meta.commit}</span> · {grafoData.meta.stats.files} archivos ·
+              {grafoData.meta.stats.communities} comunidades · {grafoData.meta.stats.processes} flujos.
+              Para nivel símbolo usá <code class="rounded bg-white/10 px-1 py-0.5 text-xs">gitnexus_query / context / impact</code>.
+            </p>
+          </div>
+          <div class="flex flex-col gap-2 text-xs">
+            <a href="/" class="rounded-full border border-white/15 px-4 py-2 text-center text-zinc-200 hover:bg-white/10">← Volver a landing</a>
+            <a href="/grafo-data.json" target="_blank" class="rounded-full bg-cyan-500 px-4 py-2 text-center font-medium text-black hover:bg-cyan-400">Descargar JSON</a>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div class="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+            <p class="text-xs tracking-widest text-zinc-500 uppercase">Nodos (archivos)</p>
+            <p class="mt-1 text-2xl font-semibold text-white">{grafoData.nodes.length}</p>
+            <p class="text-xs text-zinc-500">de {grafoData.meta.stats.files} indexados</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+            <p class="text-xs tracking-widest text-zinc-500 uppercase">Aristas (file-level)</p>
+            <p class="mt-1 text-2xl font-semibold text-white">{grafoData.edges.length}</p>
+            <p class="text-xs text-zinc-500">IMPORTS azul · CALLS naranja</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+            <p class="text-xs tracking-widest text-zinc-500 uppercase">Comunidades</p>
+            <p class="mt-1 text-2xl font-semibold text-white">{grafoData.communities.length}</p>
+            <p class="text-xs text-zinc-500">Leiden · cohesion avg {(grafoData.communities.reduce((a,c)=>a+c.cohesion,0)/grafoData.communities.length).toFixed(2)}</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+            <p class="text-xs tracking-widest text-zinc-500 uppercase">CLI helper</p>
+            <p class="mt-1 font-mono text-xs text-cyan-300">node tools/grafo/grafo.mjs query "onboarding"</p>
+            <p class="mt-1 font-mono text-xs text-zinc-500">node tools/grafo/grafo.mjs impact --target post_init_hook</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controles -->
+    <section class="mx-auto max-w-[1400px] px-6 py-4 md:px-10">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-zinc-400">Buscar</label>
+          <input id="grafo-search" placeholder="filtrar nodo (ej: rail, price_list, hooks)" class="w-[280px] rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-cyan-400 focus:outline-none" />
+        </div>
+        <label class="flex items-center gap-2 text-xs text-zinc-400">
+          <input id="toggle-imports" type="checkbox" checked class="accent-cyan-500" />
+          IMPORTS
+        </label>
+        <label class="flex items-center gap-2 text-xs text-zinc-400">
+          <input id="toggle-calls" type="checkbox" checked class="accent-orange-500" />
+          CALLS
+        </label>
+        <button id="btn-fit" class="rounded-full border border-white/15 px-4 py-2 text-xs text-zinc-200 hover:bg-white/10">Centrar grafo</button>
+        <button id="btn-reset" class="rounded-full border border-white/15 px-4 py-2 text-xs text-zinc-200 hover:bg-white/10">Limpiar foco</button>
+        <span id="selection-info" class="ml-auto text-xs text-zinc-500"></span>
+      </div>
+    </section>
+
+    <!-- Canvas -->
+    <section class="mx-auto max-w-[1400px] px-6 pb-6 md:px-10">
+      <div class="grid gap-4 lg:grid-cols-[1fr_340px]">
+        <div id="grafo-network" class="h-[640px] rounded-2xl border border-white/10 bg-[#11111b]"></div>
+        <div class="flex flex-col gap-4">
+          <div id="node-detail" class="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+            <p class="text-xs tracking-widest text-zinc-500 uppercase">Detalle nodo</p>
+            <p class="mt-3 text-sm text-zinc-400">Clickeá un nodo para ver archivo, grupo, conexiones y comandos sugeridos.</p>
+            <div id="node-detail-body" class="mt-4 hidden"></div>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+            <p class="text-xs tracking-widest text-zinc-500 uppercase">Comunidades (top)</p>
+            <ul class="mt-3 space-y-2">
+              {grafoData.communities.map((c) => (
+                <li class="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2">
+                  <span class="text-sm text-white">{c.label}</span>
+                  <span class="text-xs text-zinc-400">{c.count} · {c.cohesion.toFixed(2)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+            <p class="text-xs tracking-widest text-zinc-500 uppercase">Flujos (processes)</p>
+            <ul class="mt-3 space-y-2">
+              {grafoData.processes.map((p) => (
+                <li class="rounded-lg bg-white/[0.04] px-3 py-2">
+                  <p class="text-sm text-white">{p.label}</p>
+                  <p class="text-xs text-zinc-500">{p.steps} pasos · {p.type}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ayuda -->
+    <section class="mx-auto max-w-[1400px] px-6 pb-10 md:px-10">
+      <div class="rounded-2xl border border-cyan-500/20 bg-cyan-500/[0.06] p-6">
+        <h2 class="text-sm font-semibold tracking-widest text-cyan-300 uppercase">Cómo usar el grafo de código</h2>
+        <div class="mt-3 grid gap-4 text-sm leading-6 text-zinc-300 md:grid-cols-3">
+          <div>
+            <p class="font-medium text-white">1. Explorar</p>
+            <p class="text-zinc-400">Hover para ver conexiones. Click para fijar nodo y ver detalle + comandos <code class="text-cyan-300">context</code> / <code class="text-cyan-300">impact</code>.</p>
+          </div>
+          <div>
+            <p class="font-medium text-white">2. Filtrar</p>
+            <p class="text-zinc-400">Usá búsqueda y toggles IMPORTS/CALLS para reducir ruido. Doble click en fondo para liberar física.</p>
+          </div>
+          <div>
+            <p class="font-medium text-white">3. Profundizar</p>
+            <p class="text-zinc-400">Copia el comando sugerido y ejecutalo en el agente: <code class="text-xs text-cyan-300">node tools/grafo/grafo.mjs impact --target mo_rail_context --direction upstream</code></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script is:inline src="https://cdn.jsdelivr.net/npm/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+  <!-- Datos embebidos para hidratación sin fetch -->
+  <script id="grafo-data-json" type="application/json" set:html={JSON.stringify(grafoData)}></script>
+
+  <script>
+    const raw = JSON.parse(document.getElementById("grafo-data-json").textContent);
+    const groupColor = {
+      "docs": "#22d3ee",
+      "modoops_admin": "#a78bfa",
+      "modoops_core": "#34d399",
+      "js/chrome": "#f472b6",
+      "js/components": "#fb7185",
+      "js/hubs": "#fbbf24",
+      "js/launcher": "#f97316",
+      "js/services": "#60a5fa",
+      "web": "#e879f9",
+    };
+
+    const nodes = raw.nodes.map((n) => ({
+      id: n.id,
+      label: n.label.length > 22 ? n.label.slice(0, 20) + "…" : n.label,
+      title: `${n.id}\ngrupo: ${n.group} · peso: ${n.weight}`,
+      group: n.group,
+      value: 6 + n.weight * 2.5,
+      color: {
+        background: groupColor[n.group] || "#71717a",
+        border: "#ffffff22",
+        highlight: { background: groupColor[n.group] || "#71717a", border: "#22d3ee" },
+      },
+      font: { color: "#e4e4e7", size: 11, face: "Inter" },
+      borderWidth: 1,
+    }));
+
+    const edgesAll = raw.edges.map((e, i) => ({
+      id: `e-${i}`,
+      from: e.from,
+      to: e.to,
+      label: e.type === "CALLS" ? String(e.weight) : "",
+      title: `${e.type}: ${e.from} → ${e.to} (w=${e.weight})`,
+      color: { color: e.type === "IMPORTS" ? "#22d3ee88" : "#fb923c88", highlight: e.type === "IMPORTS" ? "#22d3ee" : "#fb923c", hover: "#ffffff" },
+      width: e.type === "IMPORTS" ? 1.2 : 1 + Math.log(1 + e.weight),
+      arrows: "to",
+      smooth: { type: "curvedCW", roundness: 0.12 },
+      _type: e.type,
+    }));
+
+    let network, dataSet;
+    function render(filteredEdges) {
+      const container = document.getElementById("grafo-network");
+      // @ts-ignore
+      const vis = window.vis;
+      const dsNodes = new vis.DataSet(nodes);
+      const dsEdges = new vis.DataSet(filteredEdges);
+      const data = { nodes: dsNodes, edges: dsEdges };
+      const options = {
+        physics: { solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -70, centralGravity: 0.007, springLength: 140, damping: 0.6 }, stabilization: { iterations: 180 } },
+        interaction: { hover: true, tooltipDelay: 120, zoomView: true, dragView: true },
+        nodes: { shape: "dot", scaling: { min: 8, max: 28 } },
+        edges: { font: { size: 9, color: "#a1a1aa" }, hoverWidth: 1.4 },
+      };
+      if (network) network.destroy();
+      network = new vis.Network(container, data, options);
+      dataSet = { nodes: dsNodes, edges: dsEdges };
+
+      network.on("click", (params) => {
+        if (params.nodes.length === 1) {
+          showDetail(params.nodes[0]);
+          // highlight neighborhood
+          const nid = params.nodes[0];
+          const connected = new Set([nid]);
+          dsEdges.forEach((e) => { if (e.from === nid) connected.add(e.to); if (e.to === nid) connected.add(e.from); });
+          dsNodes.forEach((n) => {
+            dsNodes.update({ id: n.id, opacity: connected.has(n.id) ? 1 : 0.18, font: { color: connected.has(n.id) ? "#fff" : "#52525b" } });
+          });
+          dsEdges.forEach((e) => {
+            const active = e.from === nid || e.to === nid;
+            dsEdges.update({ id: e.id, color: { ...e.color, opacity: active ? 1 : 0.08 }, width: active ? e.width + 1 : e.width });
+          });
+          document.getElementById("selection-info").textContent = `Foco: ${nid} · ${connected.size - 1} vecinos`;
+        } else if (params.nodes.length === 0) {
+          resetOpacity();
+        }
+      });
+      network.on("doubleClick", () => resetOpacity());
+    }
+
+    function resetOpacity() {
+      if (!dataSet) return;
+      dataSet.nodes.forEach((n) => dataSet.nodes.update({ id: n.id, opacity: 1, font: { color: "#e4e4e7" } }));
+      dataSet.edges.forEach((e) => dataSet.edges.update({ id: e.id, color: { ...e.color, opacity: 1 } }));
+      document.getElementById("selection-info").textContent = "";
+      document.getElementById("node-detail-body").classList.add("hidden");
+    }
+
+    function showDetail(nodeId) {
+      const rawNode = raw.nodes.find((n) => n.id === nodeId);
+      const incoming = raw.edges.filter((e) => e.to === nodeId);
+      const outgoing = raw.edges.filter((e) => e.from === nodeId);
+      const body = document.getElementById("node-detail-body");
+      body.classList.remove("hidden");
+      body.innerHTML = `
+        <p class="font-mono text-sm font-semibold text-white">${rawNode.id}</p>
+        <p class="mt-1 text-xs text-zinc-400">grupo <span class="text-zinc-200">${rawNode.group}</span> · kind ${rawNode.kind} · peso ${rawNode.weight}</p>
+        <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+          <div class="rounded-lg bg-white/[0.06] p-3"><p class="text-zinc-500">Entradas</p><p class="mt-1 text-white">${incoming.length} aristas</p><p class="mt-1 font-mono text-[11px] text-zinc-400">${incoming.slice(0,4).map(e=>e.from.split('/').pop()).join(", ") || "—"}</p></div>
+          <div class="rounded-lg bg-white/[0.06] p-3"><p class="text-zinc-500">Salidas</p><p class="mt-1 text-white">${outgoing.length} aristas</p><p class="mt-1 font-mono text-[11px] text-zinc-400">${outgoing.slice(0,4).map(e=>e.to.split('/').pop()).join(", ") || "—"}</p></div>
+        </div>
+        <div class="mt-3 rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-3">
+          <p class="text-xs font-medium text-cyan-300">Comandos sugeridos (copiar al agente)</p>
+          <code class="mt-2 block rounded bg-black/40 p-2 font-mono text-[11px] leading-4 text-cyan-200">node tools/grafo/grafo.mjs context --name ${nodeId.split('/').pop().replace('.py','').replace('.js','').split('.')[0]} --file ${nodeId}</code>
+          <code class="mt-2 block rounded bg-black/40 p-2 font-mono text-[11px] leading-4 text-orange-200">node tools/grafo/grafo.mjs impact --target ${nodeId.split('/').pop().replace('.py','').replace('.js','').split('.')[0]} --direction upstream</code>
+        </div>
+      `;
+    }
+
+    function currentFilteredEdges() {
+      const showImports = document.getElementById("toggle-imports").checked;
+      const showCalls = document.getElementById("toggle-calls").checked;
+      const q = document.getElementById("grafo-search").value.trim().toLowerCase();
+      return edgesAll.filter((e) => {
+        if (e._type === "IMPORTS" && !showImports) return false;
+        if (e._type === "CALLS" && !showCalls) return false;
+        if (q) {
+          const hit = e.from.toLowerCase().includes(q) || e.to.toLowerCase().includes(q);
+          if (!hit) return false;
+        }
+        return true;
+      });
+    }
+
+    function rerenderFiltered() {
+      render(currentFilteredEdges());
+    }
+
+    document.getElementById("toggle-imports").addEventListener("change", rerenderFiltered);
+    document.getElementById("toggle-calls").addEventListener("change", rerenderFiltered);
+    document.getElementById("grafo-search").addEventListener("input", () => {
+      const q = document.getElementById("grafo-search").value.trim().toLowerCase();
+      if (!q) { rerenderFiltered(); return; }
+      // filtrar nodos también
+      const hitNodes = new Set(raw.nodes.filter(n => n.id.toLowerCase().includes(q) || n.label.toLowerCase().includes(q)).map(n=>n.id));
+      const hitEdges = edgesAll.filter(e => hitNodes.has(e.from) || hitNodes.has(e.to) || e.from.toLowerCase().includes(q) || e.to.toLowerCase().includes(q));
+      // si hay hits de nodos, mostrar solo su subgrafo
+      if (hitNodes.size > 0) {
+        const subNodes = nodes.filter(n => hitNodes.has(n.id) || hitEdges.some(e=>e.from===n.id || e.to===n.id));
+        // render subgrafo
+        const container = document.getElementById("grafo-network");
+        // @ts-ignore
+        const vis = window.vis;
+        const dsNodes = new vis.DataSet(subNodes);
+        const dsEdges = new vis.DataSet(hitEdges);
+        if (network) network.destroy();
+        network = new vis.Network(container, { nodes: dsNodes, edges: dsEdges }, {
+          physics: { solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -60, springLength: 120 }, stabilization: { iterations: 120 } },
+          nodes: { shape: "dot", scaling: { min: 10, max: 32 } },
+        });
+        network.on("click", (p) => { if (p.nodes[0]) showDetail(p.nodes[0]); });
+        document.getElementById("selection-info").textContent = `Búsqueda: "${q}" · ${subNodes.length} nodos, ${hitEdges.length} aristas`;
+      } else {
+        rerenderFiltered();
+      }
+    });
+    document.getElementById("btn-fit").addEventListener("click", () => network && network.fit({ animation: { duration: 600 } }));
+    document.getElementById("btn-reset").addEventListener("click", () => {
+      document.getElementById("grafo-search").value = "";
+      document.getElementById("toggle-imports").checked = true;
+      document.getElementById("toggle-calls").checked = true;
+      resetOpacity();
+      rerenderFiltered();
+    });
+
+    // init
+    render(edgesAll);
+  </script>
+</BaseLayout>

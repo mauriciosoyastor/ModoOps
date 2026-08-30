@@ -4,16 +4,14 @@ import Hero from '../components/sections/Hero.astro';
 import Problem from '../components/sections/Problem.astro';
 import Solution from '../components/sections/Solution.astro';
 import Path from '../components/sections/Path.astro';
-import PathNebula from '../components/sections/PathNebula.astro';
-import SupportModel from '../components/sections/SupportModel.astro';
+import Discovery from '../components/sections/Discovery.astro';
 import Audience from '../components/sections/Audience.astro';
 import HowWeWork from '../components/sections/HowWeWork.astro';
-import Faq from '../components/sections/Faq.astro';
 import Contact from '../components/sections/Contact.astro';
 import { publicPricing, brand } from '../data/business';
 
 const title = `${brand.name} — ${brand.tagline}`;
-const description = `Implementación Odoo para retail en Argentina. Descubrimiento ${publicPricing.discovery.amount} · PYME, una sucursal, caja y stock integrados.`;
+const description = `ModoOps — Sistema de Gestión Modular para PYME Argentina. Descubrimiento ${publicPricing.discovery.amount} · una sucursal, caja y stock integrados.`;
 ---
 
 <BaseLayout {title} {description}>
@@ -22,11 +20,9 @@ const description = `Implementación Odoo para retail en Argentina. Descubrimien
     <Problem />
     <Solution />
     <Path />
-    <PathNebula />
-    <SupportModel />
+    <Discovery />
     <Audience />
     <HowWeWork />
-    <Faq />
     <Contact />
   </main>
 </BaseLayout>

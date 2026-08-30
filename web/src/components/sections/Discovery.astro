@@ -1,0 +1,21 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { discovery } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="white" id="descubrimiento" embedded={embedded}>
+  <SectionHeading title={discovery.title} lead={`${discovery.price} · ${discovery.duration} · informe + propuesta`} />
+  <div class="galaxy-card rounded-[var(--radius-card)] p-6 md:p-8">
+    <p class="text-sm text-ash-gray">Jornada extra: {discovery.extraDay}. Validez de propuesta: 20 días.</p>
+    <ul class="mt-4 grid gap-2 text-[length:var(--text-body)]">
+      {discovery.includes.map((item) => <li>— {item}</li>)}
+    </ul>
+    <p class="mt-4 text-sm text-ash-gray">El crédito por cierre del ancla no se publica en landing; solo en propuesta.</p>
+  </div>
+</Section>

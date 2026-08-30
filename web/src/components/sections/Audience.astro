@@ -10,12 +10,20 @@ interface Props {
 const { embedded = false } = Astro.props;
 ---
 
-<Section variant="white" embedded={embedded}>
+<Section variant="white" id="para-quien" embedded={embedded}>
   <SectionHeading title={audience.title} />
-  <div class="max-w-2xl">
-    <h3 class="text-[length:var(--text-subheading)] font-medium">{audience.yesTitle}</h3>
-    <ul class="mt-4 grid gap-2 text-[length:var(--text-body-lg)]">
-      {audience.yes.map((item) => <li>{item}</li>)}
-    </ul>
+  <div class="grid gap-8 md:grid-cols-2">
+    <div>
+      <h3 class="text-[length:var(--text-subheading)] font-medium">{audience.yesTitle}</h3>
+      <ul class="mt-4 grid gap-2 text-[length:var(--text-body)]">
+        {audience.yes.map((item) => <li>✓ {item}</li>)}
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-[length:var(--text-subheading)] font-medium">{audience.noTitle}</h3>
+      <ul class="mt-4 grid gap-2 text-[length:var(--text-body)] text-ash-gray">
+        {audience.no.map((item) => <li>✕ {item}</li>)}
+      </ul>
+    </div>
   </div>
 </Section>
