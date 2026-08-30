@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_modoops_agent_tool_user,modoops.agent.tool user,model_modoops_agent_tool,base.group_user,1,0,0,0
+access_modoops_agent_tool_system,modoops.agent.tool system,model_modoops_agent_tool,base.group_system,1,1,1,1
+access_modoops_agent_run_user,modoops.agent.run user,model_modoops_agent_run,base.group_user,1,1,1,0
+access_modoops_agent_run_system,modoops.agent.run system,model_modoops_agent_run,base.group_system,1,1,1,1
+access_modoops_agent_memory_user,modoops.agent.memory user,model_modoops_agent_memory,base.group_user,1,1,1,0
+access_modoops_agent_memory_system,modoops.agent.memory system,model_modoops_agent_memory,base.group_system,1,1,1,1
