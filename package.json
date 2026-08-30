@@ -1,6 +1,13 @@
 {
   "private": true,
+  "workspaces": [
+    "web"
+  ],
   "scripts": {
-    "build": "npm --prefix web install && npm --prefix web run build"
+    "build": "npm run build -w galaxygroup-web",
+    "deploy": "wrangler deploy --config wrangler.toml --no-autoconfig"
+  },
+  "devDependencies": {
+    "wrangler": "^4.127.1"
   }
 }
