@@ -1,11 +1,11 @@
 import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
+import vercel from '@astrojs/vercel';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://modo-ops-web.vercel.app',
   output: 'server',
-  adapter: cloudflare(),
+  adapter: vercel(),
   server: {
     port: 3001,
   },
