@@ -9,6 +9,7 @@
                     <field name="tenant_id" readonly="1"/>
                     <field name="module_key" widget="selection"/>
                     <field name="action" widget="radio"/>
+                    <field name="preview_command" readonly="1" class="text-muted"/>
                 </group>
                 <group string="Notas">
                     <field name="notes" placeholder="Ticket, validación, motivo (mock no ejecuta odoo-bin real)"/>
