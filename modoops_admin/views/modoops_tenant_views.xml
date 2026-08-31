@@ -23,8 +23,8 @@
         <field name="name">modoops.tenant.tree</field>
         <field name="model">modoops.tenant</field>
         <field name="arch" type="xml">
-            <list string="Tenants ModoOps" sample="1" help="0 tenants — onboarding master">
-                <!-- empty: 0 tenants — onboarding master -->
+            <list string="Tenants ModoOps" sample="1" help="0 tenants — onboarding master — Crear Tenant">
+                <!-- empty: 0 tenants — onboarding master — CTA Crear Tenant -->
                 <field name="name"/>
                 <field name="db_name"/>
                 <field name="vertical"/>
@@ -79,7 +79,8 @@
                             <div class="text-muted">Cards Ancla/Add-on con validación module_required / depends en wizard.</div>
                         </page>
                         <page string="Logs" name="logs">
-                            <div class="alert alert-info" role="alert">Logs auditados en <code>modoops.tenant.log</code> — filtra por tenant/acción, export CSV. Provisioning fallido reintentable.</div>
+                            <div class="alert alert-info" role="alert">Logs auditados en <code>modoops.tenant.log</code> — filtra por tenant/acción, export CSV.</div>
+                            <div class="alert alert-danger" role="alert">Provisioning fallido reintentable — <button name="action_install_module" type="object" string="Reintentar" class="btn btn-sm btn-danger"/></div>
                             <group string="Auditoría">
                                 <field name="abono_due_date" readonly="1"/>
                                 <field name="suspend_grace_until" readonly="1"/>

@@ -26,8 +26,8 @@
                                         <div class="o_kanban_record p-2">
                                             <strong><field name="module_key"/></strong>
                                             <div class="text-muted small"><field name="preview_command"/></div>
-                                            <span t-if="record.module_key.raw_value == 'mostrador'" class="badge bg-success">Ancla</span>
-                                            <span t-if="record.module_key.raw_value == 'taller'" class="badge bg-warning">Add-on</span>
+                                            <span t-if="record.module_key.raw_value in ['mostrador','deposito','compras','fiscal_ar','contactos','migracion_excel']" class="badge bg-success">Ancla</span>
+                                            <span t-if="record.module_key.raw_value in ['taller','b2b_basico']" class="badge bg-warning">Add-on</span>
                                         </div>
                                     </div>
                                 </t>
@@ -65,6 +65,8 @@
                             <div class="o_kanban_record">
                                 <strong><field name="module_key"/></strong>
                                 <div class="text-muted small"><field name="preview_command"/></div>
+                                <span t-if="record.module_key.raw_value in ['mostrador','deposito','compras','fiscal_ar','contactos','migracion_excel']" class="badge bg-success">Ancla</span>
+                                <span t-if="record.module_key.raw_value in ['taller','b2b_basico']" class="badge bg-warning">Add-on</span>
                             </div>
                         </div>
                     </t>
