@@ -64,7 +64,7 @@ try {
     <div class="mo-admin__tablewrap">
       <table class="mo-admin__table">
         <thead>
-          <tr><th>Cliente</th><th>DB</th><th>Slug</th><th>Vertical</th><th>Estado</th><th>Módulos</th><th>Vto abono</th><th>Acción</th></tr>
+          <tr><th>Cliente</th><th>DB</th><th>Slug</th><th>Vertical</th><th>Estado</th><th>Módulos</th><th>Vto abono</th><th>Hub 2</th><th>Acción</th></tr>
         </thead>
         <tbody>
           {tenants.map((t) => (
@@ -73,9 +73,10 @@ try {
               <td><code>{t.db_name}</code></td>
               <td>{t.slug}</td>
               <td>{t.vertical}</td>
-              <td><span class:list={["mo-badge", `is-${t.state}`]}>{t.state}</span></td>
+              <td><span class:list={["mo-badge", `is-${t.state}`]}>{t.state}</span>{t.modules_installed?.includes("IA ModoOps") ? <span class="mo-badge is-ia">IA</span> : null}</td>
               <td>{t.modules_installed_count} {t.modules_installed ? `· ${t.modules_installed}` : ""}</td>
               <td>{t.abono_due_date || "—"}</td>
+              <td><a href={`/tenant/${t.slug}/app`} class="mo-btn-sm">Abrir</a></td>
               <td><button type="button" class="mo-btn-sm" data-install-open data-tenant-id={t.id} data-db={t.db_name}>Instalar</button></td>
             </tr>
           ))}
@@ -114,6 +115,7 @@ try {
     ["migracion_excel","Migración Excel (≤500)"],
     ["taller","Taller (Add-on $155)"],
     ["b2b_basico","B2B Básico (Add-on $155)"],
+    ["ia","IA ModoOps — Agente herramental (Tools + Memoria)"],
   ] as const;
 
   const form = document.getElementById("create-tenant-form") as HTMLFormElement;

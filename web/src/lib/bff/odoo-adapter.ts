@@ -138,6 +138,17 @@ export class OdooAdapter implements BackendClient {
     ], { order: "name asc" });
   }
 
+  async getTenantBySlug(odooSessionId: string, slug: string): Promise<import("./backend-client.ts").TenantRow | null> {
+    const rows = await this.#callKw<import("./backend-client.ts").TenantRow[]>(
+      odooSessionId,
+      "modoops.tenant",
+      "search_read",
+      [[["slug", "=", slug]], ["id", "name", "db_name", "slug", "vertical", "state", "abono_due_date", "suspend_grace_until", "modules_installed", "modules_installed_count"]],
+      { limit: 1 }
+    );
+    return rows[0] ?? null;
+  }
+
   async createTenant(odooSessionId: string, vals: { name: string; slug?: string; vertical?: string }): Promise<{ id: number }> {
     const name = String(vals.name || "").trim();
     if (!name) throw new BffError("validation_error", 400, "Nombre requerido");

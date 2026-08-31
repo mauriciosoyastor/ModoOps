@@ -22,6 +22,7 @@ export interface BackendClient {
   getLauncher(odooSessionId: string): Promise<LauncherPayload>;
   getHub(odooSessionId: string, app: string, section?: string): Promise<HubPayload>;
   getTenants(odooSessionId: string): Promise<TenantRow[]>;
+  getTenantBySlug(odooSessionId: string, slug: string): Promise<TenantRow | null>;
   createTenant(odooSessionId: string, vals: { name: string; slug?: string; vertical?: string }): Promise<{ id: number }>;
   installTenantModules(
     odooSessionId: string,

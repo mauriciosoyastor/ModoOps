@@ -32,6 +32,18 @@ export function getBackend(): BackendClient {
   return cached;
 }
 
+export function getTenantBackend(slug: string): BackendClient {
+  const { baseUrl } = getBackendEnv();
+  const safe = slug.replace(/[^a-z0-9_]/g, "");
+  const db = `modoops_${safe}`;
+  return new OdooAdapter({ baseUrl, db, timeoutMs: getRpcTimeoutMs() });
+}
+
+export function getBackendForDb(db: string): BackendClient {
+  const { baseUrl } = getBackendEnv();
+  return new OdooAdapter({ baseUrl, db, timeoutMs: getRpcTimeoutMs() });
+}
+
 export function __setBackendForTests(backend: BackendClient | undefined) {
   if (process.env.NODE_ENV !== "test") return;
   cached = backend;
