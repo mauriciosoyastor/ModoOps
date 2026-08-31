@@ -6,7 +6,7 @@
   ],
   "scripts": {
     "build": "npm --prefix web install && npm --prefix web run build",
-    "deploy": "wrangler deploy --config wrangler.toml --no-autoconfig",
+    "deploy": "vercel --prod",
     "check:deploy-contract": "node tools/check-cf-deploy-contract.mjs",
     "test": "python -m pytest modoops_ia/tests -q",
     "test:py": "python -m pytest modoops_ia/tests -v",
