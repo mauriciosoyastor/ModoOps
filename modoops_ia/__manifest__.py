@@ -15,6 +15,7 @@ Ver ADR 0008 y CONTEXT.md Agentes IA.
     "depends": ["base", "mail", "modoops_admin"],
     "data": [
         "security/ir.model.access.csv",
+        "data/modoops_agent_tool_data.xml",
     ],
     "assets": {},
     "installable": True,

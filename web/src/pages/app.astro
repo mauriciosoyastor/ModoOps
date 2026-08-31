@@ -1,0 +1,54 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { BffError } from "../lib/bff/errors.ts";
+import { getBackend } from "../lib/bff/get-backend.ts";
+import { invalidateBffSession, requireOdooSession } from "../lib/bff/http.ts";
+
+let odooSessionId: string;
+let userName = "";
+try {
+  const entry = requireOdooSession(Astro.cookies);
+  odooSessionId = entry.odooSessionId;
+  userName = entry.session.name || entry.session.login;
+} catch {
+  invalidateBffSession(Astro.cookies);
+  return Astro.redirect("/login");
+}
+
+// Ordenado q2: /app legacy redirect a Hub1 para rol interno ModoOps (solo interno q5)
+// Mantiene compat: clientes futuros usarán /tenant/[slug]/app, internos ven /admin/tenants primero
+return Astro.redirect("/admin/tenants");
+---
+
+<BaseLayout title="App — ModoOps" description="ModoOps App — redirect a Control Plane">
+  <main class="mo-app">
+    <p>Redirigiendo a <a href="/admin/tenants">Admin Tenants (Hub 1)</a>…</p>
+    <p class="mo-app__hint">Flujo ordenado: login → admin tenants → tenant/[slug]/app. IA como módulo del Catálogo.</p>
+  </main>
+</BaseLayout>
+
+<style>
+  .mo-app { max-width:78rem; margin:0 auto; padding:2rem 1rem 3rem; }
+  .mo-app__topbar { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:2rem; }
+  .mo-app__eyebrow { color:var(--sg-flame-orange); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0; font-weight:700; }
+  .mo-app__user { margin:0; color:var(--sg-text-muted-dark); }
+  .mo-app__logout { border:1px solid var(--sg-glass-border); border-radius:var(--sg-radius-pill); padding:.5rem .9rem; background:var(--sg-glass-fill); color:var(--sg-text-on-dark); cursor:pointer; }
+  .mo-app__grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(18rem,1fr)); gap:1rem; }
+  .mo-tile { position:relative; display:grid; min-height:15.5rem; grid-template-columns:1fr auto; grid-template-rows:auto 1fr auto; gap:1.5rem; overflow:hidden; border-radius:var(--sg-radius-card); padding:1.4rem; color:var(--sg-text-on-dark); text-align:left; text-decoration:none; background:var(--sg-glass-fill); border:1px solid var(--sg-glass-border); backdrop-filter:blur(10px); transition:transform 220ms ease, border-color 220ms ease, background 220ms ease; }
+  .mo-tile::after { position:absolute; width:10rem; height:10rem; border-radius:50%; background:var(--tile-accent); content:""; filter:blur(72px); opacity:.18; right:-5rem; bottom:-5rem; pointer-events:none; }
+  .mo-tile:hover { border-color:color-mix(in srgb, var(--tile-accent), white 20%); background:var(--sg-glass-fill-strong); transform:translateY(-4px); }
+  .mo-tile__icon { display:grid; width:3rem; height:3rem; place-items:center; border:1px solid color-mix(in srgb, var(--tile-accent), white 22%); border-radius:1rem; color:white; background:color-mix(in srgb, var(--tile-accent), transparent 52%); font-size:1.15rem; font-weight:700; }
+  .mo-tile__copy { align-self:end; grid-column:1 / -1; }
+  .mo-tile__label, .mo-tile__hint { display:block; }
+  .mo-tile__label { margin-bottom:.4rem; font-size:clamp(1.25rem,2vw,1.55rem); font-weight:650; }
+  .mo-tile__hint { color:var(--sg-text-muted-dark); font-size:.86rem; line-height:1.5; }
+  .mo-tile__kpi { justify-self:end; display:grid; gap:.15rem; justify-items:end; border-radius:1rem; padding:.55rem .75rem; color:var(--sg-text-on-dark); background:rgba(0,0,0,.28); border:1px solid color-mix(in srgb, var(--tile-accent), white 18%); min-width:4.5rem; }
+  .mo-tile__value { font-size:clamp(1.15rem,2vw,1.55rem); font-weight:700; letter-spacing:-.03em; line-height:1; }
+  .mo-tile__enter { display:flex; grid-column:1 / -1; align-items:center; justify-content:space-between; padding-top:1rem; border-top:1px solid var(--sg-glass-border); font-size:.8rem; font-weight:600; }
+  .mo-tile[href] { cursor:pointer; }
+  div.mo-tile { cursor:default; opacity:.9; }
+  .mo-app__error { color:#f87171; }
+  .mo-app__empty { color:var(--sg-text-muted-dark); }
+  .mo-app__foot { margin-top:2rem; font-size:.85rem; }
+  .mo-app__foot a { color:var(--sg-text-muted-dark); }
+</style>

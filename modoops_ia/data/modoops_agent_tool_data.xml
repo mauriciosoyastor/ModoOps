@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="tool_echo" model="modoops.agent.tool">
+        <field name="name">echo</field>
+        <field name="label">Echo (dummy para Orquestador)</field>
+        <field name="input_schema">{"type": "object", "properties": {"message": {"type": "string"}}, "required": ["message"]}</field>
+        <field name="kind">read</field>
+        <field name="catalog_version">0.1</field>
+        <field name="active">1</field>
+    </record>
+    <record id="tool_stock_consulta" model="modoops.agent.tool">
+        <field name="name">stock.consulta</field>
+        <field name="label">Consultar stock por producto</field>
+        <field name="input_schema">{"type": "object", "properties": {"product_id": {"type": "integer"}, "location_id": {"type": "integer"}}, "required": ["product_id"]}</field>
+        <field name="groups_id" ref="stock.group_stock_user"/>
+        <field name="module_required">stock</field>
+        <field name="kind">read</field>
+        <field name="catalog_version">0.1</field>
+        <field name="active">1</field>
+    </record>
+    <record id="tool_ot_cobro" model="modoops.agent.tool">
+        <field name="name">ot.cobro</field>
+        <field name="label">Cobro de OT en caja</field>
+        <field name="input_schema">{"type": "object", "properties": {"work_order_id": {"type": "integer"}, "amount": {"type": "number", "minimum": 0.01}, "medium": {"type": "string", "enum": ["cash", "transfer", "card", "other"]}}, "required": ["work_order_id", "amount"]}</field>
+        <field name="groups_id" ref="base.group_user"/>
+        <field name="module_required">modoops_core</field>
+        <field name="kind">write</field>
+        <field name="catalog_version">0.1</field>
+        <field name="active">1</field>
+    </record>
+</odoo>

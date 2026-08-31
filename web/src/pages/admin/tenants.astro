@@ -1,0 +1,239 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { BffError } from "../../lib/bff/errors.ts";
+import { getBackend } from "../../lib/bff/get-backend.ts";
+import { invalidateBffSession, requireOdooSession } from "../../lib/bff/http.ts";
+
+let odooSessionId: string;
+let userName = "";
+try {
+  const e = requireOdooSession(Astro.cookies);
+  odooSessionId = e.odooSessionId;
+  userName = e.session.name || e.session.login;
+} catch {
+  invalidateBffSession(Astro.cookies);
+  return Astro.redirect("/login");
+}
+
+let tenants: import("../../lib/bff/backend-client.ts").TenantRow[] = [];
+let loadError = "";
+try {
+  tenants = await getBackend().getTenants(odooSessionId);
+} catch (cause) {
+  if (cause instanceof BffError && cause.code === "unauthorized") {
+    invalidateBffSession(Astro.cookies);
+    return Astro.redirect("/login");
+  }
+  loadError = (cause as Error)?.message || "No se pudo cargar tenants";
+}
+---
+
+<BaseLayout title="Tenants — ModoOps Admin" description="ModoOps Control Plane — Tenants">
+  <main class="mo-admin">
+    <header class="mo-admin__topbar">
+      <div>
+        <p class="mo-admin__eyebrow">ModoOps Admin · Control Plane</p>
+        <h1>Tenants</h1>
+        <p class="mo-admin__user">{userName} · {tenants.length} tenant{tenants.length===1?"":"s"}</p>
+      </div>
+      <div class="mo-admin__actions">
+        <a href="/app">← App</a>
+        <button type="button" data-logout>Cerrar sesión</button>
+      </div>
+    </header>
+
+    <section class="mo-admin__create">
+      <h2>Crear Tenant</h2>
+      <form id="create-tenant-form">
+        <label>Nombre <input name="name" placeholder="Pinturería Centro" required /></label>
+        <label>Slug (opcional) <input name="slug" placeholder="pintureria_centro" pattern="[a-z0-9_]+" /></label>
+        <label>Vertical
+          <select name="vertical">
+            <option value="retail">retail</option>
+            <option value="servicios">servicios</option>
+            <option value="distribucion">distribucion</option>
+          </select>
+        </label>
+        <button type="submit">Crear</button>
+        <span id="create-msg" class="mo-admin__msg"></span>
+      </form>
+    </section>
+
+    {loadError ? <p class="mo-admin__error">{loadError}</p> : null}
+
+    <div class="mo-admin__tablewrap">
+      <table class="mo-admin__table">
+        <thead>
+          <tr><th>Cliente</th><th>DB</th><th>Slug</th><th>Vertical</th><th>Estado</th><th>Módulos</th><th>Vto abono</th><th>Hub 2</th><th>Acción</th></tr>
+        </thead>
+        <tbody>
+          {tenants.map((t) => (
+            <tr>
+              <td>{t.name}</td>
+              <td><code>{t.db_name}</code></td>
+              <td>{t.slug}</td>
+              <td>{t.vertical}</td>
+              <td><span class:list={["mo-badge", `is-${t.state}`]}>{t.state}</span>{t.modules_installed?.includes("IA ModoOps") ? <span class="mo-badge is-ia">IA</span> : null}</td>
+              <td>{t.modules_installed_count} {t.modules_installed ? `· ${t.modules_installed}` : ""}</td>
+              <td>{t.abono_due_date || "—"}</td>
+              <td><a href={`/tenant/${t.slug}/app`} class="mo-btn-sm">Abrir</a></td>
+              <td><button type="button" class="mo-btn-sm" data-install-open data-tenant-id={t.id} data-db={t.db_name}>Instalar</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {tenants.length===0 && !loadError ? <p class="mo-admin__empty">0 tenants — creá el primero arriba. Onboarding master.</p> : null}
+    </div>
+
+    <dialog id="install-dialog" class="mo-dialog">
+      <form method="dialog" id="install-form">
+        <h3 id="install-title">Instalar módulos</h3>
+        <p id="install-db" class="mo-dialog__db"></p>
+        <div class="mo-dialog__grid" id="install-grid"></div>
+        <label class="mo-dialog__notes">Notas <input name="notes" placeholder="ticket, motivo" /></label>
+        <div class="mo-dialog__actions">
+          <label>Acción <select name="action"><option value="install">Instalar</option><option value="remove">Quitar</option></select></label>
+          <button type="submit" id="install-submit">Confirmar</button>
+          <button type="button" id="install-cancel">Cancelar</button>
+        </div>
+        <pre id="install-preview" class="mo-dialog__preview"></pre>
+        <span id="install-msg" class="mo-admin__msg"></span>
+      </form>
+    </dialog>
+
+    <p class="mo-admin__foot"><a href="/api/admin/tenants" target="_blank">JSON /api/admin/tenants</a> · <code>modoops_master</code> · Odoo <code>modoops.tenant</code></p>
+  </main>
+</BaseLayout>
+
+<script>
+  const CATALOGO = [
+    ["mostrador","Mostrador (POS 2 cajas)"],
+    ["deposito","Depósito Inteligente"],
+    ["compras","Compras"],
+    ["fiscal_ar","Fiscal AR"],
+    ["contactos","Contactos"],
+    ["migracion_excel","Migración Excel (≤500)"],
+    ["taller","Taller (Add-on $155)"],
+    ["b2b_basico","B2B Básico (Add-on $155)"],
+    ["ia","IA ModoOps — Agente herramental (Tools + Memoria)"],
+  ] as const;
+
+  const form = document.getElementById("create-tenant-form") as HTMLFormElement;
+  const msg = document.getElementById("create-msg") as HTMLSpanElement;
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.textContent = "Creando…";
+    const fd = new FormData(form);
+    const body = { name: String(fd.get("name")||""), slug: String(fd.get("slug")||"")||undefined, vertical: String(fd.get("vertical")||"retail") };
+    const res = await fetch("/api/admin/tenants", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(body) });
+    const data = await res.json().catch(()=>({}));
+    if (!res.ok) { msg.textContent = (data as {error?:{message?:string}})?.error?.message || "Error"; return; }
+    msg.textContent = `Creado id=${(data as {id?:number})?.id}`;
+    setTimeout(()=> window.location.reload(), 600);
+  });
+  document.querySelector("[data-logout]")?.addEventListener("click", async () => {
+    await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login");
+  });
+
+  // T02 install dialog — multi-select batch + preview odoo-bin
+  const dlg = document.getElementById("install-dialog") as HTMLDialogElement;
+  const grid = document.getElementById("install-grid") as HTMLDivElement;
+  const titleEl = document.getElementById("install-title") as HTMLHeadingElement;
+  const dbEl = document.getElementById("install-db") as HTMLParagraphElement;
+  const previewEl = document.getElementById("install-preview") as HTMLPreElement;
+  const msgEl = document.getElementById("install-msg") as HTMLSpanElement;
+  const installForm = document.getElementById("install-form") as HTMLFormElement;
+  let activeTenantId: number | null = null;
+  let activeDb = "";
+
+  function renderGrid() {
+    grid.innerHTML = "";
+    for (const [key, label] of CATALOGO) {
+      const lbl = document.createElement("label");
+      lbl.className = "mo-check";
+      lbl.innerHTML = `<input type="checkbox" value="${key}" data-mod /> ${label} <code>${key}</code>`;
+      grid.appendChild(lbl);
+    }
+  }
+  renderGrid();
+
+  function updatePreview() {
+    const mods = [...grid.querySelectorAll<HTMLInputElement>("[data-mod]:checked")].map((i) => i.value);
+    const action = (installForm.querySelector('select[name="action"]') as HTMLSelectElement)?.value || "install";
+    const flag = action === "install" ? "-i" : "-u";
+    previewEl.textContent = mods.length ? `odoo-bin -d ${activeDb} ${flag} ${mods.join(", ")}  # batch ${mods.length}` : `— seleccioná módulos —`;
+  }
+  grid.addEventListener("change", updatePreview);
+  installForm.querySelector('select[name="action"]')?.addEventListener("change", updatePreview);
+
+  document.querySelectorAll("[data-install-open]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeTenantId = Number((btn as HTMLElement).dataset.tenantId);
+      activeDb = (btn as HTMLElement).dataset.db || "modoops_<slug>";
+      titleEl.textContent = `Instalar en #${activeTenantId}`;
+      dbEl.textContent = activeDb;
+      msgEl.textContent = "";
+      previewEl.textContent = "— seleccioná módulos —";
+      grid.querySelectorAll<HTMLInputElement>("[data-mod]").forEach((i) => (i.checked = false));
+      dlg.showModal();
+    });
+  });
+  document.getElementById("install-cancel")?.addEventListener("click", () => dlg.close());
+
+  installForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!activeTenantId) return;
+    const mods = [...grid.querySelectorAll<HTMLInputElement>("[data-mod]:checked")].map((i) => i.value);
+    if (!mods.length) { msgEl.textContent = "Seleccioná al menos un módulo"; return; }
+    const fd = new FormData(installForm);
+    const action = String(fd.get("action") || "install");
+    const notes = String(fd.get("notes") || "");
+    msgEl.textContent = "Ejecutando…";
+    const res = await fetch(`/api/admin/tenants/${activeTenantId}/install`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ modules: mods, action, notes }),
+    });
+    const data = await res.json().catch(() => ({})) as { preview_command?: string; error?: { message?: string } };
+    if (!res.ok) { msgEl.textContent = data?.error?.message || "Error"; return; }
+    previewEl.textContent = (data as { preview_command?: string }).preview_command || previewEl.textContent;
+    msgEl.textContent = "OK — recargando…";
+    setTimeout(() => window.location.reload(), 700);
+  });
+</script>
+
+<style>
+  .mo-admin { max-width:78rem; margin:0 auto; padding:2rem 1rem 3rem; }
+  .mo-admin__topbar { display:flex; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; }
+  .mo-admin__eyebrow { color:var(--sg-flame-orange); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0; font-weight:700; }
+  .mo-admin__user { color:var(--sg-text-muted-dark); margin:.25rem 0 0; }
+  .mo-admin__actions { display:flex; gap:.5rem; align-items:center; }
+  .mo-admin__create { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1rem; background:var(--sg-glass-fill); backdrop-filter:blur(10px); margin-bottom:1rem; }
+  .mo-admin__create h2 { margin:0 0 .5rem; font-size:1rem; }
+  .mo-admin__create form { display:flex; gap:.5rem; flex-wrap:wrap; align-items:end; }
+  .mo-admin__create label { display:flex; flex-direction:column; gap:.25rem; font-size:.85rem; }
+  .mo-admin__create input, .mo-admin__create select { border:1px solid #2b2b2b; border-radius:.5rem; padding:.45rem .6rem; background:#0a0a0a; color:#fff; }
+  .mo-admin__create button { border-radius:999px; padding:.5rem .9rem; background:#fff; color:#111; border:0; cursor:pointer; font-weight:600; }
+  .mo-admin__msg { font-size:.85rem; color:var(--sg-text-muted-dark); }
+  .mo-admin__tablewrap { overflow:auto; border:1px solid var(--sg-glass-border); border-radius:1rem; background:var(--sg-glass-fill); }
+  .mo-admin__table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  .mo-admin__table th, .mo-admin__table td { padding:.6rem .75rem; border-bottom:1px solid var(--sg-glass-border); text-align:left; }
+  .mo-badge { border-radius:999px; padding:.15rem .5rem; font-size:.75rem; font-weight:600; }
+  .mo-badge.is-activo { background:#16a34a; color:#fff; } .mo-badge.is-suspendido { background:#dc2626; color:#fff; } .mo-badge.is-baja { background:#6b7280; color:#fff; }
+  .mo-admin__error { color:#f87171; } .mo-admin__empty { color:var(--sg-text-muted-dark); padding:1rem; }
+  .mo-admin__foot { margin-top:1rem; font-size:.8rem; color:var(--sg-text-muted-dark); }
+  .mo-btn-sm { border:1px solid var(--sg-glass-border); border-radius:999px; padding:.3rem .6rem; background:#fff; color:#111; font-size:.75rem; cursor:pointer; font-weight:600; }
+  .mo-dialog { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1.2rem; background:#111; color:#fff; max-width:36rem; width:90%; }
+  .mo-dialog::backdrop { background:rgba(0,0,0,.6); backdrop-filter:blur(4px); }
+  .mo-dialog__db { color:var(--sg-flame-orange); font-family:monospace; margin:.25rem 0 .5rem; }
+  .mo-dialog__grid { display:grid; grid-template-columns:1fr 1fr; gap:.4rem; margin:.5rem 0; }
+  .mo-check { display:flex; gap:.35rem; align-items:center; font-size:.85rem; border:1px solid #2b2b2b; border-radius:.5rem; padding:.4rem .5rem; background:#0a0a0a; }
+  .mo-check code { font-size:.7rem; color:#aaa; margin-left:auto; }
+  .mo-dialog__notes { display:flex; flex-direction:column; gap:.25rem; margin:.5rem 0; font-size:.85rem; }
+  .mo-dialog__notes input { border:1px solid #2b2b2b; border-radius:.5rem; padding:.45rem .6rem; background:#0a0a0a; color:#fff; }
+  .mo-dialog__actions { display:flex; gap:.5rem; align-items:end; margin:.5rem 0; }
+  .mo-dialog__actions select { border:1px solid #2b2b2b; border-radius:.5rem; padding:.4rem; background:#0a0a0a; color:#fff; }
+  .mo-dialog__actions button { border-radius:999px; padding:.5rem .9rem; border:0; cursor:pointer; font-weight:600; }
+  #install-submit { background:#fff; color:#111; } #install-cancel { background:#2b2b2b; color:#fff; }
+  .mo-dialog__preview { background:#0a0a0a; border:1px solid #2b2b2b; border-radius:.5rem; padding:.6rem; font-size:.75rem; overflow:auto; white-space:pre-wrap; margin:.5rem 0; }
+</style>

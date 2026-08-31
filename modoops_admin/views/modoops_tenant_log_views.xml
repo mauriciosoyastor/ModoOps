@@ -21,7 +21,7 @@
         <field name="name">modoops.tenant.log.list</field>
         <field name="model">modoops.tenant.log</field>
         <field name="arch" type="xml">
-            <list string="Logs Control Plane" create="0" edit="0" help="Logs auditados — filtra por tenant/acción, export CSV. Provisioning fallido reintentable.">
+            <list string="Logs Control Plane" create="0" edit="0">
                 <field name="create_date"/>
                 <field name="tenant_id"/>
                 <field name="action" widget="badge" decoration-success="action=='install'" decoration-danger="action=='suspendido'" decoration-muted="action=='baja'"/>

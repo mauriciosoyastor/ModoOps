@@ -40,5 +40,5 @@
         <field name="help">Tildá Catálogo → Genera Lista cerrada + Propuesta 10 secciones + Anexo Técnico. Hard gate catálogo/fiscal, soft gate techo 92h.</field>
     </record>
 
-    <menuitem id="menu_modoops_configurador" name="Configurador" parent="menu_modoops_admin_root" sequence="15" action="action_modoops_configurador_wizard"/>
+    <menuitem id="menu_modoops_configurador" name="Configurador" parent="menu_modoops_admin" sequence="15" action="action_modoops_configurador_wizard"/>
 </odoo>

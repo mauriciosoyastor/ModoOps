@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Ingresar — ModoOps" description="ModoOps — Login operativo">
+  <main class="mo-login">
+    <div class="mo-login__card">
+      <p class="mo-login__eyebrow">ModoOps</p>
+      <h1>Ingresar</h1>
+      <p class="mo-login__hint">Usá tu usuario Odoo (admin / operativo). Sesión guarda en <code>mo_bff_sid</code> → Odoo <code>session_id</code>.</p>
+      <form id="login-form" class="mo-login__form">
+        <label>Usuario <input name="login" autocomplete="username" required /></label>
+        <label>Contraseña <input name="password" type="password" autocomplete="current-password" required /></label>
+        <button type="submit">Entrar</button>
+        <p id="login-error" class="mo-login__error" hidden></p>
+      </form>
+      <p class="mo-login__foot"><a href="/">← Landing</a> · <a href="/app">→ App</a></p>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById("login-form") as HTMLFormElement;
+  const errEl = document.getElementById("login-error") as HTMLParagraphElement;
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errEl.hidden = true;
+    const fd = new FormData(form);
+    const login = String(fd.get("login") || "");
+    const password = String(fd.get("password") || "");
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ login, password }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      errEl.textContent = (data as { error?: { message?: string } })?.error?.message || "Error";
+      errEl.hidden = false;
+      return;
+    }
+    window.location.assign("/app");
+  });
+</script>
+
+<style>
+  .mo-login { display:flex; justify-content:center; padding:4rem 1rem; }
+  .mo-login__card { max-width:28rem; width:100%; border:1px solid var(--mo-glass-border, #e5e7eb); border-radius:1rem; padding:2rem; }
+  .mo-login__eyebrow { color:#ea580c; font-size:0.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0 0 .25rem; font-weight:700; }
+  .mo-login__hint { color:#6b7280; font-size:.85rem; }
+  .mo-login__form { display:flex; flex-direction:column; gap:.75rem; margin-top:1rem; }
+  .mo-login__form label { display:flex; flex-direction:column; gap:.25rem; font-size:.9rem; }
+  .mo-login__form input { border:1px solid #d1d5db; border-radius:.5rem; padding:.6rem .75rem; }
+  .mo-login__form button { margin-top:.5rem; border-radius:999px; padding:.65rem 1rem; background:#111827; color:#fff; cursor:pointer; }
+  .mo-login__error { color:#dc2626; font-size:.85rem; }
+  .mo-login__foot { margin-top:1rem; font-size:.85rem; }
+</style>
