@@ -48,7 +48,7 @@ jobs:
       - name: Pure-module guard — no Odoo import in logic/
         run: |
           echo "Checking modoops_ia/logic/*.py has no 'import odoo'..."
-          ! grep -R "import odoo\|from odoo" modoops_ia/logic/ 2>/dev/null
+          ! grep -R --exclude-dir=__pycache__ "import odoo\|from odoo" modoops_ia/logic/ 2>/dev/null
 
       - name: Install Node deps (root + web)
         run: npm ci --ignore-scripts
