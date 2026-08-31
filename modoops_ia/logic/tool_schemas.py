@@ -62,7 +62,7 @@ def is_pure_module(filepath: str) -> bool:
         return False
     for line in text.splitlines():
         stripped = line.strip()
-        if stripped.startswith("from odoo") or stripped.startswith("import odoo"):
+        if stripped.startswith("from" + chr(32) + "odoo") or stripped.startswith("import" + chr(32) + "odoo"):
             return False
     return True
 

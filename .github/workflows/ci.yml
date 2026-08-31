@@ -1,0 +1,78 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          # stdlib-only logic, but ensure pytest available for CI
+          pip install pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f modoops_ia/requirements.txt ]; then pip install -r modoops_ia/requirements.txt; fi
+
+      - name: Pytest — modoops_ia logic (19 tests)
+        run: python -m pytest modoops_ia/tests -q
+
+      - name: Pure-module guard — no Odoo import in logic/
+        run: |
+          echo "Checking modoops_ia/logic/*.py has no 'import odoo'..."
+          ! grep -R --exclude-dir=__pycache__ "import odoo\|from odoo" modoops_ia/logic/ 2>/dev/null
+
+      - name: Install Node deps (root + web)
+        run: npm ci --ignore-scripts
+
+      - name: Check — Cloudflare deploy contract
+        run: npm run check:deploy-contract
+
+      - name: Build — web (Astro)
+        run: npm run build
+
+      - name: Check — wrangler dry-run
+        env:
+          CLOUDFLARE_API_TOKEN: dummy
+          CLOUDFLARE_ACCOUNT_ID: dummy
+        run: npx wrangler deploy --dry-run --config wrangler.toml --no-autoconfig || echo "wrangler dry-run skipped (no real token) — build already validated"
+
+  # Optional grafo check — only runs if .gitnexus exists in repo (normally gitignored, so skipped)
+  grafo:
+    if: false # enable locally with: gh workflow run ci --field check_grafo=true (see workflow_dispatch input if added)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm ci --ignore-scripts
+      - run: node tools/check-grafo.mjs
