@@ -1,13 +1,10 @@
 import type { APIRoute } from 'astro';
 import { OdooAdapter } from '../../../../../lib/bff/odoo-adapter.ts';
+import { createEnvApiKeyValidator, createEnvSuspensionChecker, getEnv } from '../../../../../lib/orquestador/adapters.ts';
+import { TOOL_CATALOG } from '../../../../../lib/orquestador/tool-catalog.ts';
 
 export const prerender = false;
-
-const CATALOG_FALLBACK = [
-  { name: 'echo', label: 'Echo', input_schema: { type: 'object', required: ['message'] }, groups_required: [], module_required: null },
-  { name: 'stock.consulta', label: 'Stock consulta', input_schema: { type: 'object', required: ['product_id'] }, groups_required: ['stock.group_stock_user'], module_required: 'stock' },
-  { name: 'ot.cobro', label: 'OT cobro', input_schema: { type: 'object', required: ['work_order_id', 'amount'] }, groups_required: ['base.group_user'], module_required: null },
-];
+const CATALOG_FALLBACK = TOOL_CATALOG;
 
 async function fetchToolsFromMaster(): Promise<typeof CATALOG_FALLBACK | null> {
   const baseUrl = (import.meta.env.ODOO_URL as string) || (process.env.ODOO_URL as string) || 'http://localhost:8070';
@@ -35,23 +32,7 @@ function getApiKey(request: Request, url: URL): string | null {
   return null;
 }
 
-async function hmacCompare(provided: string, stored: string): Promise<boolean> {
-  const isHash = /^[a-f0-9]{64}$/i.test(stored);
-  if (isHash) {
-    const enc = new TextEncoder();
-    const digest = await crypto.subtle.digest('SHA-256', enc.encode(provided));
-    const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
-    let diff = 0;
-    for (let i = 0; i < hex.length; i++) diff |= hex.charCodeAt(i) ^ stored.charCodeAt(i);
-    return diff === 0 && hex.length === stored.length;
-  }
-  if (provided.length !== stored.length) return false;
-  let diff = 0;
-  for (let i = 0; i < provided.length; i++) diff |= provided.charCodeAt(i) ^ stored.charCodeAt(i);
-  return diff === 0;
-}
-
-export const GET: APIRoute = async ({ params, request }) => {
+export const GET: APIRoute = async ({ params, request, locals }) => {
   const db = params.db as string;
   if (!db || !db.startsWith('modoops_')) {
     return new Response(JSON.stringify({ status: 'error', code: 'invalid_db', error: 'db_name inválido' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
@@ -60,19 +41,22 @@ export const GET: APIRoute = async ({ params, request }) => {
   const url = new URL(request.url);
   const apiKey = getApiKey(request, url);
 
-  const env = (globalThis as unknown as { env?: Record<string, string> })?.env
-    ?? (typeof process !== 'undefined' ? (process as unknown as { env?: Record<string, string> })?.env : undefined)
-    ?? {};
-  const expected = (env as Record<string, string>)[`MODOOPS_AGENT_API_KEY_${slug.toUpperCase()}`]
-    ?? (env as Record<string, string>).MODOOPS_AGENT_API_KEY
-    ?? (env as Record<string, string>).MODOOPS_AGENT_API_KEY_DEFAULT;
+  const env = getEnv(locals);
+  // reuse same adapters as run.ts — single seam, no duplicación (locality)
+  const validateApiKey = createEnvApiKeyValidator(env);
+  const isSuspended = createEnvSuspensionChecker(env);
+
+  // apiKey check via adapter (deep module)
+  const valid = await validateApiKey(db, apiKey ?? "");
+  // need to know if expected was configured: adapter returns true when no expected (dev mode) — check raw expected
+  const expected = (env as Record<string, string>)[`MODOOPS_AGENT_API_KEY_${slug.toUpperCase()}`] ?? (env as Record<string, string>).MODOOPS_AGENT_API_KEY ?? (env as Record<string, string>).MODOOPS_AGENT_API_KEY_DEFAULT;
   if (expected) {
-    if (!apiKey || !(await hmacCompare(apiKey, expected))) {
+    if (!apiKey || !valid) {
       return new Response(JSON.stringify({ status: 'error', code: 'unauthorized', error: 'apiKey inválida' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
     }
   }
-  const suspended = (env as Record<string, string>)[`MODOOPS_TENANT_SUSPENDED_${slug.toUpperCase()}`] === '1';
-  if (suspended) {
+  const susp = await isSuspended(db);
+  if (susp.suspended) {
     return new Response(JSON.stringify({ status: 'error', code: 'tenant_suspended', error: 'Tenant suspendido' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
   }
 
