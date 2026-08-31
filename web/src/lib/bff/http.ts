@@ -1,6 +1,7 @@
 import type { APIContext } from "astro";
 import { BffError, type BffErrorCode } from "./errors.ts";
-import { BFF_COOKIE, getSessionTtlSeconds, sessionStore } from "./session-store.ts";
+import { BFF_COOKIE, getSessionTtlSeconds } from "./config.ts";
+import { sessionStore } from "./session-store.ts";
 
 export const USER_ERROR_MESSAGES: Record<BffErrorCode, string> = {
   unauthorized: "Tenés que iniciar sesión",
@@ -38,6 +39,7 @@ export function bffErrorResponse(err: unknown, cookies?: APIContext["cookies"]) 
   return json({ error: { code: "odoo_unavailable", message: USER_ERROR_MESSAGES.odoo_unavailable } }, { status: 503 });
 }
 
+/** @deprecated usar middleware onRequest — seam único. Mantiene compat para API routes que aún no migraron. */
 export function requireOdooSession(cookies: APIContext["cookies"]) {
   const sid = cookies.get(BFF_COOKIE)?.value;
   if (!sid) throw new BffError("unauthorized", 401, "Tenés que iniciar sesión");

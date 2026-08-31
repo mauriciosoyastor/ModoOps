@@ -2,22 +2,18 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { BffError } from "../../lib/bff/errors.ts";
 import { getBackend } from "../../lib/bff/get-backend.ts";
-import { invalidateBffSession, requireOdooSession } from "../../lib/bff/http.ts";
+import { invalidateBffSession } from "../../lib/bff/http.ts";
+
 
 const app = String(Astro.params.app || "");
 const ALLOWED = new Set(["inventory", "sales", "purchase", "accounting", "workshop"]);
 if (!ALLOWED.has(app)) return Astro.redirect("/app");
 
-let odooSessionId: string;
-let userName = "";
-try {
-  const e = requireOdooSession(Astro.cookies);
-  odooSessionId = e.odooSessionId;
-  userName = e.session.name || e.session.login;
-} catch {
-  invalidateBffSession(Astro.cookies);
-  return Astro.redirect("/login");
-}
+const _sessH = (Astro.locals as Record<string, unknown>).session as { name?: string; login?: string } | undefined;
+const _odooH = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
+if (!_odooH) return Astro.redirect("/login");
+let odooSessionId: string = _odooH;
+let userName = _sessH?.name || _sessH?.login || "";
 
 const section = Astro.url.searchParams.get("section") || "summary";
 let payload: Awaited<ReturnType<typeof getBackend.prototype.getHub>> | null = null;

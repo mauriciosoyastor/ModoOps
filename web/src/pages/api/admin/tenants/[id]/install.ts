@@ -1,13 +1,15 @@
 ﻿import type { APIRoute } from "astro";
 import { getBackend } from "../../../../../lib/bff/get-backend.ts";
-import { bffErrorResponse, json, requireOdooSession } from "../../../../../lib/bff/http.ts";
+import { BffError } from "../../../../../lib/bff/errors.ts";
+import { bffErrorResponse, json } from "../../../../../lib/bff/http.ts";
 import { CATALOGO_KEYS } from "../../../../../lib/catalogo.generated.ts";
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ cookies, request, params }) => {
+export const POST: APIRoute = async ({ cookies, request, params, locals }) => {
   try {
-    const { odooSessionId } = requireOdooSession(cookies);
+    const odooSessionId = (locals as Record<string, unknown>).odooSessionId as string;
+    if (!odooSessionId) return bffErrorResponse(new BffError("unauthorized", 401, "Tenés que iniciar sesión"), cookies);
     const id = Number(params.id);
     if (!Number.isInteger(id) || id <= 0) {
       return json({ error: { code: "validation_error", message: "id inválido" } }, { status: 400 });

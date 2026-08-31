@@ -9,9 +9,19 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import type { SessionInfo } from "./types.ts";
+import {
+  BFF_COOKIE as _BFF_COOKIE,
+  DEFAULT_SESSION_TTL_SECONDS as _DEFAULT_TTL,
+  resolveTtl,
+  getSessionTtlSeconds,
+  resolveStoreKind,
+  defaultSessionDir,
+} from "./config.ts";
 
-export const BFF_COOKIE = "mo_bff_sid";
-export const DEFAULT_SESSION_TTL_SECONDS = 12 * 60 * 60;
+// Re-export for backward compat (callers que importaban de session-store)
+export const BFF_COOKIE = _BFF_COOKIE;
+export const DEFAULT_SESSION_TTL_SECONDS = _DEFAULT_TTL;
+export { getSessionTtlSeconds };
 
 export type SessionEntry = {
   odooSessionId: string;
@@ -33,13 +43,6 @@ export type SessionStore = {
 export type SessionStoreOptions = {
   ttlSeconds?: number;
 };
-
-function resolveTtl(ttlSeconds?: number): number {
-  if (ttlSeconds !== undefined && Number.isFinite(ttlSeconds) && ttlSeconds >= 0) {
-    return ttlSeconds;
-  }
-  return DEFAULT_SESSION_TTL_SECONDS;
-}
 
 function isExpired(entry: SessionEntry): boolean {
   return entry.expiresAt <= Date.now();
@@ -98,6 +101,10 @@ export type FileSessionStoreOptions = SessionStoreOptions & {
   dir: string;
 };
 
+/**
+ * @deprecated para edge/Workers — usa Memory/Kv. Mantiene blocking fs para compat local.
+ * FileSessionStore hace writeFileSync+renameSync bloqueante (no apto para edge).
+ */
 export class FileSessionStore implements SessionStore {
   #dir: string;
   #ttlSeconds: number;
@@ -174,26 +181,6 @@ export class FileSessionStore implements SessionStore {
     writeFileSync(tmp, JSON.stringify(entry), "utf8");
     renameSync(tmp, path);
   }
-}
-
-export function getSessionTtlSeconds(): number {
-  const raw = process.env.BFF_SESSION_TTL_SECONDS;
-  if (raw) {
-    const n = Number(raw);
-    if (Number.isFinite(n) && n >= 0) return n;
-  }
-  return DEFAULT_SESSION_TTL_SECONDS;
-}
-
-function defaultSessionDir(): string {
-  return process.env.BFF_SESSION_DIR || join(process.cwd(), ".data", "bff-sessions");
-}
-
-function resolveStoreKind(): "memory" | "file" {
-  const raw = (process.env.BFF_SESSION_STORE || "").toLowerCase();
-  if (raw === "file" || raw === "memory") return raw;
-  if (process.env.NODE_ENV === "test") return "memory";
-  return "file";
 }
 
 let cached: SessionStore | undefined;
