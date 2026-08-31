@@ -524,6 +524,8 @@ Documento **separado** del informe. Secciones:
 
 > **Módulos ModoOps validados** que ModoOps domina y ofrece sin add-on de evaluación. En marketing se nombran como ModoOps; en anexo técnico se mapea a Odoo. Ir ampliando solo tras validar en proyecto real. Configurador interno consulta este catálogo.
 
+> **SSOT (ADR 0009):** `modoops_catalogo/catalogo.json` es la única verdad — genera `modoops_catalogo/_generated_selection.py` (Selection Odoo), `web/src/lib/catalogo.generated.ts` (CatalogoKey + CATALOGO_KEYS) y `docs/catalogo-modoops-inicial.md`. `interface` de 6 métodos (`get/allKeys/validate/toSelection/pricing/horasFor`) es el único seam; `sync_catalogo --check` fail-closed en CI.
+
 | Módulo ModoOps | Módulo Odoo / tercero | Versión | Notas |
 |----------------|------------------------|---------|-------|
 | **Mostrador** | `point_of_sale` + `pos_discount` | CE 19 | 2 cajas POS, 1 sucursal, descuento manual línea + general |

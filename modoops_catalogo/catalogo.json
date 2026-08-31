@@ -5,14 +5,8 @@
     "mostrador": {
       "modoops": "Mostrador",
       "label": "Mostrador (POS 2 cajas)",
-      "odoo": [
-        "point_of_sale",
-        "pos_discount"
-      ],
-      "depends": [
-        "base",
-        "product"
-      ],
+      "odoo": ["point_of_sale", "pos_discount"],
+      "depends": ["base", "product"],
       "version": "19.0",
       "repo": "odoo/odoo",
       "ancla_retail": true,
@@ -22,13 +16,8 @@
     "deposito": {
       "modoops": "Depósito Inteligente",
       "label": "Depósito Inteligente (1 almacén)",
-      "odoo": [
-        "stock"
-      ],
-      "depends": [
-        "base",
-        "product"
-      ],
+      "odoo": ["stock"],
+      "depends": ["base", "product"],
       "version": "19.0",
       "repo": "odoo/odoo",
       "ancla_retail": true,
@@ -38,13 +27,8 @@
     "ventas": {
       "modoops": "Ventas",
       "label": "Ventas",
-      "odoo": [
-        "sale_management"
-      ],
-      "depends": [
-        "stock",
-        "product"
-      ],
+      "odoo": ["sale_management"],
+      "depends": ["stock", "product"],
       "version": "19.0",
       "repo": "odoo/odoo",
       "ancla_retail": true,
@@ -53,13 +37,8 @@
     "compras": {
       "modoops": "Compras",
       "label": "Compras",
-      "odoo": [
-        "purchase"
-      ],
-      "depends": [
-        "stock",
-        "product"
-      ],
+      "odoo": ["purchase"],
+      "depends": ["stock", "product"],
       "version": "19.0",
       "repo": "odoo/odoo",
       "ancla_retail": true,
@@ -68,14 +47,8 @@
     "fiscal_ar": {
       "modoops": "Fiscal AR",
       "label": "Fiscal AR",
-      "odoo": [
-        "account",
-        "l10n_ar"
-      ],
-      "depends": [
-        "base",
-        "l10n_ar"
-      ],
+      "odoo": ["account", "l10n_ar"],
+      "depends": ["base", "l10n_ar"],
       "version": "19.0",
       "repo": "oca/l10n-argentina",
       "ancla_retail": "según anexo",
@@ -85,12 +58,8 @@
     "contactos": {
       "modoops": "Contactos",
       "label": "Contactos",
-      "odoo": [
-        "contacts"
-      ],
-      "depends": [
-        "base"
-      ],
+      "odoo": ["contacts"],
+      "depends": ["base"],
       "version": "19.0",
       "repo": "odoo/odoo",
       "ancla_retail": true,
@@ -99,14 +68,8 @@
     "plataforma": {
       "modoops": "Plataforma ModoOps",
       "label": "Plataforma ModoOps",
-      "odoo": [
-        "modoops_core"
-      ],
-      "depends": [
-        "web",
-        "mail",
-        "product"
-      ],
+      "odoo": ["modoops_core"],
+      "depends": ["web", "mail", "product"],
       "version": "19.0",
       "repo": "modoops/modoops_core",
       "ancla_retail": true,
@@ -116,12 +79,8 @@
     "puente_factura": {
       "modoops": "Puente Factura Web",
       "label": "Puente Factura Web",
-      "odoo": [
-        "modoops_integrations"
-      ],
-      "depends": [
-        "modoops_core"
-      ],
+      "odoo": ["modoops_integrations"],
+      "depends": ["modoops_core"],
       "version": "19.0",
       "repo": "modoops/modoops_integrations",
       "ancla_retail": true,
@@ -131,13 +90,8 @@
     "taller": {
       "modoops": "Taller",
       "label": "Taller (Add-on $155)",
-      "odoo": [
-        "modoops_core"
-      ],
-      "depends": [
-        "stock",
-        "sale"
-      ],
+      "odoo": ["modoops_core"],
+      "depends": ["stock", "sale"],
       "version": "19.0",
       "repo": "modoops/modoops_core",
       "ancla_retail": false,
@@ -164,13 +118,8 @@
     "ia": {
       "modoops": "IA ModoOps — Agente herramental",
       "label": "IA ModoOps — Agente herramental (Tools + Memoria)",
-      "odoo": [
-        "modoops_ia"
-      ],
-      "depends": [
-        "modoops_core",
-        "modoops_admin"
-      ],
+      "odoo": ["modoops_ia"],
+      "depends": ["modoops_core", "modoops_admin"],
       "version": "19.0",
       "repo": "modoops/modoops_ia",
       "ancla_retail": false,

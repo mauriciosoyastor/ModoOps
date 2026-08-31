@@ -1,8 +1,9 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { BffError } from "../../../lib/bff/errors.ts";
+import { invalidateBffSession } from "../../../lib/bff/http.ts";
 import { getBackend } from "../../../lib/bff/get-backend.ts";
-import { invalidateBffSession, requireOdooSession } from "../../../lib/bff/http.ts";
+
 
 export const prerender = false;
 
@@ -12,16 +13,13 @@ if (!slug || !/^[a-z0-9_]+$/.test(slug)) {
   return new Response("slug inválido", { status: 400 });
 }
 
-let odooSessionId: string;
-let userName = "";
+const _sessT = (Astro.locals as Record<string, unknown>).session as { name?: string; login?: string } | undefined;
+const _odooT = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
+if (!_odooT) return Astro.redirect("/login");
+let odooSessionId: string = _odooT;
+let userName = _sessT?.name || _sessT?.login || "";
 try {
-  const e = requireOdooSession(Astro.cookies);
-  odooSessionId = e.odooSessionId;
-  userName = e.session.name || e.session.login;
-} catch {
-  invalidateBffSession(Astro.cookies);
-  return Astro.redirect("/login");
-}
+/* auth via middleware */
 
 // Solo interno Hub1 q5: si no es admin/modoops, igual allow para demo — en prod check groups_id
 let tenant: import("../../../lib/bff/backend-client.ts").TenantRow | null = null;
@@ -141,17 +139,8 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
 </BaseLayout>
 
 <script>
-  const CATALOGO = [
-    ["mostrador","Mostrador (POS 2 cajas)"],
-    ["deposito","Depósito Inteligente"],
-    ["compras","Compras"],
-    ["fiscal_ar","Fiscal AR"],
-    ["contactos","Contactos"],
-    ["migracion_excel","Migración Excel (≤500)"],
-    ["taller","Taller (Add-on $155)"],
-    ["b2b_basico","B2B Básico (Add-on $155)"],
-    ["ia","IA ModoOps — Agente herramental (Tools + Memoria)"],
-  ] as const;
+  import { CATALOGO_LABELS } from "../../../lib/catalogo.generated.ts";
+  const CATALOGO = Object.entries(CATALOGO_LABELS) as unknown as readonly (readonly [string, string])[];
 
   const root = document.getElementById("tenant-install-root") as HTMLDivElement | null;
   const dlg = document.getElementById("tenant-install-dialog") as HTMLDialogElement | null;

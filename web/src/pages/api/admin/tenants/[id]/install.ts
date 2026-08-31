@@ -1,23 +1,15 @@
-import type { APIRoute } from "astro";
+﻿import type { APIRoute } from "astro";
 import { getBackend } from "../../../../../lib/bff/get-backend.ts";
-import { bffErrorResponse, json, requireOdooSession } from "../../../../../lib/bff/http.ts";
+import { BffError } from "../../../../../lib/bff/errors.ts";
+import { bffErrorResponse, json } from "../../../../../lib/bff/http.ts";
+import { CATALOGO_KEYS } from "../../../../../lib/catalogo.generated.ts";
 
 export const prerender = false;
 
-const CATALOGO_KEYS = new Set([
-  "mostrador",
-  "deposito",
-  "compras",
-  "fiscal_ar",
-  "contactos",
-  "migracion_excel",
-  "taller",
-  "b2b_basico",
-]);
-
-export const POST: APIRoute = async ({ cookies, request, params }) => {
+export const POST: APIRoute = async ({ cookies, request, params, locals }) => {
   try {
-    const { odooSessionId } = requireOdooSession(cookies);
+    const odooSessionId = (locals as Record<string, unknown>).odooSessionId as string;
+    if (!odooSessionId) return bffErrorResponse(new BffError("unauthorized", 401, "Tenés que iniciar sesión"), cookies);
     const id = Number(params.id);
     if (!Number.isInteger(id) || id <= 0) {
       return json({ error: { code: "validation_error", message: "id inválido" } }, { status: 400 });
@@ -33,7 +25,7 @@ export const POST: APIRoute = async ({ cookies, request, params }) => {
       return json({ error: { code: "validation_error", message: "Seleccioná al menos un módulo" } }, { status: 400 });
     }
     for (const m of modules) {
-      if (!CATALOGO_KEYS.has(m)) {
+      if (!CATALOGO_KEYS.has(m as never)) {
         return json({ error: { code: "validation_error", message: `Módulo inválido '${m}'` } }, { status: 400 });
       }
     }

@@ -4,51 +4,65 @@ import json
 import hashlib
 from pathlib import Path
 
-CATALOGO_PATH = Path(__file__).resolve().parents[1] / "catalogo.json"
+CATALOGO_PATH = Path(__file__).resolve().parents[2] / "modoops_catalogo" / "catalogo.json"  # SSOT (ADR 0009)
 
-# horas estimadas por módulo (para techo 92h)
-HORAS = {
-    "mostrador": 25,
-    "deposito": 20,
-    "ventas": 15,
-    "compras": 15,
-    "fiscal_ar": 15,
-    "contactos": 5,
-    "plataforma": 10,
-    "puente_factura": 5,
-    "taller": 20,
-    "b2b_basico": 20,
-    "migracion_excel": 10,
-}
+# horas estimadas por módulo — SSOT modoops_catalogo/catalogo.json (ADR 0009)
+from modoops_catalogo import get_catalogo as _get_catalogo
+
+_cat = _get_catalogo()
+HORAS = {k: _cat.get(k).get("horas", 10) for k in _cat.allKeys()}
 
 
 def _load_catalogo():
-    data = json.loads(CATALOGO_PATH.read_text(encoding="utf-8"))
-    return data
+    # intenta SSOT modoops_catalogo, fallback legacy
+    try:
+        from modoops_catalogo import get_catalogo
+
+        c = get_catalogo()
+        return {"modules": {k: c.get(k) for k in c.allKeys()}, "pricing": c.pricing(), "_catalogo_obj": c}
+    except Exception:
+        data = json.loads(CATALOGO_PATH.read_text(encoding="utf-8"))
+        return data
 
 
-def generar(inp: dict) -> dict:
-    catalogo = _load_catalogo()
-    modules = catalogo["modules"]
-    pricing = catalogo["pricing"]
-
-    errors = []
-    warnings = []
-
+def generar(inp: dict, catalogo=None) -> dict:
+    # seam inyectable: catalogo puede ser dict legacy o Catalogo object; si None, carga SSOT
     vertical = inp.get("vertical", "retail")
     modulos = inp.get("modulos_tildados", [])
     sku = inp.get("sku_count", 0)
     anexo = inp.get("anexo_fiscal_ref")
     ars_tc = inp.get("ars_tipo_cambio")
 
-    # Hard gate: módulo fuera de catálogo
-    for m in modulos:
-        if m not in modules:
-            errors.append(f"Módulo '{m}' no existe en catálogo (universo = Catálogo)")
+    _loaded = catalogo if catalogo is not None else _load_catalogo()
+    # soporta Catalogo object (tiene pricing() method) o dict
+    if hasattr(_loaded, "pricing") and callable(getattr(_loaded, "pricing")):
+        # Catalogo object
+        c_obj = _loaded
+        modules = {k: c_obj.get(k) for k in c_obj.allKeys()}
+        pricing = c_obj.pricing()
+        # delega validate a interface si existe
+        val = c_obj.validate(modulos, anexo)
+        _pre_errors = val.get("errors", [])
+    else:
+        c_obj = None
+        modules = _loaded["modules"]
+        pricing = _loaded["pricing"]
+        _pre_errors = []
 
-    # Hard gate: fiscal sin anexo
-    if "fiscal_ar" in modulos and not anexo:
-        errors.append("Falta anexo_fiscal_ref para Fiscal AR (hard gate)")
+    # si tenemos Catalogo object, delega hard gates a interface (single seam)
+    if c_obj is not None:
+        errors = list(_pre_errors)
+    else:
+        errors = []
+        # Hard gate: módulo fuera de catálogo
+        for m in modulos:
+            if m not in modules:
+                errors.append(f"Módulo '{m}' no existe en catálogo (universo = Catálogo)")
+
+        # Hard gate: fiscal sin anexo
+        if "fiscal_ar" in modulos and not anexo:
+            errors.append("Falta anexo_fiscal_ref para Fiscal AR (hard gate)")
+    warnings = []
 
     # Soft gate: sku >500
     if sku and sku > 500:

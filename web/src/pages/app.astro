@@ -1,19 +1,15 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { BffError } from "../lib/bff/errors.ts";
+import { invalidateBffSession } from "../lib/bff/http.ts";
 import { getBackend } from "../lib/bff/get-backend.ts";
-import { invalidateBffSession, requireOdooSession } from "../lib/bff/http.ts";
 
-let odooSessionId: string;
-let userName = "";
-try {
-  const entry = requireOdooSession(Astro.cookies);
-  odooSessionId = entry.odooSessionId;
-  userName = entry.session.name || entry.session.login;
-} catch {
-  invalidateBffSession(Astro.cookies);
-  return Astro.redirect("/login");
-}
+// Guardia via middleware onRequest (deep module bff.session) — single seam
+const _sess = (Astro.locals as Record<string, unknown>).session as { name?: string; login?: string } | undefined;
+const _odoo = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
+if (!_odoo) return Astro.redirect("/login");
+let odooSessionId: string = _odoo;
+let userName = _sess?.name || _sess?.login || "";
 
 // Ordenado q2: /app legacy redirect a Hub1 para rol interno ModoOps (solo interno q5)
 // Mantiene compat: clientes futuros usarán /tenant/[slug]/app, internos ven /admin/tenants primero

@@ -1,28 +1,13 @@
 import { OdooAdapter } from "./odoo-adapter.ts";
 import type { BackendClient } from "./backend-client.ts";
+import { getBackendEnv, getRpcTimeoutMs, getEnv } from "./config.ts";
+
+// Deep module factory — pura, sin side-effects globales (locality)
+// `cached` se mantiene por compat, pero la factory es inyectable via fetchImpl para tests.
 
 let cached: BackendClient | undefined;
 
-function env(name: "ODOO_URL" | "ODOO_DB" | "ODOO_RPC_TIMEOUT_MS"): string | undefined {
-  const fromMeta = (import.meta.env as Record<string, string | undefined>)[name];
-  if (fromMeta) return fromMeta;
-  if (typeof process !== "undefined" && (process as unknown as { env?: Record<string, string> })?.env?.[name]) {
-    return (process as unknown as { env: Record<string, string> }).env[name];
-  }
-  return undefined;
-}
-
-export function getRpcTimeoutMs(): number {
-  const raw = Number(env("ODOO_RPC_TIMEOUT_MS"));
-  if (Number.isFinite(raw) && raw >= 1000) return Math.floor(raw);
-  return 15_000;
-}
-
-export function getBackendEnv(): { baseUrl: string; db: string } {
-  const baseUrl = env("ODOO_URL") || "http://localhost:8070";
-  const db = env("ODOO_DB") || "modoops_master";
-  return { baseUrl, db };
-}
+export { getBackendEnv, getRpcTimeoutMs };
 
 export function getBackend(): BackendClient {
   if (!cached) {
@@ -44,6 +29,7 @@ export function getBackendForDb(db: string): BackendClient {
   return new OdooAdapter({ baseUrl, db, timeoutMs: getRpcTimeoutMs() });
 }
 
+/** @deprecated solo tests — seam hipotético, usar factory pura con fetchImpl */
 export function __setBackendForTests(backend: BackendClient | undefined) {
   if (process.env.NODE_ENV !== "test") return;
   cached = backend;
@@ -51,4 +37,9 @@ export function __setBackendForTests(backend: BackendClient | undefined) {
 
 export function resetBackendCache(): void {
   cached = undefined;
+}
+
+/** Factory pura para tests — no usa global */
+export function createBackend(opts: { baseUrl: string; db: string; fetchImpl?: typeof fetch; timeoutMs?: number }): BackendClient {
+  return new OdooAdapter({ baseUrl: opts.baseUrl, db: opts.db, fetchImpl: opts.fetchImpl, timeoutMs: opts.timeoutMs ?? getRpcTimeoutMs() });
 }

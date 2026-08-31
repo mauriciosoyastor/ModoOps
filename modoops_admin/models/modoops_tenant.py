@@ -3,19 +3,8 @@ import re
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
-CATALOGO_MODOOPS = [
-    ("mostrador", "Mostrador (POS 2 cajas)"),
-    ("deposito", "Depósito Inteligente (1 almacén)"),
-    ("compras", "Compras"),
-    ("fiscal_ar", "Fiscal AR"),
-    ("contactos", "Contactos"),
-    ("migracion_excel", "Migración Excel (≤500 prod)"),
-    ("taller", "Taller (Add-on $155)"),
-    ("b2b_basico", "B2B Básico (Add-on $155)"),
-    ("ia", "IA ModoOps — Agente herramental (Tools + Memoria)"),
-]
+from modoops_catalogo._generated_selection import CATALOGO_MODOOPS, CATALOGO_DICT
 
-CATALOGO_DICT = dict(CATALOGO_MODOOPS)
 DB_PREFIX = "modoops_"
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
 
