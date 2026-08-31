@@ -17,6 +17,7 @@ Mock v0.1 — sin billing auto ni editor runtime.
         "security/modoops_tenant_log_access.xml",
         "views/modoops_tenant_views.xml",
         "views/modoops_tenant_install_wizard_views.xml",
+        "views/modoops_configurador_wizard_views.xml",
         "views/modoops_tenant_log_views.xml",
         "views/modoops_admin_menus.xml",
         "data/modoops_tenant_demo.xml",
