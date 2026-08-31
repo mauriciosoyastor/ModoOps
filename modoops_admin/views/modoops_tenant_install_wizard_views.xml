@@ -11,6 +11,14 @@
                     <field name="action" widget="radio"/>
                     <field name="preview_command" readonly="1" class="text-muted"/>
                 </group>
+                <group string="Módulos seleccionados — cards Ancla/Add-on (batch)">
+                    <field name="line_ids" nolabel="1">
+                        <list string="Módulos" editable="bottom">
+                            <field name="module_key" widget="badge" decoration-success="module_key in ['mostrador','deposito','compras','fiscal_ar','contactos','migracion_excel']" decoration-warning="module_key in ['taller','b2b_basico']"/>
+                            <field name="preview_command" readonly="1"/>
+                        </list>
+                    </field>
+                </group>
                 <group string="Notas">
                     <field name="notes" placeholder="Ticket, validación, motivo (mock no ejecuta odoo-bin real)"/>
                 </group>
