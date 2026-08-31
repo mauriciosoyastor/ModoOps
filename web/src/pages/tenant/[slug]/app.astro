@@ -18,8 +18,6 @@ const _odooT = (Astro.locals as Record<string, unknown>).odooSessionId as string
 if (!_odooT) return Astro.redirect("/login");
 let odooSessionId: string = _odooT;
 let userName = _sessT?.name || _sessT?.login || "";
-try {
-/* auth via middleware */
 
 // Solo interno Hub1 q5: si no es admin/modoops, igual allow para demo — en prod check groups_id
 let tenant: import("../../../lib/bff/backend-client.ts").TenantRow | null = null;
