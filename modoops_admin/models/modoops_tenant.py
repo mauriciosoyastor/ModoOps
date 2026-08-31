@@ -22,7 +22,7 @@ SLUG_RE = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
 class ModoopsTenant(models.Model):
     _name = "modoops.tenant"
     _description = "Tenant ModoOps (cliente aislado Multi-DB)"
-    _order = "name, db_name"
+    _order = "abono_due_date asc, state, name"
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
     name = fields.Char(
@@ -66,6 +66,12 @@ class ModoopsTenant(models.Model):
         string="Módulos instalados",
         help="Lista del Catálogo ModoOps, ej: Mostrador, Depósito, Fiscal AR",
     )
+    modules_installed_count = fields.Integer(
+        string="Módulos #",
+        compute="_compute_modules_installed_count",
+        store=False,
+        help="Conteo de módulos del Catálogo instalados (lista+hub, AA semáforo)",
+    )
     last_backup = fields.Datetime(string="Último backup")
     notes = fields.Text(string="Notas")
 
@@ -76,6 +82,15 @@ class ModoopsTenant(models.Model):
                 rec.suspend_grace_until = fields.Date.add(rec.abono_due_date, days=7)
             else:
                 rec.suspend_grace_until = False
+
+    @api.depends("modules_installed")
+    def _compute_modules_installed_count(self):
+        for rec in self:
+            if not rec.modules_installed:
+                rec.modules_installed_count = 0
+            else:
+                parts = [s.strip() for s in rec.modules_installed.split(",") if s.strip()]
+                rec.modules_installed_count = len(parts)
 
     @api.constrains("slug", "db_name")
     def _check_slug_db(self):

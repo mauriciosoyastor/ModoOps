@@ -1,15 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_modoops_tenant_search" model="ir.ui.view">
+        <field name="name">modoops.tenant.search</field>
+        <field name="model">modoops.tenant</field>
+        <field name="arch" type="xml">
+            <search string="Tenants ModoOps">
+                <field name="name"/>
+                <field name="db_name"/>
+                <field name="vertical"/>
+                <field name="state"/>
+                <filter string="Retail" name="filter_vertical_retail" domain="[('vertical','=','retail')]"/>
+                <filter string="Activo" name="filter_state_activo" domain="[('state','=','activo')]"/>
+                <filter string="Suspendido" name="filter_state_suspendido" domain="[('state','=','suspendido')]"/>
+                <filter string="Baja" name="filter_state_baja" domain="[('state','=','baja')]"/>
+                <separator/>
+                <filter string="Vencimiento próximo" name="filter_abono_soon" domain="[]"/>
+            </search>
+        </field>
+    </record>
+
     <record id="view_modoops_tenant_tree" model="ir.ui.view">
         <field name="name">modoops.tenant.tree</field>
         <field name="model">modoops.tenant</field>
         <field name="arch" type="xml">
-            <list string="Tenants ModoOps">
+            <list string="Tenants ModoOps" sample="1" help="0 tenants — onboarding master">
+                <!-- empty: 0 tenants — onboarding master -->
                 <field name="name"/>
                 <field name="db_name"/>
                 <field name="vertical"/>
-                <field name="state" decoration-danger="state=='suspendido'" decoration-muted="state=='baja'"/>
+                <field name="state" widget="badge" decoration-success="state=='activo'" decoration-danger="state=='suspendido'" decoration-muted="state=='baja'"/>
+                <field name="modules_installed_count" string="Módulos #"/>
                 <field name="abono_due_date"/>
+                <field name="suspend_grace_until"/>
                 <field name="last_backup"/>
             </list>
         </field>
@@ -47,15 +69,36 @@
                             <field name="last_backup"/>
                         </group>
                     </group>
-                    <group string="Módulos del Catálogo ModoOps">
-                        <field name="modules_installed" placeholder="Mostrador, Depósito Inteligente, Compras, Fiscal AR"/>
-                        <div class="text-muted">Solo Catálogo ModoOps. Wizard mock valida; ejecución real vía provision_tenant.py.</div>
-                    </group>
-                    <group string="Notas">
-                        <field name="notes"/>
-                    </group>
                     <notebook>
-                        <page string="Chatter" name="chatter">
+                        <page string="Módulos" name="modules">
+                            <group string="Módulos del Catálogo ModoOps">
+                                <field name="modules_installed" placeholder="Mostrador, Depósito Inteligente, Compras, Fiscal AR"/>
+                                <field name="modules_installed_count" readonly="1" string="Módulos #"/>
+                                <div class="text-muted">Solo Catálogo ModoOps. Wizard valida dependencias; preview odoo-bin -d &lt;tenant&gt; -i &lt;modulo&gt;. Mock escribe modules_installed + log.</div>
+                            </group>
+                            <div class="text-muted">Cards Ancla/Add-on con validación module_required / depends en wizard.</div>
+                        </page>
+                        <page string="Logs" name="logs">
+                            <div class="alert alert-info" role="alert">Logs auditados en <code>modoops.tenant.log</code> — filtra por tenant/acción, export CSV. Provisioning fallido reintentable.</div>
+                            <group string="Auditoría">
+                                <field name="abono_due_date" readonly="1"/>
+                                <field name="suspend_grace_until" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Gestión mora" name="mora">
+                            <group>
+                                <group string="Mora">
+                                    <field name="abono_due_date"/>
+                                    <field name="suspend_grace_until" readonly="1"/>
+                                    <field name="last_warning_sent"/>
+                                    <field name="last_backup"/>
+                                </group>
+                                <group string="Notas">
+                                    <field name="notes" placeholder="Aviso WhatsApp día 1 y 5, bloqueo login día 8, baja día 15 tras backup"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Actividad" name="chatter">
                             <field name="message_ids" widget="mail_thread"/>
                             <field name="message_follower_ids" widget="mail_followers"/>
                             <field name="activity_ids" widget="mail_activity"/>

@@ -21,7 +21,11 @@ Mock v0.1 — sin billing auto ni editor runtime.
         "views/modoops_admin_menus.xml",
         "data/modoops_tenant_demo.xml",
     ],
-    "assets": {},
+    "assets": {
+        "web.assets_backend": [
+            "modoops_admin/static/src/scss/modoops_admin.scss",
+        ],
+    },
     "installable": True,
     "application": True,
 }

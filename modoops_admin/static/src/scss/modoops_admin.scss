@@ -1,0 +1,48 @@
+// Control Plane — paleta híbrida Mock oscuro + Liquid Glass v2 (dec #40)
+// Dark shell #0f1115 + header #1e232c + light cards #fff / glass
+// Reusa tokens de modoops_core: --mo-paper, --mo-glass-border, $mo-radius-card
+
+.o_web_client:has(.o_control_panel[data-control-panel*="modoops.tenant"]) {
+    background: #0f1115;
+}
+
+.o_list_view:has(th[data-name="state"]) {
+    // header tabla oscuro ya en mock: #1e232c vs canvas #efecea
+    thead th {
+        background: #1e232c !important;
+        color: #9aa0aa !important;
+        border-bottom: 1px solid #232836;
+    }
+    tbody tr {
+        background: #ffffff;
+        border-top: 1px solid #232836;
+        + tr { border-top: 1px solid #232836; }
+        &:hover { background: rgba(245, 124, 0, 0.06); }
+    }
+}
+
+// badges estado AA sobre dark/light
+.badge.bg-success { background-color: #7ee081 !important; color: #0f1115 !important; }
+.badge.bg-danger { background-color: #ff8a8a !important; color: #0f1115 !important; }
+.badge.bg-muted { background-color: #bababa !important; color: #0f1115 !important; }
+
+// alert gracia amarilla
+.alert-warning {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    color: #92400e;
+}
+
+// cards hub (Módulos/Logs/Gestión mora) — reuse glass
+.o_form_view .o_notebook .o_notebook_content .tab-pane {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(230, 74, 25, 0.12);
+    border-radius: 12px;
+    padding: 1rem;
+    backdrop-filter: blur(16px);
+}
+
+// empty state help
+.o_list_view[help] .o_view_nocontent {
+    color: #9aa0aa;
+}

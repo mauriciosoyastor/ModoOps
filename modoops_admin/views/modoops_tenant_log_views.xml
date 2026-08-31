@@ -1,13 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_modoops_tenant_log_search" model="ir.ui.view">
+        <field name="name">modoops.tenant.log.search</field>
+        <field name="model">modoops.tenant.log</field>
+        <field name="arch" type="xml">
+            <search string="Logs Control Plane">
+                <field name="tenant_id"/>
+                <field name="action"/>
+                <field name="user_id"/>
+                <filter string="Install" name="filter_install" domain="[('action','=','install')]"/>
+                <filter string="Suspendido" name="filter_suspendido" domain="[('action','=','suspendido')]"/>
+                <filter string="Baja" name="filter_baja" domain="[('action','=','baja')]"/>
+                <separator/>
+                <filter string="Hoy" name="filter_today" domain="[('create_date','&gt;=', (context_today()))]"/>
+            </search>
+        </field>
+    </record>
+
     <record id="view_modoops_tenant_log_list" model="ir.ui.view">
         <field name="name">modoops.tenant.log.list</field>
         <field name="model">modoops.tenant.log</field>
         <field name="arch" type="xml">
-            <list string="Logs Control Plane" create="0" edit="0">
+            <list string="Logs Control Plane" create="0" edit="0" help="Logs auditados — filtra por tenant/acción, export CSV. Provisioning fallido reintentable.">
                 <field name="create_date"/>
                 <field name="tenant_id"/>
-                <field name="action"/>
+                <field name="action" widget="badge" decoration-success="action=='install'" decoration-danger="action=='suspendido'" decoration-muted="action=='baja'"/>
                 <field name="detail"/>
                 <field name="user_id"/>
             </list>

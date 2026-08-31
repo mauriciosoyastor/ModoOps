@@ -13,8 +13,11 @@
                 <group string="Notas">
                     <field name="notes" placeholder="Ticket, validación, motivo (mock no ejecuta odoo-bin real)"/>
                 </group>
+                <div class="alert alert-info" role="alert">
+                    Catálogo ModoOps — Ancla: Mostrador, Depósito, Compras, Fiscal AR, Contactos, Migración Excel — Add-on: Taller, B2B Básico. Validación <code>module_required</code> / <code>depends</code> antes de instalar.
+                </div>
                 <div class="text-muted">
-                    Solo módulos del Catálogo ModoOps. Mock: escribe modules_installed + log. Ejecución real: odoo-bin -d &lt;tenant&gt; -i &lt;modulo&gt; (ver tools/modoops_provision/README).
+                    Preview: <code>odoo-bin -d &lt;tenant&gt; -i &lt;modulo&gt;</code> — Mock escribe <code>modules_installed</code> + <code>modoops.tenant.log</code> + <code>mail_thread</code>. Error deps / ya instalado / no instalado → toast + log reintentable.
                 </div>
                 <footer>
                     <button name="action_confirm" type="object" string="Confirmar (mock)" class="btn-primary"/>
