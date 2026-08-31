@@ -55,8 +55,11 @@ assert(
   'root wrangler.toml assets.directory must be "web/dist"'
 );
 assert(
-  rootWrangler.includes('main = "worker.js"') || rootWrangler.includes("main = 'worker.js'"),
-  'root wrangler.toml main must be root worker.js'
+  rootWrangler.includes('main = "worker.js"') ||
+    rootWrangler.includes("main = 'worker.js'") ||
+    rootWrangler.includes('main = "web/dist/_worker.js"') ||
+    rootWrangler.includes("main = 'web/dist/_worker.js'"),
+  'root wrangler.toml main must be root worker.js or web/dist/_worker.js (Astro server)'
 );
 assert(
   !existsSync(resolve(root, "web/wrangler.toml")),
