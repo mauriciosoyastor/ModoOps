@@ -70,10 +70,15 @@ if HAS_ODOO:
             # doble persistencia: ir.attachment + log
             hash_val = _hash_input(inp)
             # ir.attachment
+            import base64
+
+            md_bytes = out["propuesta"]["comercial_md"].encode("utf-8")
             self.env["ir.attachment"].create(  # type: ignore
                 {
                     "name": f"propuesta_{hash_val[:8]}.md",
-                    "datas": out["propuesta"]["comercial_md"].encode(),
+                    "type": "binary",
+                    "datas": base64.b64encode(md_bytes).decode("ascii"),
+                    "mimetype": "text/markdown",
                     "res_model": "modoops.tenant",
                 }
             )

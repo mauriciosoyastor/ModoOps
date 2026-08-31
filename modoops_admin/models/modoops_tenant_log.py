@@ -10,7 +10,7 @@ class ModoopsTenantLog(models.Model):
     _description = "Log Control Plane por Tenant"
     _order = "create_date desc, id desc"
 
-    tenant_id = fields.Many2one("modoops.tenant", string="Tenant", required=True, ondelete="cascade", index=True)
+    tenant_id = fields.Many2one("modoops.tenant", string="Tenant", required=False, ondelete="cascade", index=True)
     action = fields.Selection(
         [
             ("creado", "Creado"),
@@ -21,10 +21,13 @@ class ModoopsTenantLog(models.Model):
             ("baja", "Baja"),
             ("backup", "Backup"),
             ("aviso", "Aviso mora"),
+            ("configurador_generar", "Configurador — Generar Propuesta"),
         ],
         required=True,
     )
     detail = fields.Char(string="Detalle", help="Módulo, resultado, nota corta")
+    hash = fields.Char(string="Hash entrada", help="SHA256 de input configurador")
+    input_json = fields.Text(string="Input JSON", help="Input configurador serializado")
     user_id = fields.Many2one("res.users", string="Operador", default=lambda self: self.env.user, readonly=True)
 
     @api.model

@@ -1,0 +1,44 @@
+# ModoOps — Stack dev local (Odoo CE 19 + Postgres 16)
+# Uso: docker compose up -d && open http://localhost:8070 (5434 para PG)
+# Evita colisión con Servigas (8069/5433). Ver docs/modoops-control-plane-spec.md y CONTEXT.md:237
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 5s
+      retries: 10
+
+  odoo:
+    image: odoo:19.0
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8070:8069"
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: odoo
+    volumes:
+      - ./modoops_core:/mnt/extra-addons/modoops_core
+      - ./modoops_admin:/mnt/extra-addons/modoops_admin
+      - ./modoops_ia:/mnt/extra-addons/modoops_ia
+      - odoo_data:/var/lib/odoo
+      - ./odoo.conf:/etc/odoo/odoo.conf
+    command: --dev=all
+
+volumes:
+  db_data:
+  odoo_data:

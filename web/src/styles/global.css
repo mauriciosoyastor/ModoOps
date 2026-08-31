@@ -57,6 +57,25 @@
   }
 }
 
+/* ModoOps Liquid Glass — mapeo flame/ember sobre paleta galaxia */
+:root {
+  --sg-flame-yellow: #ffd600;
+  --sg-flame-orange: #f57c00;
+  --sg-flame-deep: #e64a19;
+  --sg-flame-rust: #bf360c;
+  --sg-ember-amber: #ff8f00;
+  --sg-ember-coral: #ff5722;
+  --sg-ember-scarlet: #d32f2f;
+  --sg-ember-wine: #880e4f;
+  --sg-glass-fill: color-mix(in srgb, var(--color-galaxy-deep) 72%, transparent);
+  --sg-glass-fill-strong: color-mix(in srgb, var(--color-galaxy-deep) 84%, transparent);
+  --sg-glass-border: color-mix(in srgb, var(--color-nebula-cyan) 28%, transparent);
+  --sg-text-on-dark: var(--color-star-white);
+  --sg-text-muted-dark: color-mix(in srgb, var(--color-star-white) 64%, transparent);
+  --sg-radius-card: 1.25rem;
+  --sg-radius-pill: 999px;
+}
+
 @layer utilities {
   .galaxy-card {
     border: 1px solid color-mix(in srgb, var(--color-nebula-cyan) 32%, transparent);

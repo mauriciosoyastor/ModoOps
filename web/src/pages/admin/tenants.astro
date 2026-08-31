@@ -1,0 +1,129 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { BffError } from "../../lib/bff/errors.ts";
+import { getBackend } from "../../lib/bff/get-backend.ts";
+import { invalidateBffSession, requireOdooSession } from "../../lib/bff/http.ts";
+
+let odooSessionId: string;
+let userName = "";
+try {
+  const e = requireOdooSession(Astro.cookies);
+  odooSessionId = e.odooSessionId;
+  userName = e.session.name || e.session.login;
+} catch {
+  invalidateBffSession(Astro.cookies);
+  return Astro.redirect("/login");
+}
+
+let tenants: import("../../lib/bff/backend-client.ts").TenantRow[] = [];
+let loadError = "";
+try {
+  tenants = await getBackend().getTenants(odooSessionId);
+} catch (cause) {
+  if (cause instanceof BffError && cause.code === "unauthorized") {
+    invalidateBffSession(Astro.cookies);
+    return Astro.redirect("/login");
+  }
+  loadError = (cause as Error)?.message || "No se pudo cargar tenants";
+}
+---
+
+<BaseLayout title="Tenants — ModoOps Admin" description="ModoOps Control Plane — Tenants">
+  <main class="mo-admin">
+    <header class="mo-admin__topbar">
+      <div>
+        <p class="mo-admin__eyebrow">ModoOps Admin · Control Plane</p>
+        <h1>Tenants</h1>
+        <p class="mo-admin__user">{userName} · {tenants.length} tenant{tenants.length===1?"":"s"}</p>
+      </div>
+      <div class="mo-admin__actions">
+        <a href="/app">← App</a>
+        <button type="button" data-logout>Cerrar sesión</button>
+      </div>
+    </header>
+
+    <section class="mo-admin__create">
+      <h2>Crear Tenant</h2>
+      <form id="create-tenant-form">
+        <label>Nombre <input name="name" placeholder="Pinturería Centro" required /></label>
+        <label>Slug (opcional) <input name="slug" placeholder="pintureria_centro" pattern="[a-z0-9_]+" /></label>
+        <label>Vertical
+          <select name="vertical">
+            <option value="retail">retail</option>
+            <option value="servicios">servicios</option>
+            <option value="distribucion">distribucion</option>
+          </select>
+        </label>
+        <button type="submit">Crear</button>
+        <span id="create-msg" class="mo-admin__msg"></span>
+      </form>
+    </section>
+
+    {loadError ? <p class="mo-admin__error">{loadError}</p> : null}
+
+    <div class="mo-admin__tablewrap">
+      <table class="mo-admin__table">
+        <thead>
+          <tr><th>Cliente</th><th>DB</th><th>Slug</th><th>Vertical</th><th>Estado</th><th>Módulos</th><th>Vto abono</th></tr>
+        </thead>
+        <tbody>
+          {tenants.map((t) => (
+            <tr>
+              <td>{t.name}</td>
+              <td><code>{t.db_name}</code></td>
+              <td>{t.slug}</td>
+              <td>{t.vertical}</td>
+              <td><span class:list={["mo-badge", `is-${t.state}`]}>{t.state}</span></td>
+              <td>{t.modules_installed_count} {t.modules_installed ? `· ${t.modules_installed}` : ""}</td>
+              <td>{t.abono_due_date || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {tenants.length===0 && !loadError ? <p class="mo-admin__empty">0 tenants — creá el primero arriba. Onboarding master.</p> : null}
+    </div>
+
+    <p class="mo-admin__foot"><a href="/api/admin/tenants" target="_blank">JSON /api/admin/tenants</a> · <code>modoops_master</code> · Odoo <code>modoops.tenant</code></p>
+  </main>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById("create-tenant-form") as HTMLFormElement;
+  const msg = document.getElementById("create-msg") as HTMLSpanElement;
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.textContent = "Creando…";
+    const fd = new FormData(form);
+    const body = { name: String(fd.get("name")||""), slug: String(fd.get("slug")||"")||undefined, vertical: String(fd.get("vertical")||"retail") };
+    const res = await fetch("/api/admin/tenants", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(body) });
+    const data = await res.json().catch(()=>({}));
+    if (!res.ok) { msg.textContent = (data as {error?:{message?:string}})?.error?.message || "Error"; return; }
+    msg.textContent = `Creado id=${(data as {id?:number})?.id}`;
+    setTimeout(()=> window.location.reload(), 600);
+  });
+  document.querySelector("[data-logout]")?.addEventListener("click", async () => {
+    await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login");
+  });
+</script>
+
+<style>
+  .mo-admin { max-width:78rem; margin:0 auto; padding:2rem 1rem 3rem; }
+  .mo-admin__topbar { display:flex; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; }
+  .mo-admin__eyebrow { color:var(--sg-flame-orange); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0; font-weight:700; }
+  .mo-admin__user { color:var(--sg-text-muted-dark); margin:.25rem 0 0; }
+  .mo-admin__actions { display:flex; gap:.5rem; align-items:center; }
+  .mo-admin__create { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1rem; background:var(--sg-glass-fill); backdrop-filter:blur(10px); margin-bottom:1rem; }
+  .mo-admin__create h2 { margin:0 0 .5rem; font-size:1rem; }
+  .mo-admin__create form { display:flex; gap:.5rem; flex-wrap:wrap; align-items:end; }
+  .mo-admin__create label { display:flex; flex-direction:column; gap:.25rem; font-size:.85rem; }
+  .mo-admin__create input, .mo-admin__create select { border:1px solid #2b2b2b; border-radius:.5rem; padding:.45rem .6rem; background:#0a0a0a; color:#fff; }
+  .mo-admin__create button { border-radius:999px; padding:.5rem .9rem; background:#fff; color:#111; border:0; cursor:pointer; font-weight:600; }
+  .mo-admin__msg { font-size:.85rem; color:var(--sg-text-muted-dark); }
+  .mo-admin__tablewrap { overflow:auto; border:1px solid var(--sg-glass-border); border-radius:1rem; background:var(--sg-glass-fill); }
+  .mo-admin__table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  .mo-admin__table th, .mo-admin__table td { padding:.6rem .75rem; border-bottom:1px solid var(--sg-glass-border); text-align:left; }
+  .mo-badge { border-radius:999px; padding:.15rem .5rem; font-size:.75rem; font-weight:600; }
+  .mo-badge.is-activo { background:#16a34a; color:#fff; } .mo-badge.is-suspendido { background:#dc2626; color:#fff; } .mo-badge.is-baja { background:#6b7280; color:#fff; }
+  .mo-admin__error { color:#f87171; } .mo-admin__empty { color:var(--sg-text-muted-dark); padding:1rem; }
+  .mo-admin__foot { margin-top:1rem; font-size:.8rem; color:var(--sg-text-muted-dark); }
+</style>

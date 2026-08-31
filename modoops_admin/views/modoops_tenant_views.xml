@@ -23,7 +23,7 @@
         <field name="name">modoops.tenant.tree</field>
         <field name="model">modoops.tenant</field>
         <field name="arch" type="xml">
-            <list string="Tenants ModoOps" sample="1" help="0 tenants — onboarding master — Crear Tenant">
+            <list string="Tenants ModoOps" sample="1">
                 <!-- empty: 0 tenants — onboarding master — CTA Crear Tenant -->
                 <field name="name"/>
                 <field name="db_name"/>

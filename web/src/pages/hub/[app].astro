@@ -1,0 +1,126 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { BffError } from "../../lib/bff/errors.ts";
+import { getBackend } from "../../lib/bff/get-backend.ts";
+import { invalidateBffSession, requireOdooSession } from "../../lib/bff/http.ts";
+
+const app = String(Astro.params.app || "");
+const ALLOWED = new Set(["inventory", "sales", "purchase", "accounting", "workshop"]);
+if (!ALLOWED.has(app)) return Astro.redirect("/app");
+
+let odooSessionId: string;
+let userName = "";
+try {
+  const e = requireOdooSession(Astro.cookies);
+  odooSessionId = e.odooSessionId;
+  userName = e.session.name || e.session.login;
+} catch {
+  invalidateBffSession(Astro.cookies);
+  return Astro.redirect("/login");
+}
+
+const section = Astro.url.searchParams.get("section") || "summary";
+let payload: Awaited<ReturnType<typeof getBackend.prototype.getHub>> | null = null;
+let hubError = "";
+try {
+  payload = await getBackend().getHub(odooSessionId, app, section);
+} catch (cause) {
+  if (cause instanceof BffError && cause.code === "unauthorized") {
+    invalidateBffSession(Astro.cookies);
+    return Astro.redirect("/login");
+  }
+  hubError = (cause as Error)?.message || "No se pudo cargar hub";
+}
+
+function accentVar(key: string): string {
+  const map: Record<string, string> = {
+    "flame-yellow": "var(--sg-flame-yellow)",
+    "flame-orange": "var(--sg-flame-orange)",
+    "flame-deep": "var(--sg-flame-deep)",
+    "flame-rust": "var(--sg-flame-rust)",
+    "ember-amber": "var(--sg-ember-amber)",
+    "ember-coral": "var(--sg-ember-coral)",
+    "ember-scarlet": "var(--sg-ember-scarlet)",
+    "ember-wine": "var(--sg-ember-wine)",
+  };
+  return map[key] || "var(--sg-flame-orange)";
+}
+---
+
+<BaseLayout title={`${app} — ModoOps`} description={`Hub ${app} ModoOps`}>
+  <main class="mo-hub">
+    <header class="mo-hub__topbar">
+      <div>
+        <p class="mo-hub__eyebrow">{app}</p>
+        <h1 class="mo-hub__title">{payload ? `${app} · ${payload.section}` : app}</h1>
+        <p class="mo-hub__user">{userName}</p>
+      </div>
+      <div class="mo-hub__actions">
+        <a href="/app" class="mo-hub__back">← Launcher</a>
+        <button type="button" data-logout class="mo-hub__logout">Cerrar sesión</button>
+      </div>
+    </header>
+
+    {payload?.sections?.length ? (
+      <nav class="mo-hub__sections">
+        {payload.sections.map((s) => (
+          <a href={`/hub/${app}?section=${s.code}`} class:list={["mo-hub__pill", s.code === payload!.section && "is-active"]}>{s.name}</a>
+        ))}
+      </nav>
+    ) : null}
+
+    {hubError ? <p class="mo-hub__error">{hubError}</p> : null}
+
+    {payload?.cards?.length ? (
+      <div class="mo-hub__grid">
+        {payload.cards.map((c) => {
+          const monogram = c.label.trim().slice(0,1).toUpperCase();
+          return (
+            <article class="mo-card sg-glass" style={`--card-accent: ${accentVar(c.accent_key || "")}`}>
+              <span class="mo-card__icon" aria-hidden="true">{monogram}</span>
+              <span class="mo-card__copy">
+                <span class="mo-card__label">{c.label}</span>
+                <span class="mo-card__hint">{c.hint}</span>
+              </span>
+              <span class="mo-card__kpi"><span class="mo-card__value">{c.value ?? "—"}</span></span>
+              <span class="mo-card__enter">{c.enter_label || "Ingresar"} <span aria-hidden="true">→</span></span>
+            </article>
+          );
+        })}
+      </div>
+    ) : !hubError ? <p class="mo-hub__empty">Sin cards en esta sección. Revisá <code>mo.hub.card</code>.</p> : null}
+  </main>
+</BaseLayout>
+
+<script>
+  document.querySelector("[data-logout]")?.addEventListener("click", async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.assign("/login");
+  });
+</script>
+
+<style>
+  .mo-hub { max-width:78rem; margin:0 auto; padding:2rem 1rem 3rem; }
+  .mo-hub__topbar { display:flex; justify-content:space-between; gap:1rem; margin-bottom:1.5rem; }
+  .mo-hub__eyebrow { color:var(--sg-flame-orange); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0; font-weight:700; }
+  .mo-hub__title { margin:.25rem 0 .25rem; font-size:1.5rem; font-weight:700; }
+  .mo-hub__user { margin:0; color:var(--sg-text-muted-dark); font-size:.9rem; }
+  .mo-hub__actions { display:flex; gap:.5rem; align-items:center; }
+  .mo-hub__back { font-size:.9rem; color:var(--sg-text-muted-dark); text-decoration:none; }
+  .mo-hub__logout { border:1px solid var(--sg-glass-border); border-radius:var(--sg-radius-pill); padding:.5rem .9rem; background:var(--sg-glass-fill); color:var(--sg-text-on-dark); cursor:pointer; }
+  .mo-hub__sections { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+  .mo-hub__pill { border:1px solid var(--sg-glass-border); border-radius:999px; padding:.4rem .9rem; text-decoration:none; font-size:.85rem; color:var(--sg-text-muted-dark); background:transparent; }
+  .mo-hub__pill.is-active { background:#fff; color:#111827; border-color:#fff; font-weight:600; }
+  .mo-hub__grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(18rem,1fr)); gap:1rem; }
+  .mo-card { position:relative; display:grid; min-height:14rem; grid-template-columns:1fr auto; grid-template-rows:auto 1fr auto; gap:1.25rem; overflow:hidden; border-radius:var(--sg-radius-card); padding:1.25rem; color:var(--sg-text-on-dark); background:var(--sg-glass-fill); border:1px solid var(--sg-glass-border); backdrop-filter:blur(10px); }
+  .mo-card::after { position:absolute; width:9rem; height:9rem; border-radius:50%; background:var(--card-accent); content:""; filter:blur(64px); opacity:.16; right:-4rem; bottom:-4rem; pointer-events:none; }
+  .mo-card__icon { display:grid; width:2.75rem; height:2.75rem; place-items:center; border:1px solid color-mix(in srgb, var(--card-accent), white 22%); border-radius:.9rem; color:white; background:color-mix(in srgb, var(--card-accent), transparent 54%); font-weight:700; }
+  .mo-card__copy { grid-column:1 / -1; align-self:end; }
+  .mo-card__label { display:block; font-size:1.15rem; font-weight:650; margin-bottom:.35rem; }
+  .mo-card__hint { display:block; color:var(--sg-text-muted-dark); font-size:.84rem; line-height:1.5; }
+  .mo-card__kpi { justify-self:end; display:grid; border-radius:.9rem; padding:.5rem .7rem; background:rgba(0,0,0,.28); border:1px solid color-mix(in srgb, var(--card-accent), white 18%); min-width:4rem; justify-items:end; }
+  .mo-card__value { font-size:1.25rem; font-weight:700; line-height:1; }
+  .mo-card__enter { grid-column:1 / -1; display:flex; justify-content:space-between; align-items:center; padding-top:.9rem; border-top:1px solid var(--sg-glass-border); font-size:.8rem; font-weight:600; }
+  .mo-hub__error { color:#f87171; }
+  .mo-hub__empty { color:var(--sg-text-muted-dark); }
+</style>

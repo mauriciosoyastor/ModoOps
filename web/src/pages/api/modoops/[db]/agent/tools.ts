@@ -1,12 +1,29 @@
 import type { APIRoute } from 'astro';
+import { OdooAdapter } from '../../../../../lib/bff/odoo-adapter.ts';
 
 export const prerender = false;
 
-const CATALOG = [
+const CATALOG_FALLBACK = [
   { name: 'echo', label: 'Echo', input_schema: { type: 'object', required: ['message'] }, groups_required: [], module_required: null },
   { name: 'stock.consulta', label: 'Stock consulta', input_schema: { type: 'object', required: ['product_id'] }, groups_required: ['stock.group_stock_user'], module_required: 'stock' },
   { name: 'ot.cobro', label: 'OT cobro', input_schema: { type: 'object', required: ['work_order_id', 'amount'] }, groups_required: ['base.group_user'], module_required: null },
 ];
+
+async function fetchToolsFromMaster(): Promise<typeof CATALOG_FALLBACK | null> {
+  const baseUrl = (import.meta.env.ODOO_URL as string) || (process.env.ODOO_URL as string) || 'http://localhost:8070';
+  const masterDb = 'modoops_master';
+  try {
+    const adapter = new OdooAdapter({ baseUrl, db: masterDb });
+    const login = (import.meta.env.ODOO_ADMIN_LOGIN as string) || (process.env.ODOO_ADMIN_LOGIN as string) || 'admin';
+    const password = (import.meta.env.ODOO_ADMIN_PASSWORD as string) || (process.env.ODOO_ADMIN_PASSWORD as string) || 'admin';
+    const { sessionId } = await adapter.login(login, password);
+    const tools = await adapter.getAgentTools(sessionId);
+    await adapter.logout(sessionId).catch(()=>{});
+    return tools as typeof CATALOG_FALLBACK;
+  } catch {
+    return null;
+  }
+}
 
 function getApiKey(request: Request, url: URL): string | null {
   const auth = request.headers.get('Authorization');
@@ -59,7 +76,7 @@ export const GET: APIRoute = async ({ params, request }) => {
     return new Response(JSON.stringify({ status: 'error', code: 'tenant_suspended', error: 'Tenant suspendido' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
   }
 
-  // Filter by groups_id would check request user groups; stub returns all active catalog for now
-  // In prod: _is_visible_for_user groups_id & user.group_ids + module_required installed
-  return new Response(JSON.stringify({ tools: CATALOG }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  const dbTools = await fetchToolsFromMaster();
+  const tools = dbTools ?? CATALOG_FALLBACK;
+  return new Response(JSON.stringify({ tools }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 };

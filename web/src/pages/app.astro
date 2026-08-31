@@ -1,0 +1,133 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { BffError } from "../lib/bff/errors.ts";
+import { getBackend } from "../lib/bff/get-backend.ts";
+import { invalidateBffSession, requireOdooSession } from "../lib/bff/http.ts";
+
+let odooSessionId: string;
+let userName = "";
+try {
+  const entry = requireOdooSession(Astro.cookies);
+  odooSessionId = entry.odooSessionId;
+  userName = entry.session.name || entry.session.login;
+} catch {
+  invalidateBffSession(Astro.cookies);
+  return Astro.redirect("/login");
+}
+
+let tiles: import("../lib/bff/types.ts").LauncherTile[] = [];
+let launcherError = "";
+try {
+  tiles = (await getBackend().getLauncher(odooSessionId)).tiles;
+} catch (cause) {
+  if (cause instanceof BffError && cause.code === "unauthorized") {
+    invalidateBffSession(Astro.cookies);
+    return Astro.redirect("/login");
+  }
+  launcherError = (cause as Error)?.message || "No se pudo cargar launcher";
+}
+
+function hubPathFor(tile: (typeof tiles)[number]): string | null {
+  if (tile.target_type === "hub" && tile.client_tag) {
+    const tag = tile.client_tag;
+    if (tag.includes("sales")) return "/hub/sales";
+    if (tag.includes("inventory")) return "/hub/inventory";
+    if (tag.includes("purchase")) return "/hub/purchase";
+    if (tag.includes("accounting")) return "/hub/accounting";
+    if (tag.includes("workshop")) return "/hub/workshop";
+  }
+  // Clientes es act_window res.partner → link a hub sales customers tab futuro
+  if (tile.label === "Clientes") return "/hub/sales?section=customers";
+  return null;
+}
+
+function accentVar(key: string): string {
+  const map: Record<string, string> = {
+    "flame-yellow": "var(--sg-flame-yellow)",
+    "flame-orange": "var(--sg-flame-orange)",
+    "flame-deep": "var(--sg-flame-deep)",
+    "flame-rust": "var(--sg-flame-rust)",
+    "ember-amber": "var(--sg-ember-amber)",
+    "ember-coral": "var(--sg-ember-coral)",
+    "ember-scarlet": "var(--sg-ember-scarlet)",
+    "ember-wine": "var(--sg-ember-wine)",
+    "bg-charcoal": "var(--color-galaxy-deep)",
+    "bg-mid": "var(--color-dust-gray)",
+  };
+  return map[key] || "var(--sg-flame-orange)";
+}
+---
+
+<BaseLayout title="App — ModoOps" description="ModoOps App — launcher BFF">
+  <main class="mo-app">
+    <header class="mo-app__topbar">
+      <div>
+        <p class="mo-app__eyebrow">ModoOps</p>
+        <p class="mo-app__user">{userName ? `Hola, ${userName}` : "ModoOps"}</p>
+      </div>
+      <button type="button" data-logout class="mo-app__logout">Cerrar sesión</button>
+    </header>
+
+    {launcherError ? (
+      <p class="mo-app__error">{launcherError}</p>
+    ) : tiles.length === 0 ? (
+      <p class="mo-app__empty">Sin tiles visibles para este usuario.</p>
+    ) : (
+      <div class="mo-app__grid">
+        {tiles.map((t) => {
+          const href = hubPathFor(t);
+          const Tag = href ? "a" : "div";
+          const monogram = t.label.trim().slice(0,1).toUpperCase();
+          return (
+            <Tag href={href ?? undefined} class="mo-tile sg-glass" data-accent={t.accent_key} style={`--tile-accent: ${accentVar(t.accent_key)}`}>
+              <span class="mo-tile__icon" aria-hidden="true">{monogram}</span>
+              <span class="mo-tile__copy">
+                <span class="mo-tile__label">{t.label}</span>
+                <span class="mo-tile__hint">{t.hint}</span>
+              </span>
+              <span class="mo-tile__kpi">
+                <span class="mo-tile__value">{t.value ?? "—"}</span>
+              </span>
+              <span class="mo-tile__enter">{t.enter_label || "Ingresar"} <span aria-hidden="true">→</span></span>
+            </Tag>
+          );
+        })}
+      </div>
+    )}
+
+    <p class="mo-app__foot"><a href="/">← Landing</a> · <a href="/login">Login</a></p>
+  </main>
+</BaseLayout>
+
+<script>
+  document.querySelector("[data-logout]")?.addEventListener("click", async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.assign("/login");
+  });
+</script>
+
+<style>
+  .mo-app { max-width:78rem; margin:0 auto; padding:2rem 1rem 3rem; }
+  .mo-app__topbar { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:2rem; }
+  .mo-app__eyebrow { color:var(--sg-flame-orange); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0; font-weight:700; }
+  .mo-app__user { margin:0; color:var(--sg-text-muted-dark); }
+  .mo-app__logout { border:1px solid var(--sg-glass-border); border-radius:var(--sg-radius-pill); padding:.5rem .9rem; background:var(--sg-glass-fill); color:var(--sg-text-on-dark); cursor:pointer; }
+  .mo-app__grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(18rem,1fr)); gap:1rem; }
+  .mo-tile { position:relative; display:grid; min-height:15.5rem; grid-template-columns:1fr auto; grid-template-rows:auto 1fr auto; gap:1.5rem; overflow:hidden; border-radius:var(--sg-radius-card); padding:1.4rem; color:var(--sg-text-on-dark); text-align:left; text-decoration:none; background:var(--sg-glass-fill); border:1px solid var(--sg-glass-border); backdrop-filter:blur(10px); transition:transform 220ms ease, border-color 220ms ease, background 220ms ease; }
+  .mo-tile::after { position:absolute; width:10rem; height:10rem; border-radius:50%; background:var(--tile-accent); content:""; filter:blur(72px); opacity:.18; right:-5rem; bottom:-5rem; pointer-events:none; }
+  .mo-tile:hover { border-color:color-mix(in srgb, var(--tile-accent), white 20%); background:var(--sg-glass-fill-strong); transform:translateY(-4px); }
+  .mo-tile__icon { display:grid; width:3rem; height:3rem; place-items:center; border:1px solid color-mix(in srgb, var(--tile-accent), white 22%); border-radius:1rem; color:white; background:color-mix(in srgb, var(--tile-accent), transparent 52%); font-size:1.15rem; font-weight:700; }
+  .mo-tile__copy { align-self:end; grid-column:1 / -1; }
+  .mo-tile__label, .mo-tile__hint { display:block; }
+  .mo-tile__label { margin-bottom:.4rem; font-size:clamp(1.25rem,2vw,1.55rem); font-weight:650; }
+  .mo-tile__hint { color:var(--sg-text-muted-dark); font-size:.86rem; line-height:1.5; }
+  .mo-tile__kpi { justify-self:end; display:grid; gap:.15rem; justify-items:end; border-radius:1rem; padding:.55rem .75rem; color:var(--sg-text-on-dark); background:rgba(0,0,0,.28); border:1px solid color-mix(in srgb, var(--tile-accent), white 18%); min-width:4.5rem; }
+  .mo-tile__value { font-size:clamp(1.15rem,2vw,1.55rem); font-weight:700; letter-spacing:-.03em; line-height:1; }
+  .mo-tile__enter { display:flex; grid-column:1 / -1; align-items:center; justify-content:space-between; padding-top:1rem; border-top:1px solid var(--sg-glass-border); font-size:.8rem; font-weight:600; }
+  .mo-tile[href] { cursor:pointer; }
+  div.mo-tile { cursor:default; opacity:.9; }
+  .mo-app__error { color:#f87171; }
+  .mo-app__empty { color:var(--sg-text-muted-dark); }
+  .mo-app__foot { margin-top:2rem; font-size:.85rem; }
+  .mo-app__foot a { color:var(--sg-text-muted-dark); }
+</style>
