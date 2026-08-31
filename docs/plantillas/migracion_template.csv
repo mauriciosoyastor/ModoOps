@@ -1,0 +1,3 @@
+sku,nombre,categoria,precio,costo,stock,atributo1,atributo2,imagen_url
+EJ001,Pintura Latex 20L,Pinturas,45000,32000,10,20L,Blanco,http://ejemplo.com/img.jpg
+EJ002,Pincel 2",Herramientas,2500,1800,25,,,,

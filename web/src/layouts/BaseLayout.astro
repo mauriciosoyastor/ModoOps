@@ -29,6 +29,11 @@ const { title, description } = Astro.props;
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+    <!-- Plausible/Umami <2KB sin cookies — privacy-friendly, no GA4. Activa con data-domain -->
+    <script defer data-domain="modoops.com.ar" src="https://plausible.io/js/script.tagged-events.js"></script>
+    <script>
+      window.plausible = window.plausible || function(){(window.plausible.q=window.plausible.q||[]).push(arguments)};
+    </script>
   </head>
   <body>
     <SiteHeader />
