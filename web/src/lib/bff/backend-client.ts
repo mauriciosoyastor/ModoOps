@@ -13,6 +13,8 @@ export type TenantRow = {
   modules_installed_count: number;
 };
 
+export type InstallResult = { preview_command: string; modules_installed: string | false };
+
 export interface BackendClient {
   login(login: string, password: string): Promise<{ sessionId: string; session: SessionInfo }>;
   logout(odooSessionId: string): Promise<void>;
@@ -21,4 +23,9 @@ export interface BackendClient {
   getHub(odooSessionId: string, app: string, section?: string): Promise<HubPayload>;
   getTenants(odooSessionId: string): Promise<TenantRow[]>;
   createTenant(odooSessionId: string, vals: { name: string; slug?: string; vertical?: string }): Promise<{ id: number }>;
+  installTenantModules(
+    odooSessionId: string,
+    tenantId: number,
+    vals: { modules: string[]; action?: "install" | "remove"; notes?: string }
+  ): Promise<InstallResult>;
 }

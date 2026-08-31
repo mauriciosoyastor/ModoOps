@@ -146,4 +146,36 @@ export class OdooAdapter implements BackendClient {
     const id = await this.#callKw<number>(odooSessionId, "modoops.tenant", "create", [payload]);
     return { id: Number(id) };
   }
+
+  async installTenantModules(
+    odooSessionId: string,
+    tenantId: number,
+    vals: { modules: string[]; action?: "install" | "remove"; notes?: string }
+  ): Promise<{ preview_command: string; modules_installed: string | false }> {
+    const modules = (vals.modules || []).map((m) => String(m).trim()).filter(Boolean);
+    if (!modules.length) throw new BffError("validation_error", 400, "Seleccioná al menos un módulo");
+    const action = vals.action === "remove" ? "remove" : "install";
+    // 1) create wizard + line_ids batch (kanban cards)
+    const lineCommands: unknown[] = modules.map((mk) => [0, 0, { module_key: mk }]);
+    const wizardId = await this.#callKw<number>(odooSessionId, "modoops.tenant.install.wizard", "create", [
+      { tenant_id: tenantId, action, notes: vals.notes || "", line_ids: lineCommands },
+    ]);
+    // 2) fetch preview before confirm for audit response
+    const previewRows = await this.#callKw<Record<string, unknown>[]>(
+      odooSessionId, "modoops.tenant.install.wizard", "search_read", [[[ "id", "=", wizardId ]], ["preview_command"]]
+    );
+    const preview = String(previewRows[0]?.preview_command || "");
+    // 3) confirm (writes modules_installed + _log)
+    try {
+      await this.#callKw(odooSessionId, "modoops.tenant.install.wizard", "action_confirm", [[wizardId]]);
+    } catch (e) {
+      // surface Odoo UserError verbatim (validation duplicate/not-installed)
+      if (e instanceof BffError) throw e;
+      throw e;
+    }
+    const tenantRows = await this.#callKw<Record<string, unknown>[]>(
+      odooSessionId, "modoops.tenant", "search_read", [[[ "id", "=", tenantId ]], ["modules_installed"]]
+    );
+    return { preview_command: preview, modules_installed: (tenantRows[0]?.modules_installed as string | false) ?? false };
+  }
 }
