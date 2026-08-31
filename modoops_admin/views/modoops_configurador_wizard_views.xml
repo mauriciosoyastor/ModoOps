@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_modoops_configurador_wizard_form" model="ir.ui.view">
+        <field name="name">modoops.configurador.wizard.form</field>
+        <field name="model">modoops.configurador.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Configurador ModoOps — Generar Propuesta">
+                <group string="Checklist Catálogo (universo = Catálogo, no todo OCA)">
+                    <field name="vertical" widget="radio"/>
+                    <field name="sucursales"/>
+                    <field name="almacenes"/>
+                    <field name="cajas_pos" string="Cajas POS (1–2)"/>
+                </group>
+                <group string="Módulos tildados">
+                    <field name="modulos_tildados" placeholder="mostrador,deposito,compras,fiscal_ar,contactos" help="Subset de tools/configurador/catalogo.json — CSV. Ej: mostrador,deposito,compras,fiscal_ar"/>
+                </group>
+                <group string="Anexo y datos">
+                    <field name="anexo_fiscal_ref" placeholder="AF-2026-001 (requerido si Fiscal AR)" />
+                    <field name="sku_count" string="SKU a migrar (tope 500)"/>
+                </group>
+                <div class="alert alert-info" role="alert">
+                    Gates: <b>hard</b> si módulo fuera de Catálogo o falta anexo fiscal con Fiscal AR; <b>warning</b> si supera techo 92h/8h o &gt;2 anclas → oferta Fase 2 días×$52. Validez 20d, anticipo $400 → $322.5 con crédito $77.5. Fuente verdad: <code>tools/configurador/catalogo.json</code>
+                </div>
+                <div class="alert alert-warning" role="alert" invisible="not sku_count or sku_count &lt;= 500">
+                    SKU supera 500 → tramo extra días×$52 (migración)
+                </div>
+                <footer>
+                    <button name="action_generar" type="object" string="Generar Propuesta (MD + Anexo)" class="btn-primary" />
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_modoops_configurador_wizard" model="ir.actions.act_window">
+        <field name="name">Configurador — Generar Propuesta</field>
+        <field name="res_model">modoops.configurador.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="help">Tildá Catálogo → Genera Lista cerrada + Propuesta 10 secciones + Anexo Técnico. Hard gate catálogo/fiscal, soft gate techo 92h.</field>
+    </record>
+
+    <menuitem id="menu_modoops_configurador" name="Configurador" parent="menu_modoops_admin_root" sequence="15" action="action_modoops_configurador_wizard"/>
+</odoo>
