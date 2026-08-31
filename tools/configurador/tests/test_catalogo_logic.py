@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
-CATALOGO = REPO / "tools" / "configurador" / "catalogo.json"
+CATALOGO = REPO / "modoops_catalogo" / "catalogo.json"
 
 
 class CatalogoTests(unittest.TestCase):
@@ -50,13 +50,18 @@ class CatalogoTests(unittest.TestCase):
         self.assertIn("15", c["horas_semana"])
 
     def test_sync_genera_docs(self):
-        # verifica que sync no rompa: catalogo.json debe ser espejo de CATALOGO_MODOOPS en modoops_tenant.py
-        # esta aserción será verde cuando sync exista, por ahora solo verifica que CATALOGO_MODOOPS subset de modules
+        # SSOT: tenant.py debe importar desde generado, no hardcodear CATALOGO_MODOOPS (ADR 0009)
         from pathlib import Path as P
         tenant_py = P(__file__).resolve().parents[3] / "modoops_admin" / "models" / "modoops_tenant.py"
         txt = tenant_py.read_text(encoding="utf-8")
-        for key in ["mostrador", "deposito", "compras", "fiscal_ar"]:
-            self.assertIn(f'"{key}"', txt)
+        self.assertIn("from modoops_catalogo._generated_selection import", txt)
+        # SSOT file debe existir y ser el de modoops_catalogo
+        ssot = P(__file__).resolve().parents[3] / "modoops_catalogo" / "catalogo.json"
+        self.assertTrue(ssot.exists(), f"SSOT no existe en {ssot}")
+        # TS generado debe existir
+        gen_ts = P(__file__).resolve().parents[3] / "web" / "src" / "lib" / "catalogo.generated.ts"
+        self.assertTrue(gen_ts.exists())
+        self.assertIn("CatalogoKey", gen_ts.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

@@ -1,19 +1,9 @@
-import type { APIRoute } from "astro";
+﻿import type { APIRoute } from "astro";
 import { getBackend } from "../../../../../lib/bff/get-backend.ts";
 import { bffErrorResponse, json, requireOdooSession } from "../../../../../lib/bff/http.ts";
+import { CATALOGO_KEYS } from "../../../../../lib/catalogo.generated.ts";
 
 export const prerender = false;
-
-const CATALOGO_KEYS = new Set([
-  "mostrador",
-  "deposito",
-  "compras",
-  "fiscal_ar",
-  "contactos",
-  "migracion_excel",
-  "taller",
-  "b2b_basico",
-]);
 
 export const POST: APIRoute = async ({ cookies, request, params }) => {
   try {
@@ -33,7 +23,7 @@ export const POST: APIRoute = async ({ cookies, request, params }) => {
       return json({ error: { code: "validation_error", message: "Seleccioná al menos un módulo" } }, { status: 400 });
     }
     for (const m of modules) {
-      if (!CATALOGO_KEYS.has(m)) {
+      if (!CATALOGO_KEYS.has(m as never)) {
         return json({ error: { code: "validation_error", message: `Módulo inválido '${m}'` } }, { status: 400 });
       }
     }
