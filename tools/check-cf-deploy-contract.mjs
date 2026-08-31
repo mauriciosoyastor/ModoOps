@@ -21,7 +21,8 @@ function assert(cond, msg) {
 const rootPkg = readJson("package.json");
 const webPkg = readJson("web/package.json");
 const initPy = readFileSync(resolve(root, "modoops_ia/logic/__init__.py"), "utf8");
-const rootWrangler = readFileSync(resolve(root, "wrangler.toml"), "utf8");
+const hasWrangler = existsSync(resolve(root, "wrangler.toml"));
+const rootWrangler = hasWrangler ? readFileSync(resolve(root, "wrangler.toml"), "utf8") : "";
 
 assert(rootPkg.name === "modoops", 'root package.json name must be "modoops"');
 assert(
@@ -37,9 +38,10 @@ assert(
 );
 assert(
   typeof rootPkg.scripts?.deploy === "string" &&
-    rootPkg.scripts.deploy.includes("wrangler deploy") &&
-    rootPkg.scripts.deploy.includes("--no-autoconfig"),
-  "root deploy must be `wrangler deploy ... --no-autoconfig`"
+    (rootPkg.scripts.deploy.includes("wrangler deploy") ||
+      rootPkg.scripts.deploy.includes("vercel")) &&
+    (rootPkg.scripts.deploy.includes("--no-autoconfig") || rootPkg.scripts.deploy.includes("vercel")),
+  "root deploy must be `wrangler deploy ... --no-autoconfig` or `vercel`"
 );
 
 assert(webPkg.name === "modoops-web", 'web package name must be "modoops-web" (not galaxygroup-web)');
@@ -50,14 +52,19 @@ assert(
   'web build must be `npm install && npx astro build` (CF-safe when Build command is npm --prefix web run build)'
 );
 
-assert(
-  rootWrangler.includes('directory = "web/dist"') || rootWrangler.includes("directory = 'web/dist'"),
-  'root wrangler.toml assets.directory must be "web/dist"'
-);
-assert(
-  rootWrangler.includes('main = "worker.js"') || rootWrangler.includes("main = 'worker.js'"),
-  'root wrangler.toml main must be root worker.js'
-);
+if (hasWrangler) {
+  assert(
+    rootWrangler.includes('directory = "web/dist"') || rootWrangler.includes("directory = 'web/dist'"),
+    'root wrangler.toml assets.directory must be "web/dist"'
+  );
+  assert(
+    rootWrangler.includes('main = "worker.js"') ||
+      rootWrangler.includes("main = 'worker.js'") ||
+      rootWrangler.includes('main = "web/dist/_worker.js"') ||
+      rootWrangler.includes("main = 'web/dist/_worker.js'"),
+    'root wrangler.toml main must be root worker.js or web/dist/_worker.js (Astro server)'
+  );
+}
 assert(
   !existsSync(resolve(root, "web/wrangler.toml")),
   "web/wrangler.toml must not exist — single config at repo root (avoids Root directory=web drift)"
