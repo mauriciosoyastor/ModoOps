@@ -20,9 +20,9 @@ import { contact, hero } from '../../data/business';
       {hero.subtitle}
     </p>
     <div class="mt-10 flex flex-wrap gap-4">
-      <Button href="#contacto" variant="primary">Pedir descubrimiento</Button>
-      <Button href={contact.whatsapp} variant="ghost-dark">WhatsApp</Button>
-      <Button href={`mailto:${contact.email}`} variant="ghost-dark">Email</Button>
+      <Button href="#contacto" variant="primary" onclick="plausible && plausible('cta_discovery', {props:{source:'hero'}})">Pedir descubrimiento</Button>
+      <Button href={contact.whatsapp} variant="ghost-dark" onclick="plausible && plausible('cta_whatsapp', {props:{source:'hero'}})">WhatsApp</Button>
+      <Button href={`mailto:${contact.email}`} variant="ghost-dark" onclick="plausible && plausible('cta_email', {props:{source:'hero'}})">Email</Button>
     </div>
   </div>
 </section>

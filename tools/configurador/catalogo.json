@@ -1,0 +1,145 @@
+{
+  "version": "1.0.0",
+  "source": "docs/catalogo-modoops-inicial.md + modoops_admin/models/modoops_tenant.py CATALOGO_MODOOPS",
+  "modules": {
+    "mostrador": {
+      "modoops": "Mostrador",
+      "odoo": ["point_of_sale", "pos_discount"],
+      "depends": ["base", "product"],
+      "version": "19.0",
+      "repo": "odoo/odoo",
+      "ancla_retail": true,
+      "nota": "2 cajas POS, descuento línea % + general"
+    },
+    "deposito": {
+      "modoops": "Depósito Inteligente",
+      "odoo": ["stock"],
+      "depends": ["base", "product"],
+      "version": "19.0",
+      "repo": "odoo/odoo",
+      "ancla_retail": true,
+      "nota": "1 almacén, ubicaciones Recepción/Depósito/Mostrador"
+    },
+    "ventas": {
+      "modoops": "Ventas",
+      "odoo": ["sale_management"],
+      "depends": ["stock", "product"],
+      "version": "19.0",
+      "repo": "odoo/odoo",
+      "ancla_retail": true
+    },
+    "compras": {
+      "modoops": "Compras",
+      "odoo": ["purchase"],
+      "depends": ["stock", "product"],
+      "version": "19.0",
+      "repo": "odoo/odoo",
+      "ancla_retail": true
+    },
+    "fiscal_ar": {
+      "modoops": "Fiscal AR",
+      "odoo": ["account", "l10n_ar"],
+      "depends": ["base", "l10n_ar"],
+      "version": "19.0",
+      "repo": "oca/l10n-argentina",
+      "ancla_retail": "según anexo",
+      "flag": "modoops.fiscal_enabled"
+    },
+    "contactos": {
+      "modoops": "Contactos",
+      "odoo": ["contacts"],
+      "depends": ["base"],
+      "version": "19.0",
+      "repo": "odoo/odoo",
+      "ancla_retail": true
+    },
+    "plataforma": {
+      "modoops": "Plataforma ModoOps",
+      "odoo": ["modoops_core"],
+      "depends": ["web", "mail", "product"],
+      "version": "19.0",
+      "repo": "modoops/modoops_core",
+      "ancla_retail": true,
+      "nota": "Shell Astro BFF + Liquid Glass v2, siempre"
+    },
+    "puente_factura": {
+      "modoops": "Puente Factura Web",
+      "odoo": ["modoops_integrations"],
+      "depends": ["modoops_core"],
+      "version": "19.0",
+      "repo": "modoops/modoops_integrations",
+      "ancla_retail": true,
+      "nota": "Tile launcher + planilla puente"
+    },
+    "taller": {
+      "modoops": "Taller",
+      "odoo": ["modoops_core"],
+      "depends": ["stock", "sale"],
+      "version": "19.0",
+      "repo": "modoops/modoops_core",
+      "ancla_retail": false,
+      "addon": "SKU 155 o días×52",
+      "grupo": "modoops_core.group_modoops_workshop"
+    },
+    "migracion_excel": {
+      "modoops": "Migración Excel",
+      "odoo": [],
+      "ancla_retail": false,
+      "addon": "SKU 155 ≤500 prod"
+    },
+    "b2b_basico": {
+      "modoops": "B2B Básico",
+      "odoo": [],
+      "ancla_retail": false,
+      "addon": "SKU 155 post Fase 1"
+    }
+  },
+  "pricing": {
+    "tarifa_diaria": 52,
+    "descubrimiento": {
+      "amount": 155,
+      "extra_day": 52,
+      "credito": 77.5,
+      "validez_dias": 20
+    },
+    "ancla": {
+      "amount": 800,
+      "anticipo": 400,
+      "hito1": 200,
+      "hito2": 200,
+      "techo_horas": 92,
+      "techo_ajustes": 8,
+      "validez_dias": 20,
+      "plazo_horas_semana": "15-18"
+    },
+    "abono": {
+      "amount": 45,
+      "horas": 4,
+      "nota": "horas vencen, best effort bugs"
+    },
+    "tarifa_hora_adicional": 10.5,
+    "addons": {
+      "migracion_excel": {
+        "amount": 155,
+        "tope": 500,
+        "nota": "≤500 prod, tramo extra días×52"
+      },
+      "b2b_basico": {
+        "amount": 155
+      },
+      "integracion_min": {
+        "amount": 104,
+        "dias_min": 2,
+        "nota": "días×52 por sistema externo"
+      },
+      "fiscal_dias": {
+        "amount": 52,
+        "unidad": "día"
+      }
+    }
+  },
+  "capacity": {
+    "max_anclas_paralelas": 2,
+    "horas_semana": "15-18"
+  }
+}

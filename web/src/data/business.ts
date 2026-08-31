@@ -11,6 +11,12 @@ export const contact = {
   whatsappLabel: '+54 9 354 753-2008',
 } as const;
 
+export function whatsappWithUtm(source: string): string {
+  const utm = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).toString() : '';
+  const text = encodeURIComponent(`Hola ModoOps — vengo de ${source}${utm ? ` (${utm})` : ''} — rubro: __, ciudad: __, cajas: __`);
+  return `${contact.whatsapp}?text=${text}`;
+}
+
 export const footer = {
   contactLead: 'Escribinos por WhatsApp o email. El descubrimiento arranca cuando hay fit.',
   newsletterLead: 'Novedades sobre ModoOps — sin spam.',
