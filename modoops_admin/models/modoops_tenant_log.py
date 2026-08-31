@@ -30,7 +30,6 @@ class ModoopsTenantLog(models.Model):
     @api.model
     def action_export_csv(self):
         """Exporta logs filtrados a CSV (seam modelo, testeable sin browser)."""
-        # usa el contexto de búsqueda actual si viene de act_window; fallback a todos
         domain = self.env.context.get("log_export_domain") or []
         records = self.search(domain, order="create_date desc")
         output = io.StringIO()
@@ -48,8 +47,27 @@ class ModoopsTenantLog(models.Model):
             )
         csv_bytes = output.getvalue().encode("utf-8")
         csv_b64 = base64.b64encode(csv_bytes).decode("ascii")
-        # en Odoo real se crearía ir.attachment + act_url; para host test devolvemos b64
-        return {"csv_b64": csv_b64, "count": len(records), "filename": "modoops_tenant_log.csv"}
+        # crea ir.attachment para descarga + act_url (Odoo real)
+        try:
+            attachment = self.env["ir.attachment"].create(
+                {
+                    "name": "modoops_tenant_log.csv",
+                    "type": "binary",
+                    "datas": csv_b64,
+                    "mimetype": "text/csv",
+                }
+            )
+            return {
+                "type": "ir.actions.act_url",
+                "url": f"/web/content/{attachment.id}?download=true",
+                "target": "self",
+                "csv_b64": csv_b64,
+                "count": len(records),
+                "filename": "modoops_tenant_log.csv",
+            }
+        except Exception:
+            # host test sin DB: fallback b64
+            return {"csv_b64": csv_b64, "count": len(records), "filename": "modoops_tenant_log.csv"}
 
     def to_csv_row(self):
         """Helper puro para fila CSV (testeable sin cursor)."""

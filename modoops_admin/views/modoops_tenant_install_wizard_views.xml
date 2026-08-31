@@ -17,6 +17,22 @@
                             <field name="module_key" widget="badge" decoration-success="module_key in ['mostrador','deposito','compras','fiscal_ar','contactos','migracion_excel']" decoration-warning="module_key in ['taller','b2b_basico']"/>
                             <field name="preview_command" readonly="1"/>
                         </list>
+                        <kanban class="o_kanban_mobile">
+                            <field name="module_key"/>
+                            <field name="preview_command"/>
+                            <templates>
+                                <t t-name="kanban-box">
+                                    <div class="oe_kanban_global_click">
+                                        <div class="o_kanban_record p-2">
+                                            <strong><field name="module_key"/></strong>
+                                            <div class="text-muted small"><field name="preview_command"/></div>
+                                            <span t-if="record.module_key.raw_value == 'mostrador'" class="badge bg-success">Ancla</span>
+                                            <span t-if="record.module_key.raw_value == 'taller'" class="badge bg-warning">Add-on</span>
+                                        </div>
+                                    </div>
+                                </t>
+                            </templates>
+                        </kanban>
                     </field>
                 </group>
                 <group string="Notas">
@@ -33,6 +49,27 @@
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
+        </field>
+    </record>
+
+    <record id="view_modoops_tenant_install_wizard_line_kanban" model="ir.ui.view">
+        <field name="name">modoops.tenant.install.wizard.line.kanban</field>
+        <field name="model">modoops.tenant.install.wizard.line</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="module_key"/>
+                <field name="preview_command"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_record">
+                                <strong><field name="module_key"/></strong>
+                                <div class="text-muted small"><field name="preview_command"/></div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 </odoo>
