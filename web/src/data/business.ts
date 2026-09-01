@@ -11,8 +11,51 @@ export const contact = {
   whatsappLabel: '+54 9 354 753-2008',
 } as const;
 
+const ALLOWED_UTM_KEYS = [
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_content',
+  'utm_term',
+  'gclid',
+  'fbclid',
+] as const;
+
+const UTM_STORAGE_KEY = 'modoops_utm';
+
+export function parseUtm(search: string): string {
+  const raw = search.startsWith('?') ? search.slice(1) : search;
+  if (!raw) return '';
+  const params = new URLSearchParams(raw);
+  const filtered = new URLSearchParams();
+  for (const key of ALLOWED_UTM_KEYS) {
+    const v = params.get(key);
+    if (v !== null) filtered.set(key, v);
+  }
+  return filtered.toString();
+}
+
 export function whatsappWithUtm(source: string): string {
-  const utm = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).toString() : '';
+  let utm = '';
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = window.location.search;
+      const parsed = parseUtm(raw);
+      if (parsed) {
+        window.sessionStorage.setItem(UTM_STORAGE_KEY, parsed);
+        utm = parsed;
+      } else {
+        utm = window.sessionStorage.getItem(UTM_STORAGE_KEY) || '';
+      }
+    } catch {
+      // storage blocked or SSR — fallback sin UTM
+      try {
+        utm = parseUtm(window.location.search);
+      } catch {
+        utm = '';
+      }
+    }
+  }
   const text = encodeURIComponent(`Hola ModoOps — vengo de ${source}${utm ? ` (${utm})` : ''} — rubro: __, ciudad: __, cajas: __`);
   return `${contact.whatsapp}?text=${text}`;
 }

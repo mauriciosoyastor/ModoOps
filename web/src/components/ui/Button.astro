@@ -4,9 +4,11 @@ interface Props {
   variant?: 'primary' | 'ghost-dark' | 'ghost-light';
   class?: string;
   onclick?: string;
+  'data-cta'?: string;
+  'data-source'?: string;
 }
 
-const { href, variant = 'primary', class: className, onclick } = Astro.props;
+const { href, variant = 'primary', class: className, onclick, 'data-cta': dataCta, 'data-source': dataSource } = Astro.props;
 
 const base =
   'inline-flex items-center justify-center rounded-[var(--radius-button)] px-6 py-4 text-base font-medium transition-all hover:opacity-90';
@@ -18,6 +20,6 @@ const variants = {
 };
 ---
 
-<a href={href} class:list={[base, variants[variant], className]} onclick={onclick}>
+<a href={href} class:list={[base, variants[variant], className]} onclick={onclick} data-cta={dataCta} data-source={dataSource}>
   <slot />
 </a>

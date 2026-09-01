@@ -15,14 +15,14 @@ const socialButtonClass =
       <h3 class="text-[length:var(--text-subheading)] font-medium text-core-cream">Escribinos</h3>
       <p class="mt-2 text-sm text-ash-gray">Contanos tu rubro y qué querés ordenar (caja, stock, compras).</p>
       <div class="mt-6 flex flex-wrap gap-3">
-        <a href={`mailto:${contact.email}?subject=Consulta ModoOps — Descubrimiento`} class:list={[socialButtonClass, 'bg-star-warm hover:bg-star-glow']} onclick="plausible && plausible('cta_email', {props:{source:'contact'}})">
+        <a href={`mailto:${contact.email}?subject=Consulta ModoOps — Descubrimiento`} class:list={[socialButtonClass, 'bg-star-warm hover:bg-star-glow']} data-cta="cta_email" data-source="contact">
           {contact.email}
         </a>
         <a
           href={contact.whatsapp}
           target="_blank"
           rel="noopener noreferrer"
-          onclick="plausible && plausible('cta_whatsapp', {props:{source:'contact'}})"
+          data-cta="cta_whatsapp" data-source="contact"
           class:list={[socialButtonClass, 'border border-[#25D366]/50 bg-[#25D366]/10 hover:border-[#25D366] hover:bg-[#25D366]/20']}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5" aria-hidden="true">
@@ -53,3 +53,15 @@ const socialButtonClass =
     {footer.copyright}
   </p>
 </Section>
+
+<script>
+  import { whatsappWithUtm } from '../../data/business';
+  const waContact = document.querySelector('a[data-cta="cta_whatsapp"][data-source="contact"]') as HTMLAnchorElement | null;
+  if (waContact) {
+    try { waContact.href = whatsappWithUtm('contact'); } catch {}
+    waContact.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_whatsapp', {props:{source:'contact'}}));
+  }
+  document.querySelectorAll('a[data-cta="cta_email"][data-source="contact"]').forEach((el) => {
+    el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_email', {props:{source:'contact'}}));
+  });
+</script>

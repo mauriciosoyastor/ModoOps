@@ -29,10 +29,32 @@ const { title, description } = Astro.props;
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <!-- Plausible/Umami <2KB sin cookies — privacy-friendly, no GA4. Activa con data-domain -->
-    <script defer data-domain="modoops.com.ar" src="https://plausible.io/js/script.tagged-events.js"></script>
+    <!-- Plausible/Umami <2KB sin cookies — privacy-friendly, no GA4. Activa con data-domain. Umami fallback: cambiar src a tu host umami y data-website-id -->
+    <script defer data-domain={import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN || "modoops.com.ar"} src="https://plausible.io/js/script.tagged-events.js"></script>
     <script>
       window.plausible = window.plausible || function(){(window.plausible.q=window.plausible.q||[]).push(arguments)};
+    </script>
+    <script is:inline>
+      (() => {
+        const el = document.getElementById('descubrimiento');
+        if (!el || typeof IntersectionObserver === 'undefined') return;
+        const fired = new Set();
+        const fire = (pct) => {
+          if (fired.has(pct)) return;
+          fired.add(pct);
+          window.plausible && window.plausible('scroll_discovery', {props:{percent:String(pct)}});
+          if (fired.size === 2) obs.disconnect();
+        };
+        const obs = new IntersectionObserver((entries) => {
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            const r = e.intersectionRatio;
+            if (r >= 0.9) fire(90);
+            else if (r >= 0.5) fire(50);
+          }
+        }, {threshold:[0.5,0.9]});
+        obs.observe(el);
+      })();
     </script>
   </head>
   <body>
