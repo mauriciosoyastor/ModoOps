@@ -3,6 +3,13 @@ import re
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
+from modoops_admin.logic.modules_instalados import ModulesInstalados
+from modoops_admin.logic.tenant_lifecycle import (
+    can_mark_baja,
+    can_reactivate,
+    can_suspend,
+    suspend_grace_until,
+)
 from modoops_catalogo._generated_selection import CATALOGO_MODOOPS, CATALOGO_DICT
 
 DB_PREFIX = "modoops_"
@@ -65,22 +72,19 @@ class ModoopsTenant(models.Model):
     last_backup = fields.Datetime(string="Último backup")
     notes = fields.Text(string="Notas")
 
+    def _get_today(self):
+        """Seam testeable: hoy vía context_today, inyectable con FixedClock en tests puros."""
+        return fields.Date.context_today(self)
+
     @api.depends("abono_due_date")
     def _compute_suspend_grace_until(self):
         for rec in self:
-            if rec.abono_due_date:
-                rec.suspend_grace_until = fields.Date.add(rec.abono_due_date, days=7)
-            else:
-                rec.suspend_grace_until = False
+            rec.suspend_grace_until = suspend_grace_until(rec.abono_due_date) or False
 
     @api.depends("modules_installed")
     def _compute_modules_installed_count(self):
         for rec in self:
-            if not rec.modules_installed:
-                rec.modules_installed_count = 0
-            else:
-                parts = [s.strip() for s in rec.modules_installed.split(",") if s.strip()]
-                rec.modules_installed_count = len(parts)
+            rec.modules_installed_count = ModulesInstalados.from_csv(rec.modules_installed).count
 
     @api.constrains("slug", "db_name")
     def _check_slug_db(self):
@@ -129,37 +133,27 @@ class ModoopsTenant(models.Model):
 
     def action_suspend(self):
         for rec in self:
-            if rec.state == "baja":
-                raise UserError(_("Tenant en Baja no se puede suspender. Restaurá desde backup."))
-            if rec.state == "suspendido":
-                raise UserError(_("Tenant ya está Suspendido."))
-            # Guardarraíl: solo desde día 8
-            today = fields.Date.context_today(rec)
-            if rec.suspend_grace_until and today < rec.suspend_grace_until:
-                delta = (rec.suspend_grace_until - today).days
-                raise UserError(
-                    _("Gracia activa hasta %(until)s — faltan %(days)s días. Avisar por WhatsApp antes de suspender (CONTEXT.md gracia 7 días).")
-                    % {"until": rec.suspend_grace_until, "days": delta}
-                )
+            err = can_suspend(rec.state, rec._get_today(), rec.suspend_grace_until)
+            if err:
+                raise UserError(_(err))
             rec.write({"state": "suspendido"})
             rec._log("suspendido", "Login bloqueado — gracia vencida")
         return True
 
     def action_reactivate(self):
         for rec in self:
-            if rec.state != "suspendido":
-                raise UserError(_("Solo se reactiva un Suspendido."))
+            err = can_reactivate(rec.state)
+            if err:
+                raise UserError(_(err))
             rec.write({"state": "activo"})
             rec._log("reactivado", "Pago/abono regularizado")
         return True
 
     def action_mark_baja(self):
         for rec in self:
-            if rec.state != "suspendido":
-                raise UserError(_("Solo un Suspendido puede pasar a Baja (día 15, tras backup final)."))
-            today = fields.Date.context_today(rec)
-            if rec.abono_due_date and today < fields.Date.add(rec.abono_due_date, days=15):
-                raise UserError(_("Baja solo desde día 15 de mora (backup final). Hoy faltan días."))
+            err = can_mark_baja(rec.state, rec._get_today(), rec.abono_due_date)
+            if err:
+                raise UserError(_(err))
             rec.write({"state": "baja"})
             rec._log("baja", "Backup final + cierre — requiere confirmación explícita")
         return True

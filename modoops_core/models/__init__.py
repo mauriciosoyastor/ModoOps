@@ -1,4 +1,5 @@
 from . import mo_hub_section
+from .mixins import metric_mixin
 from . import mo_hub_card
 from . import mo_app_tile
 from . import ir_http

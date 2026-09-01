@@ -21,9 +21,11 @@ class WizardMultiSelectModelTests(unittest.TestCase):
 
     def test_model_action_confirm_handles_batch(self):
         text = WIZARD_MODEL.read_text(encoding="utf-8")
-        # debe iterar line_ids si existen
+        # C4: dedup via TenantModuleService + VO, sin branches clonadas
         self.assertIn("line_ids", text)
-        self.assertIn("for line in", text)
+        self.assertIn("_collect_labels", text)
+        self.assertIn("apply_modules", text)
+        self.assertIn("ModulesInstalados", text)
 
 
 class WizardMultiSelectViewTests(unittest.TestCase):
