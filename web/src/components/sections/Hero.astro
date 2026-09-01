@@ -20,9 +20,24 @@ import { contact, hero } from '../../data/business';
       {hero.subtitle}
     </p>
     <div class="mt-10 flex flex-wrap gap-4">
-      <Button href="#contacto" variant="primary" onclick="plausible && plausible('cta_discovery', {props:{source:'hero'}})">Pedir descubrimiento</Button>
-      <Button href={contact.whatsapp} variant="ghost-dark" onclick="plausible && plausible('cta_whatsapp', {props:{source:'hero'}})">WhatsApp</Button>
-      <Button href={`mailto:${contact.email}`} variant="ghost-dark" onclick="plausible && plausible('cta_email', {props:{source:'hero'}})">Email</Button>
+      <Button href="#contacto" variant="primary" data-cta="cta_discovery" data-source="hero">Pedir descubrimiento</Button>
+      <Button href={contact.whatsapp} variant="ghost-dark" data-cta="cta_whatsapp" data-source="hero">WhatsApp</Button>
+      <Button href={`mailto:${contact.email}`} variant="ghost-dark" data-cta="cta_email" data-source="hero">Email</Button>
     </div>
   </div>
 </section>
+
+<script>
+  import { whatsappWithUtm } from '../../data/business';
+  const waHero = document.querySelector('a[data-cta="cta_whatsapp"][data-source="hero"]') as HTMLAnchorElement | null;
+  if (waHero) {
+    try { waHero.href = whatsappWithUtm('hero'); } catch {}
+    waHero.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_whatsapp', {props:{source:'hero'}}));
+  }
+  document.querySelectorAll('a[data-cta="cta_discovery"][data-source="hero"]').forEach((el) => {
+    el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_discovery', {props:{source:'hero'}}));
+  });
+  document.querySelectorAll('a[data-cta="cta_email"][data-source="hero"]').forEach((el) => {
+    el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_email', {props:{source:'hero'}}));
+  });
+</script>

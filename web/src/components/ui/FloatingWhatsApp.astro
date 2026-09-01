@@ -6,7 +6,7 @@ import { contact } from '../../data/business';
   href={contact.whatsapp}
   target="_blank"
   rel="noopener noreferrer"
-  onclick="plausible && plausible('cta_whatsapp', {props:{source:'floating'}})"
+  data-cta="cta_whatsapp" data-source="floating"
   class="floating-whatsapp fixed bottom-6 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/40 transition-transform hover:scale-105 hover:bg-[#20bd5a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
   aria-label={`WhatsApp ${contact.whatsappLabel}`}
 >
@@ -21,3 +21,12 @@ import { contact } from '../../data/business';
     right: max(1.5rem, env(safe-area-inset-right));
   }
 </style>
+
+<script>
+  import { whatsappWithUtm } from '../../data/business';
+  const waFloating = document.querySelector('a[data-cta="cta_whatsapp"][data-source="floating"]') as HTMLAnchorElement | null;
+  if (waFloating) {
+    try { waFloating.href = whatsappWithUtm('floating'); } catch {}
+    waFloating.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_whatsapp', {props:{source:'floating'}}));
+  }
+</script>
