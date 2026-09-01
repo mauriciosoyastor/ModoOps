@@ -1,6 +1,9 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
+from modoops_admin.logic.modules_instalados import ModulesInstalados
+from modoops_admin.logic.tenant_module_service import apply_modules
+
 from .modoops_tenant import CATALOGO_MODOOPS, CATALOGO_DICT
 
 
@@ -64,46 +67,38 @@ class ModoopsTenantInstallWizard(models.TransientModel):
             flag = "-i" if rec.action == "install" else "-u"
             rec.preview_command = f"odoo-bin -d {db} {flag} {rec.module_key}  # {label}"
 
+    def _collect_labels(self) -> list[str]:
+        if self.line_ids:
+            return [CATALOGO_DICT.get(l.module_key, l.module_key) for l in self.line_ids]
+        if not self.module_key:
+            return []
+        return [CATALOGO_DICT.get(self.module_key, self.module_key)]
+
     def action_confirm(self):
         self.ensure_one()
         tenant = self.tenant_id
-        # batch: line_ids si existen, si no single module_key (backward compat)
-        if self.line_ids:
-            for line in self.line_ids:
-                label = CATALOGO_DICT.get(line.module_key, line.module_key)
-                current = [s.strip() for s in (tenant.modules_installed or "").split(",") if s.strip()]
-                if self.action == "install":
-                    if label in current:
-                        raise UserError(_("Módulo '%s' ya figura instalado en %s.") % (label, tenant.db_name))
-                    current.append(label)
-                    tenant.write({"modules_installed": ", ".join(current)})
-                    tenant._log("install", f"{label} (mock) — {self.notes or 'Control Plane'}")
-                    tenant.message_post(body=_("Mock install %(mod)s en %(db)s — ejecutar: odoo-bin -d %(db)s -i %(mod)s") % {"mod": label, "db": tenant.db_name, "mod": label})
-                else:
-                    if label not in current:
-                        raise UserError(_("Módulo '%s' no está instalado en %s.") % (label, tenant.db_name))
-                    current = [c for c in current if c != label]
-                    tenant.write({"modules_installed": ", ".join(current) if current else False})
-                    tenant._log("remove", f"{label} (mock) — {self.notes or 'Control Plane'}")
-                    tenant.message_post(body=_("Mock remove %(mod)s en %(db)s") % {"mod": label, "db": tenant.db_name})
-            return {"type": "ir.actions.act_window_close"}
-        # fallback single
-        if not self.module_key:
+        labels = self._collect_labels()
+        if not labels:
             raise UserError(_("Seleccioná al menos un módulo del Catálogo."))
-        label = CATALOGO_DICT.get(self.module_key, self.module_key)
-        current = [s.strip() for s in (tenant.modules_installed or "").split(",") if s.strip()]
-        if self.action == "install":
-            if label in current:
+        current = ModulesInstalados.from_csv(tenant.modules_installed)
+        try:
+            updated = apply_modules(current, labels, self.action)  # type: ignore[arg-type]
+        except ValueError as e:
+            msg = str(e)
+            # mapear ValueError puro a mensaje con db_name para compatibilidad
+            if "ya instalado" in msg:
+                label = msg.split("'")[1] if "'" in msg else labels[0]
                 raise UserError(_("Módulo '%s' ya figura instalado en %s.") % (label, tenant.db_name))
-            current.append(label)
-            tenant.write({"modules_installed": ", ".join(current)})
-            tenant._log("install", f"{label} (mock) — {self.notes or 'Control Plane'}")
-            tenant.message_post(body=_("Mock install %(mod)s en %(db)s — ejecutar: odoo-bin -d %(db)s -i <modulo_catálogo>") % {"mod": label, "db": tenant.db_name})
-        else:
-            if label not in current:
+            if "no instalado" in msg:
+                label = msg.split("'")[1] if "'" in msg else labels[0]
                 raise UserError(_("Módulo '%s' no está instalado en %s.") % (label, tenant.db_name))
-            current = [c for c in current if c != label]
-            tenant.write({"modules_installed": ", ".join(current) if current else False})
-            tenant._log("remove", f"{label} (mock) — {self.notes or 'Control Plane'}")
-            tenant.message_post(body=_("Mock remove %(mod)s en %(db)s") % {"mod": label, "db": tenant.db_name})
+            raise UserError(_(msg))
+        tenant.write({"modules_installed": updated.to_csv()})
+        # logs por cada label (preserva auditoría granular)
+        for label in labels:
+            tenant._log(self.action, f"{label} (mock) — {self.notes or 'Control Plane'}")
+            if self.action == "install":
+                tenant.message_post(body=_("Mock install %(mod)s en %(db)s — ejecutar: odoo-bin -d %(db)s -i %(mod)s") % {"mod": label, "db": tenant.db_name})
+            else:
+                tenant.message_post(body=_("Mock remove %(mod)s en %(db)s") % {"mod": label, "db": tenant.db_name})
         return {"type": "ir.actions.act_window_close"}

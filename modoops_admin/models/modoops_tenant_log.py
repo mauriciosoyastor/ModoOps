@@ -4,6 +4,8 @@ import base64
 
 from odoo import api, fields, models
 
+from modoops_admin.logic.tenant_log import csv_row as _csv_row_pure
+
 
 class ModoopsTenantLog(models.Model):
     _name = "modoops.tenant.log"
@@ -73,11 +75,11 @@ class ModoopsTenantLog(models.Model):
             return {"csv_b64": csv_b64, "count": len(records), "filename": "modoops_tenant_log.csv"}
 
     def to_csv_row(self):
-        """Helper puro para fila CSV (testeable sin cursor)."""
-        return [
-            self.create_date.isoformat() if getattr(self, "create_date", None) else "",
-            getattr(self.tenant_id, "db_name", "") if getattr(self, "tenant_id", None) else "",
+        """Wrapper ORM sobre helper puro (modoops_admin/logic/tenant_log.py:csv_row)."""
+        return _csv_row_pure(
+            getattr(self, "create_date", None),
+            getattr(getattr(self, "tenant_id", None), "db_name", "") if getattr(self, "tenant_id", None) else "",
             self.action or "",
             self.detail or "",
-            getattr(self.user_id, "login", "") if getattr(self, "user_id", None) else "",
-        ]
+            getattr(getattr(self, "user_id", None), "login", "") if getattr(self, "user_id", None) else "",
+        )
