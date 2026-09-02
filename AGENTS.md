@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **ModoOps** (1720 symbols, 3422 relationships, 136 execution flows).
+This project is indexed by GitNexus as **ModoOps** (2789 symbols, 5327 relationships, 225 execution flows).
 
 > Index stale? Run `node .gitnexus/run.cjs analyze --index-only` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? Bootstrap with `npx`, `bunx`, or `pnpm dlx` — e.g. `bunx gitnexus@latest analyze` (npm 11 npx crash; #1939).
 
@@ -62,3 +62,18 @@ This project is indexed by GitNexus as **ModoOps** (1720 symbols, 3422 relations
   `grep`/`glob` solo si `context` no resuelve (CSS, strings UI, markdown no-code) o `epistemic: lower-bound` / `receiverTyping`. **Prohibido** `Grep("pos_discount")` ciego cuando el símbolo existe en el grafo — erradica desvío LLM y ahorra 60–90% tokens (3 arquetipos medidos en spec §5).
 - **Degradación:** `Grafo → exact-scan (auto, limit 10000, sin HNSW/BM25) → grep`. Con `fts/vector: available` query <50ms híbrida; sin, exact-scan 2.5s degradado pero funcional (task #6 validado: graph 14.4s/26MB, embeddings 217s/38MB +108MB cache → `embeddings:1150`).
 - **Probar ahorro:** muestreo 3 arquetipos (exploratoria, símbolo, blast radius) `grep+Read` vs `query→context→impact` contando `tool calls + tokens` opencode; target **≥60% tokens, ≥50% calls** con `doctor` `available`.
+
+## Agent skills — Integración Matt Pocock + GitNexus (obligatorio)
+
+> Cuando el usuario invoque cualquier skill Pocock (`triage`/`wayfinder`/`to-spec`/`to-tickets`/`implement`/`tdd`/`grill-me`/etc), el agente **DEBE** ejecutar el gate GitNexus correspondiente **antes** de la lógica de la skill. No es opcional — es el árbol determinista de arriba aplicado a Pocock.
+
+| Skill Pocock invocada | Gate GitNexus previo (1 call) | Por qué |
+|---|---|---|
+| `triage` paso 1 "redundancy check" `triage/SKILL.md:71` | `query({search_query: concepto, goal})` | Evita `wontfix` tardío — busca por concepto, no por texto |
+| `wayfinder` chart/map `wayfinder/SKILL.md:108` | `query` + `read gitnexus://repo/ModoOps/clusters` | Destination y seams con vocabulario real del grafo |
+| `to-spec` `to-spec/SKILL.md:15` | `query` + `context({name: simboloCentral})` para cada seam | Spec cita `file:line` verificados, no inventados |
+| `to-tickets` `to-tickets/SKILL.md:40` vertical vs expand-contract | `impact({target, direction:"upstream", summaryOnly:true})` por slice | Decide tracer-bullet vs wide-refactor y `Blocked by` según `d=1` count |
+| `implement`/`tdd` `implement/SKILL.md:9` | `impact` antes de editar + `context` del símbolo | `HIGH/CRITICAL/UNKNOWN` bloquea edición — avisar usuario `AGENTS.md:12` |
+| `code-review`/`retro` | `detect_changes({scope:"compare", base_ref:"main"})` o `scope:"all"` | Qué procesos rompió el diff |
+
+**Regla de oro:** `grep`/`glob` solo si `context` devuelve `not_found`/ `ambiguous` sin resolver, o `impact.epistemic=="lower-bound"` / `causes.receiverTyping>0`. Caso contrario es desvío LLM y viola `AGENTS.md:62`.

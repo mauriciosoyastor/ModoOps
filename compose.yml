@@ -31,10 +31,12 @@ services:
       HOST: db
       USER: odoo
       PASSWORD: odoo
+      PYTHONPATH: /mnt/extra-addons
     volumes:
       - ./modoops_core:/mnt/extra-addons/modoops_core
       - ./modoops_admin:/mnt/extra-addons/modoops_admin
       - ./modoops_ia:/mnt/extra-addons/modoops_ia
+      - ./modoops_catalogo:/mnt/extra-addons/modoops_catalogo
       - odoo_data:/var/lib/odoo
       - ./odoo.conf:/etc/odoo/odoo.conf
     command: --dev=all

@@ -9,14 +9,15 @@ import { nav, brand } from '../../data/business';
     class="mx-auto flex max-w-[var(--width-content)] flex-wrap items-center justify-between gap-4 px-6 py-4 md:px-10"
   >
     <a href="#" class="text-sm font-semibold tracking-wide text-core-cream">{brand.name}</a>
-    <nav aria-label="Secciones" class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
-      {
-        nav.map((item) => (
-          <a href={item.href} class="text-ash-gray transition-colors hover:text-nebula-cyan">
-            {item.label}
-          </a>
-        ))
-      }
-    </nav>
+      <nav aria-label="Secciones" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+        {
+          nav.map((item) => (
+            <a href={item.href} class="text-ash-gray transition-colors hover:text-nebula-cyan">
+              {item.label}
+            </a>
+          ))
+        }
+        <a href="/login" class="rounded-full border border-nebula-cyan/40 px-4 py-1.5 text-core-cream transition-colors hover:border-nebula-cyan hover:text-nebula-cyan" data-cta="cta_login" data-source="header">Trabajo en ModoOps</a>
+      </nav>
   </div>
 </header>
