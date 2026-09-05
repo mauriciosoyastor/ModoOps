@@ -33,6 +33,7 @@ try {
         <p class="mo-admin__user">{userName} · {tenants.length} tenant{tenants.length===1?"":"s"}</p>
       </div>
       <div class="mo-admin__actions">
+        <a href="/admin/leads">Leads</a>
         <a href="/app">← App</a>
         <button type="button" data-logout>Cerrar sesión</button>
       </div>
@@ -60,7 +61,7 @@ try {
     <div class="mo-admin__tablewrap">
       <table class="mo-admin__table">
         <thead>
-          <tr><th>Cliente</th><th>DB</th><th>Slug</th><th>Vertical</th><th>Estado</th><th>Módulos</th><th>Vto abono</th><th>Hub 2</th><th>Acción</th></tr>
+          <tr><th>Cliente</th><th>DB</th><th>Slug</th><th>Vertical</th><th>Estado</th><th>Situación</th><th>Saldo USD</th><th>Contratos</th><th>Módulos</th><th>Vto abono</th><th>Hub 2</th><th>Acción</th></tr>
         </thead>
         <tbody>
           {tenants.map((t) => (
@@ -70,6 +71,9 @@ try {
               <td>{t.slug}</td>
               <td>{t.vertical}</td>
               <td><span class:list={["mo-badge", `is-${t.state}`]}>{t.state}</span>{t.modules_installed?.includes("IA ModoOps") ? <span class="mo-badge is-ia">IA</span> : null}</td>
+              <td><code>{t.situacion || "—"}</code></td>
+              <td>{t.saldo_pendiente_usd ? `$${t.saldo_pendiente_usd} USD` : "—"}</td>
+              <td>{t.contrato_count ?? "—"}</td>
               <td>{t.modules_installed_count} {t.modules_installed ? `· ${t.modules_installed}` : ""}</td>
               <td>{t.abono_due_date || "—"}</td>
               <td><a href={`/tenant/${t.slug}/app`} class="mo-btn-sm">Abrir</a></td>
