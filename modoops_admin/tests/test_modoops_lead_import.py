@@ -1,5 +1,6 @@
 """Unittest puro: import CSV de leads (captación propia) sin Odoo."""
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from modoops_admin.logic.lead_import import (
@@ -89,6 +90,30 @@ class LeadImportWizardFileTests(unittest.TestCase):
     def test_registered_in_models_init(self):
         init = MODELS_INIT.read_text(encoding="utf-8")
         self.assertIn("modoops_lead_import_wizard", init)
+
+
+IMPORT_VIEWS = ADMIN / "views" / "modoops_lead_import_views.xml"
+MANIFEST = ADMIN / "__manifest__.py"
+ACCESS_CSV = ADMIN / "security" / "ir.model.access.csv"
+
+
+class LeadImportViewsTests(unittest.TestCase):
+    def setUp(self):
+        self.root = ET.parse(IMPORT_VIEWS).getroot()
+        self.raw = ET.tostring(self.root, encoding="unicode")
+
+    def test_wizard_actions(self):
+        self.assertIn("modoops.lead.import.wizard", self.raw)
+        self.assertIn("action_parse_preview", self.raw)
+        self.assertIn("action_apply", self.raw)
+
+    def test_manifest_lists_views(self):
+        self.assertIn("modoops_lead_import_views.xml", MANIFEST.read_text(encoding="utf-8"))
+
+    def test_wizard_access_restricted(self):
+        text = ACCESS_CSV.read_text(encoding="utf-8")
+        self.assertIn("modoops.lead.import.wizard", text)
+        self.assertIn("base.group_system", text)
 
 
 if __name__ == "__main__":
