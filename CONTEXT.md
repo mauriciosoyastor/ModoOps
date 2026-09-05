@@ -466,6 +466,14 @@ Gmail de consultoría hasta tener dominio propio (`contacto@…`). Objetivo: mig
 Visible en landing/PDF para **Prospectos** y venta del **Descubrimiento pago**. Tras contrato, aplican reglas de **Soporte** (horario comercial, **Emergencia** solo si bloqueo operativo/fiscal atribuible al entregado).
 _Avoid_: soporte 24/7 o cambios de alcance por WhatsApp sin cotizar; confundir WhatsApp comercial con **Hipercare** ilimitado.
 
+**Lead**:
+Ficha pública de un negocio captada para prospección (nombre, dirección, teléfono, web, categoría, rating, coordenadas, place_id/cid, fuente, fecha de captura, estado nuevo/contactado/descartado; email solo opcional sin extracción bulk por defecto). Vive en `modoops_master`, aislada de los Tenants; **purga automática 90 días** + supresión inmediata ante opt-out.
+_Avoid_: guardar emails en bulk por defecto; mezclar leads con datos de un **Tenant**; persistir datos reales sin base jurídica validada.
+
+**Captación propia**:
+Prospección de ModoOps con **Leads** propios (ej. scraper GMaps slice-1 en modo borrador). Solo lectura/export por admin vía **Control Plane**, auditado; base jurídica con interés legítimo evaluado (LIA) + validación de asesor antes de datos reales.
+_Avoid_: confundir con **Captación (CTA)** de prospectos entrantes; exponer leads a Tenants de **Clientes**.
+
 ### Hero (copy ModoOps — a validar)
 
 - **Titular:** Tu operación, en modo.  
