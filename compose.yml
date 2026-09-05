@@ -51,6 +51,25 @@ services:
       - ./odoo.conf:/etc/odoo/odoo.conf
     command: --dev=all
 
+  web:
+    image: node:22-alpine
+    depends_on:
+      odoo:
+        condition: service_started
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./web:/app
+    env_file:
+      - web/.env
+    environment:
+      ODOO_URL: http://odoo:8069
+    # bind-mount directo: las deps del host sirven (el binding musl de rollup
+    # falta en el log pero las rutas verificadas renderizan igual)
+    command: ["npx", "astro", "dev", "--host", "0.0.0.0", "--port", "3001"]
+
 volumes:
   db_data:
   odoo_data:
