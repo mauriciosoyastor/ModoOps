@@ -25,4 +25,4 @@ def should_purge(
         return True
     if fecha_captura is None:
         return False
-    return fecha_captura <= retention_cutoff(today, days)
+    return fecha_captura < retention_cutoff(today, days)

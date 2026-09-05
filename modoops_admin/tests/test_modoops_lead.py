@@ -25,6 +25,10 @@ class ShouldPurgeTests(unittest.TestCase):
     def test_expired_purges(self):
         self.assertTrue(should_purge(date(2026, 6, 6), opt_out=False, today=self.TODAY))
 
+    def test_exactly_90_days_keeps(self):
+        # spec: vencidos son >90 días; el día 90 aún se conserva
+        self.assertFalse(should_purge(date(2026, 6, 7), opt_out=False, today=self.TODAY))
+
     def test_fresh_keeps(self):
         self.assertFalse(should_purge(date(2026, 9, 1), opt_out=False, today=self.TODAY))
 
@@ -55,6 +59,10 @@ class LeadModelFileTests(unittest.TestCase):
     def test_purge_and_opt_out_methods(self):
         self.assertIn("def purge_expired_leads", self.raw)
         self.assertIn("def action_opt_out", self.raw)
+        self.assertIn("ensure_one", self.raw)
+
+    def test_opt_out_logs_no_pii(self):
+        self.assertNotIn("self.nombre", self.raw)
 
     def test_purge_audits_in_tenant_log(self):
         self.assertIn("modoops.tenant.log", self.raw)

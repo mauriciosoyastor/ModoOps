@@ -1,5 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_modoops_tenant_admin,modoops.tenant admin,model_modoops_tenant,base.group_system,1,1,1,1
-access_modoops_tenant_contrato_admin,modoops.tenant.contrato admin,model_modoops_tenant_contrato,base.group_system,1,1,1,1
 access_modoops_configurador_wizard_admin,modoops.configurador.wizard admin,model_modoops_configurador_wizard,base.group_system,1,1,1,1
 access_modoops_lead_admin,modoops.lead admin,model_modoops_lead,base.group_system,1,1,1,1

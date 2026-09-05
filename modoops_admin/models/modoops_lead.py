@@ -38,7 +38,7 @@ class ModoopsLead(models.Model):
                 ("opt_out", "=", True),
                 "&",
                 ("fecha_captura", "!=", False),
-                ("fecha_captura", "<=", cutoff),
+                ("fecha_captura", "<", cutoff),
             ]
         )
         count = len(expired)
@@ -53,11 +53,12 @@ class ModoopsLead(models.Model):
         return count
 
     def action_opt_out(self):
-        """Supresión inmediata ante baja pedida."""
+        """Supresión inmediata ante baja pedida (sin PII en el log)."""
+        self.ensure_one()
         self.env["modoops.tenant.log"].create(
             {
                 "action": "baja",
-                "detail": f"Opt-out lead: {(self.nombre or '')[:200]}",
+                "detail": f"Opt-out lead id {self.id}",
             }
         )
         self.unlink()
