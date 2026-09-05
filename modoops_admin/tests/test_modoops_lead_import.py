@@ -65,6 +65,10 @@ class MapRowsTests(unittest.TestCase):
         self.assertEqual(vals["estado"], "nuevo")
         self.assertEqual(vals["nombre"], "Pinturería El Taller")
 
+    def test_sin_telefono_descartado(self):
+        vals = to_lead_vals({"nombre": "X", "telefono": ""})
+        self.assertEqual(vals["estado"], "descartado")
+
 
 class LeadImportWizardFileTests(unittest.TestCase):
     def setUp(self):

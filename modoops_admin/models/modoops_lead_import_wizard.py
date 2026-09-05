@@ -56,7 +56,7 @@ class ModoopsLeadImportWizard(models.TransientModel):
                     "email": vals.get("email") or False,
                     "web": vals.get("web") or False,
                     "categoria": vals.get("categoria") or False,
-                    "estado": "nuevo",
+                    "estado": vals.get("estado") or "nuevo",
                 }
             )
         if vals_list:
@@ -92,7 +92,7 @@ class ModoopsLeadImportWizard(models.TransientModel):
                     "email": line.email or False,
                     "web": line.web or False,
                     "categoria": line.categoria or False,
-                    "estado": "nuevo",
+                    "estado": line.estado or "nuevo",
                 }
             )
             count += 1

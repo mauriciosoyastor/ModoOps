@@ -50,5 +50,6 @@ def map_rows(rows: list[dict]) -> dict:
 
 def to_lead_vals(mapped_row: dict) -> dict:
     vals = {k: (v if v != "" else False) for k, v in mapped_row.items()}
-    vals["estado"] = "nuevo"
+    # Regla S4 (#98): sin teléfono no hay canal de contacto → descartado visible.
+    vals["estado"] = "nuevo" if vals.get("telefono") else "descartado"
     return vals
