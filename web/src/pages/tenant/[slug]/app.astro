@@ -114,6 +114,18 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
             <span class="mo-tenant__modules">{tenant.modules_installed ? `Instalados: ${tenant.modules_installed}` : "0 módulos — armar sistema"}</span>
           </div>
           {!hasIA ? <p class="mo-tenant__ia-cta">¿Agregar IA? Tildá <strong>IA ModoOps — Agente herramental</strong> en “Gestionar módulos / IA” → hidrata <em>Mostrador, Depósito Inteligente, Compras, Fiscal AR, Taller, etc.</em> vía Tools <code>stock.consulta</code>/<code>ot.cobro</code> + Memoria tenant 90d.</p> : <p class="mo-tenant__ia-ok">IA activa — Tools: <a href={`/api/modoops/${tenant.db_name}/agent/tools`} target="_blank"><code>GET /api/modoops/{tenant.db_name}/agent/tools</code></a> · Techo 200/mes Log → 429.</p>}
+          {hasIA ? (
+            <div class="mo-tenant__chat" id="ia-chat-root" data-db={tenant.db_name}>
+              <h3>Chat IA — Agente herramental (mock free + Ollama opcional)</h3>
+              <p class="mo-tenant__hint">Escribí natural: “stock del producto 42”, “cobrar OT 5 $100”, o “hola”. El BFF hidrata a <code>stock.consulta</code>/<code>ot.cobro</code>/<code>echo</code> vía <code>llm.ts</code> (mock si Ollama sin modelo).</p>
+              <div id="ia-chat-log" class="mo-chat__log" aria-live="polite"></div>
+              <form id="ia-chat-form" class="mo-chat__form">
+                <input id="ia-chat-input" name="message" placeholder="Ej: stock producto 42" autocomplete="off" />
+                <button type="submit" class="mo-btn-primary">Enviar</button>
+              </form>
+              <pre id="ia-chat-debug" class="mo-chat__debug"></pre>
+            </div>
+          ) : null}
         </section>
 
         <section>
@@ -198,6 +210,41 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
     setTimeout(()=> window.location.reload(), 700);
   });
   document.querySelector("[data-logout]")?.addEventListener("click", async()=>{ await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login"); });
+
+  // Chat IA herramental — hidrata BFF /api/modoops/:db/agent/run con {message, requestId}
+  const chatRoot = document.getElementById("ia-chat-root") as HTMLDivElement | null;
+  const chatLog = document.getElementById("ia-chat-log") as HTMLDivElement | null;
+  const chatForm = document.getElementById("ia-chat-form") as HTMLFormElement | null;
+  const chatInput = document.getElementById("ia-chat-input") as HTMLInputElement | null;
+  const chatDebug = document.getElementById("ia-chat-debug") as HTMLPreElement | null;
+  const chatDb = chatRoot?.dataset.db || db;
+  function uuidv4(){ return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c=>{ const r=Math.random()*16|0, v=c==="x"?r:(r&0x3|0x8); return v.toString(16); }); }
+  function appendChat(role: string, text: string){
+    if(!chatLog) return;
+    const div=document.createElement("div");
+    div.className=`mo-chat__msg is-${role}`;
+    div.textContent=`${role}: ${text}`;
+    chatLog.appendChild(div);
+    chatLog.scrollTop=chatLog.scrollHeight;
+  }
+  chatForm?.addEventListener("submit", async(e)=>{
+    e.preventDefault();
+    const msg=(chatInput?.value||"").trim();
+    if(!msg) return;
+    appendChat("user", msg);
+    if(chatInput) chatInput.value="";
+    if(chatDebug) chatDebug.textContent="pensando…";
+    const requestId=uuidv4();
+    try{
+      const res=await fetch(`/api/modoops/${chatDb}/agent/run`, {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({message: msg, requestId})});
+      const data=await res.json() as {status?:string; output?:{tool?:string; echo?:unknown; llmSource?:string}; llmSource?:string; error?:string};
+      if(!res.ok){ appendChat("error", data.error || `HTTP ${res.status}`); if(chatDebug) chatDebug.textContent=JSON.stringify(data,null,2); return; }
+      const tool=data.output?.tool || (data as {tool?:string}).tool || "—";
+      const src=data.llmSource || data.output?.llmSource || "—";
+      appendChat("agent", `tool=${tool} (llm:${src}) → ${JSON.stringify(data.output?.echo ?? data.output)}`);
+      if(chatDebug) chatDebug.textContent=JSON.stringify(data,null,2);
+    }catch(err){ appendChat("error", String(err)); if(chatDebug) chatDebug.textContent=String(err); }
+  });
 </script>
 
 <style>
@@ -238,4 +285,12 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
   .mo-badge { border-radius:999px; padding:.15rem .5rem; font-size:.75rem; font-weight:600; }
   .mo-badge.is-activo { background:#16a34a; color:#fff; } .mo-badge.is-suspendido { background:#dc2626; color:#fff; } .mo-badge.is-baja { background:#6b7280; color:#fff; }
   .mo-badge.is-ia { background:#7c3aed; color:#fff; margin-left:.35rem; } .mo-badge.is-ia-off { background:#2b2b2b; color:#aaa; margin-left:.35rem; }
+  .mo-tenant__chat { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1rem; margin-top:1rem; background:rgba(0,0,0,.18); }
+  .mo-tenant__chat h3 { margin:0 0 .3rem; font-size:1rem; }
+  .mo-chat__log { min-height:6rem; max-height:14rem; overflow:auto; border:1px solid #2b2b2b; border-radius:.6rem; padding:.6rem; background:#0a0a0a; margin:.5rem 0; }
+  .mo-chat__msg { font-size:.85rem; margin:.25rem 0; white-space:pre-wrap; }
+  .mo-chat__msg.is-user { color:#93c5fd; } .mo-chat__msg.is-agent { color:#86efac; } .mo-chat__msg.is-error { color:#f87171; }
+  .mo-chat__form { display:flex; gap:.5rem; }
+  .mo-chat__form input { flex:1; border:1px solid #2b2b2b; border-radius:999px; padding:.5rem .8rem; background:#0a0a0a; color:#fff; }
+  .mo-chat__debug { background:#0a0a0a; border:1px solid #2b2b2b; border-radius:.5rem; padding:.5rem; font-size:.7rem; white-space:pre-wrap; min-height:2rem; }
 </style>

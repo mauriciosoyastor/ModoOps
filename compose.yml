@@ -19,6 +19,16 @@ services:
       interval: 5s
       retries: 10
 
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      OLLAMA_HOST: 0.0.0.0
+
   odoo:
     image: odoo:19.0
     depends_on:
@@ -44,3 +54,4 @@ services:
 volumes:
   db_data:
   odoo_data:
+  ollama_data:

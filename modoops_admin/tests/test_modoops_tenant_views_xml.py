@@ -54,8 +54,8 @@ class TenantTreeTests(unittest.TestCase):
         self.assertIn("decoration-muted", raw)
 
     def test_tree_has_empty_text_or_help(self):
-        raw = ET.tostring(self.arch, encoding="unicode")
-        # vacío 0 tenants onboarding — empty_text or sample
+        raw = VIEWS.read_text(encoding="utf-8")
+        # vacío 0 tenants onboarding — comentario en XML o sample/empty_text
         self.assertTrue("empty" in raw.lower() or "0 tenants" in raw.lower() or "onboarding" in raw.lower(), "missing empty_text for vacio")
 
     def test_tree_has_order_hint(self):

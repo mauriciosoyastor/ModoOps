@@ -2,4 +2,5 @@
 <odoo>
     <menuitem id="menu_modoops_admin" name="ModoOps Admin" sequence="1" web_icon="modoops_admin,static/description/icon.png"/>
     <menuitem id="menu_modoops_tenants" name="Tenants" parent="menu_modoops_admin" action="action_modoops_tenant" sequence="10"/>
+    <menuitem id="menu_modoops_contratos" name="Contratos" parent="menu_modoops_admin" action="action_modoops_tenant_contrato" sequence="15"/>
 </odoo>
