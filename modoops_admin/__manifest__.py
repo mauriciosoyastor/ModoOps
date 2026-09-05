@@ -16,11 +16,15 @@ Mock v0.1 — sin billing auto ni editor runtime.
         "security/ir.model.access.csv",
         "security/modoops_tenant_log_access.xml",
         "views/modoops_tenant_views.xml",
+        "views/modoops_tenant_contrato_views.xml",
         "views/modoops_tenant_install_wizard_views.xml",
         "views/modoops_configurador_wizard_views.xml",
         "views/modoops_tenant_log_views.xml",
+        "report/modoops_reports.xml",
         "views/modoops_admin_menus.xml",
         "data/modoops_tenant_demo.xml",
+        "data/modoops_tenant_cron.xml",
+        "data/modoops_lead_cron.xml",
     ],
     "assets": {
         "web.assets_backend": [

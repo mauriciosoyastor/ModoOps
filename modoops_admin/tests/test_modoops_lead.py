@@ -63,5 +63,26 @@ class LeadModelFileTests(unittest.TestCase):
         self.assertIn("modoops_lead", init)
 
 
+LEAD_CRON = ADMIN / "data" / "modoops_lead_cron.xml"
+MANIFEST = ADMIN / "__manifest__.py"
+ACCESS_CSV = ADMIN / "security" / "ir.model.access.csv"
+
+
+class LeadCronManifestAccessTests(unittest.TestCase):
+    def test_cron_calls_purge(self):
+        raw = LEAD_CRON.read_text(encoding="utf-8")
+        self.assertIn("model_modoops_lead", raw)
+        self.assertIn("purge_expired_leads", raw)
+
+    def test_manifest_lists_cron(self):
+        self.assertIn("modoops_lead_cron.xml", MANIFEST.read_text(encoding="utf-8"))
+
+    def test_access_restricted_to_system(self):
+        text = ACCESS_CSV.read_text(encoding="utf-8")
+        self.assertIn("modoops.lead", text)
+        self.assertIn("base.group_system", text)
+        self.assertNotIn("base.group_user", text)
+
+
 if __name__ == "__main__":
     unittest.main()
