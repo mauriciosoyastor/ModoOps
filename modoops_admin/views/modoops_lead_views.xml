@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_modoops_lead_search" model="ir.ui.view">
+        <field name="name">modoops.lead.search</field>
+        <field name="model">modoops.lead</field>
+        <field name="arch" type="xml">
+            <search string="Leads captación propia">
+                <field name="nombre" />
+                <field name="telefono" />
+                <field name="categoria" />
+                <field name="estado" />
+                <filter string="Nuevo" name="filter_estado_nuevo" domain="[('estado','=','nuevo')]" />
+                <filter string="Contactado" name="filter_estado_contactado" domain="[('estado','=','contactado')]" />
+                <filter string="Descartado" name="filter_estado_descartado" domain="[('estado','=','descartado')]" />
+                <separator />
+                <filter string="Sin teléfono" name="filter_sin_telefono" domain="['|',('telefono','=',False),('telefono','=','')]" />
+                <filter string="Opt-out" name="filter_opt_out" domain="[('opt_out','=',True)]" />
+            </search>
+        </field>
+    </record>
+
     <record id="view_modoops_lead_list" model="ir.ui.view">
         <field name="name">modoops.lead.list</field>
         <field name="model">modoops.lead</field>
@@ -8,8 +27,10 @@
                 <field name="nombre" />
                 <field name="telefono" />
                 <field name="categoria" />
-                <field name="estado" widget="badge" />
+                <field name="estado" widget="badge" decoration-muted="estado=='descartado'" decoration-success="estado=='nuevo'" />
+                <field name="opt_out" />
                 <field name="fecha_captura" />
+                <button name="action_opt_out" string="Baja" type="object" icon="fa-ban" confirm="¿Dar de baja inmediata (opt-out)? Se borra el lead y se audita sin PII." invisible="opt_out" />
             </list>
         </field>
     </record>
@@ -19,14 +40,21 @@
         <field name="model">modoops.lead</field>
         <field name="arch" type="xml">
             <form string="Lead" create="0" edit="0">
-                <group>
-                    <field name="nombre" />
-                    <field name="telefono" />
-                    <field name="email" />
-                    <field name="categoria" />
-                    <field name="estado" />
-                    <field name="fecha_captura" />
-                </group>
+                <header>
+                    <button name="action_opt_out" string="Dar de baja (opt-out)" type="object" icon="fa-ban" class="oe_highlight" confirm="¿Dar de baja inmediata (opt-out)? Se borra el lead y se audita sin PII." invisible="opt_out" />
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not telefono">Sin teléfono — canal de contacto ausente: pasa a descartado visible (regla S4).</div>
+                    <group>
+                        <field name="nombre" />
+                        <field name="telefono" />
+                        <field name="email" />
+                        <field name="categoria" />
+                        <field name="estado" />
+                        <field name="opt_out" />
+                        <field name="fecha_captura" />
+                    </group>
+                </sheet>
             </form>
         </field>
     </record>
@@ -35,6 +63,24 @@
         <field name="name">Leads</field>
         <field name="res_model">modoops.lead</field>
         <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_modoops_lead_purge_now" model="ir.actions.server">
+        <field name="name">Purgar vencidos ahora</field>
+        <field name="model_id" ref="model_modoops_lead" />
+        <field name="binding_model_id" ref="model_modoops_lead" />
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = model.purge_expired_leads()</field>
+    </record>
+
+    <record id="action_modoops_lead_import_open" model="ir.actions.server">
+        <field name="name">Importar CSV…</field>
+        <field name="model_id" ref="model_modoops_lead" />
+        <field name="binding_model_id" ref="model_modoops_lead" />
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = env['ir.actions.act_window']._for_xml_id('modoops_admin.action_modoops_lead_import')</field>
     </record>
 
     <menuitem id="menu_modoops_leads" name="Leads" parent="menu_modoops_admin" action="action_modoops_lead" sequence="30" />
