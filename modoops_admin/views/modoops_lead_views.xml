@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_modoops_lead_list" model="ir.ui.view">
+        <field name="name">modoops.lead.list</field>
+        <field name="model">modoops.lead</field>
+        <field name="arch" type="xml">
+            <list string="Leads captación propia" create="0" edit="0">
+                <field name="nombre" />
+                <field name="telefono" />
+                <field name="categoria" />
+                <field name="estado" widget="badge" />
+                <field name="fecha_captura" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_modoops_lead_form" model="ir.ui.view">
+        <field name="name">modoops.lead.form</field>
+        <field name="model">modoops.lead</field>
+        <field name="arch" type="xml">
+            <form string="Lead" create="0" edit="0">
+                <group>
+                    <field name="nombre" />
+                    <field name="telefono" />
+                    <field name="email" />
+                    <field name="categoria" />
+                    <field name="estado" />
+                    <field name="fecha_captura" />
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_modoops_lead" model="ir.actions.act_window">
+        <field name="name">Leads</field>
+        <field name="res_model">modoops.lead</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_modoops_leads" name="Leads" parent="menu_modoops_admin" action="action_modoops_lead" sequence="30" />
+</odoo>

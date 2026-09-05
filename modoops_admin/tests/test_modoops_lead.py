@@ -1,5 +1,6 @@
 """Unittest puro: retención de Leads (captación propia) sin Odoo."""
 import unittest
+import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
 
@@ -82,6 +83,24 @@ class LeadCronManifestAccessTests(unittest.TestCase):
         self.assertIn("modoops.lead", text)
         self.assertIn("base.group_system", text)
         self.assertNotIn("base.group_user", text)
+
+
+LEAD_VIEWS = ADMIN / "views" / "modoops_lead_views.xml"
+
+
+class LeadViewsTests(unittest.TestCase):
+    def setUp(self):
+        self.root = ET.parse(LEAD_VIEWS).getroot()
+        self.raw = ET.tostring(self.root, encoding="unicode")
+
+    def test_list_shows_key_fields(self):
+        for field in ("nombre", "telefono", "estado", "fecha_captura"):
+            self.assertIn(field, self.raw)
+
+    def test_action_and_menu_registered(self):
+        self.assertIn("modoops.lead", self.raw)
+        self.assertIn("menuitem", self.raw)
+        self.assertIn("menu_modoops_admin", self.raw)
 
 
 if __name__ == "__main__":
