@@ -10,6 +10,10 @@ describe("Video-IA S1 — config", () => {
   it("lee VIDEO_ACCESS_URL del env", () => {
     expect(getVideoAccessUrl({ VIDEO_ACCESS_URL: "https://video.stub/nuevo" })).toBe("https://video.stub/nuevo");
   });
+
+  it("env con solo espacios → undefined (trim)", () => {
+    expect(getVideoAccessUrl({ VIDEO_ACCESS_URL: "   " })).toBeUndefined();
+  });
 });
 
 describe("Video-IA S1 — resolveVideoAccess", () => {

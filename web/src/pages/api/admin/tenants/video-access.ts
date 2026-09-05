@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { getEnv } from "../../../../lib/bff/config.ts";
 import { BffError } from "../../../../lib/bff/errors.ts";
-import { bffErrorResponse, json } from "../../../../lib/bff/http.ts";
+import { bffErrorResponse, json, USER_ERROR_MESSAGES } from "../../../../lib/bff/http.ts";
 import { resolveVideoAccess } from "../../../../lib/bff/video-access.ts";
 
 export const prerender = false;
@@ -16,8 +16,10 @@ export const GET: APIRoute = async ({ cookies, locals }) => {
     const odooSessionId = (locals as Record<string, unknown>).odooSessionId as string;
     const res = resolveVideoAccess({ odooSessionId, env: getEnv(locals) });
     if (res.http !== 200) {
-      const message = res.message || (res.code === "unauthorized" ? "Tenés que iniciar sesión" : "No se pudo completar la acción");
-      return bffErrorResponse(new BffError(res.code, res.http, message), cookies);
+      // Ruta authenticated-only como todo /api/admin/* (middleware da 401 sin sesión).
+      // Master-only es operativo (tile solo en panel master, S2); 403 con rol: diferido (no hay rol en SessionEntry).
+      const fallback = res.code === "unauthorized" ? USER_ERROR_MESSAGES.unauthorized : USER_ERROR_MESSAGES.action_failed;
+      return bffErrorResponse(new BffError(res.code, res.http, res.message || fallback), cookies);
     }
     return json(res.body);
   } catch (err) {
