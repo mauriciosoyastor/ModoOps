@@ -1,4 +1,5 @@
 import type { HubPayload, LauncherPayload, SessionInfo } from "./types.ts";
+import type { LeadFilters, LeadRow } from "./leads.ts";
 
 export type TenantRow = {
   id: number;
@@ -11,6 +12,10 @@ export type TenantRow = {
   suspend_grace_until: string | false;
   modules_installed: string | false;
   modules_installed_count: number;
+  phone: string | false;
+  situacion: string | false;
+  contrato_count: number;
+  saldo_pendiente_usd: number;
 };
 
 export type InstallResult = { preview_command: string; modules_installed: string | false };
@@ -29,4 +34,7 @@ export interface BackendClient {
     tenantId: number,
     vals: { modules: string[]; action?: "install" | "remove"; notes?: string }
   ): Promise<InstallResult>;
+  getLeads(odooSessionId: string, filters?: LeadFilters): Promise<LeadRow[]>;
+  optOutLead(odooSessionId: string, leadId: number): Promise<{ ok: true }>;
+  purgeLeads(odooSessionId: string): Promise<{ purged: number }>;
 }
