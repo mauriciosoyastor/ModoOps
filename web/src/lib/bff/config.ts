@@ -78,3 +78,9 @@ export function getOdooEnv(name: "ODOO_URL" | "ODOO_DB" | "ODOO_RPC_TIMEOUT_MS",
   const e = env ?? readEnv();
   return e[name] as string | undefined;
 }
+
+export function getVideoAccessUrl(env?: BffEnv): string | undefined {
+  const e = env ?? readEnv();
+  const raw = ((e.VIDEO_ACCESS_URL as string) || "").trim();
+  return raw ? raw : undefined;
+}
