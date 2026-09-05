@@ -1,5 +1,6 @@
 """Unittest puro: import CSV de leads (captación propia) sin Odoo."""
 import unittest
+from pathlib import Path
 
 from modoops_admin.logic.lead_import import (
     GSOM_DISCARDED,
@@ -9,6 +10,10 @@ from modoops_admin.logic.lead_import import (
     parse_csv_bytes,
     to_lead_vals,
 )
+
+ADMIN = Path(__file__).resolve().parents[1]
+WIZARD_MODEL = ADMIN / "models" / "modoops_lead_import_wizard.py"
+MODELS_INIT = ADMIN / "models" / "__init__.py"
 
 SAMPLE = (
     "nombre,direccion,telefono,email,web,categoria,rating,lat,lon,place_id,"
@@ -58,6 +63,32 @@ class MapRowsTests(unittest.TestCase):
         vals = to_lead_vals(map_rows(parsed["rows"])["mapped"][0])
         self.assertEqual(vals["estado"], "nuevo")
         self.assertEqual(vals["nombre"], "Pinturería El Taller")
+
+
+class LeadImportWizardFileTests(unittest.TestCase):
+    def setUp(self):
+        self.raw = WIZARD_MODEL.read_text(encoding="utf-8")
+
+    def test_names(self):
+        self.assertIn('"modoops.lead.import.wizard"', self.raw)
+        self.assertIn('"modoops.lead.import.line"', self.raw)
+
+    def test_states(self):
+        for state in ("upload", "preview", "done"):
+            self.assertIn(state, self.raw)
+
+    def test_actions(self):
+        self.assertIn("def action_parse_preview", self.raw)
+        self.assertIn("def action_apply", self.raw)
+        self.assertIn("ensure_one", self.raw)
+
+    def test_apply_creates_nuevo_and_audits(self):
+        self.assertIn("modoops.lead", self.raw)
+        self.assertIn("modoops.tenant.log", self.raw)
+
+    def test_registered_in_models_init(self):
+        init = MODELS_INIT.read_text(encoding="utf-8")
+        self.assertIn("modoops_lead_import_wizard", init)
 
 
 if __name__ == "__main__":
