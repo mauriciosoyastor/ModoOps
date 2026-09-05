@@ -110,6 +110,33 @@ class LeadViewsTests(unittest.TestCase):
         self.assertIn("menuitem", self.raw)
         self.assertIn("menu_modoops_admin", self.raw)
 
+    def test_form_has_opt_out_button(self):
+        self.assertIn("action_opt_out", self.raw)
+        self.assertIn("<header>", self.raw)
+        self.assertIn("confirm=", self.raw)
+
+    def test_list_has_opt_out_button_and_flag(self):
+        self.assertIn("opt_out", self.raw)
+        self.assertIn('type="object"', self.raw)
+
+    def test_search_view_with_state_filters(self):
+        search_views = list((ADMIN / "views").glob("*lead*search*.xml"))
+        search_raw = self.raw
+        for path in search_views:
+            search_raw += path.read_text(encoding="utf-8")
+        search_file = ADMIN / "views" / "modoops_lead_views.xml"
+        text = search_file.read_text(encoding="utf-8")
+        self.assertIn("<search", text)
+        for token in ("nuevo", "contactado", "descartado"):
+            self.assertIn(token, text)
+
+    def test_server_actions_purge_and_import_bound_to_list(self):
+        text = (ADMIN / "views" / "modoops_lead_views.xml").read_text(encoding="utf-8")
+        self.assertIn("purge_expired_leads", text)
+        self.assertIn("ir.actions.server", text)
+        self.assertIn("binding_model_id", text)
+        self.assertIn("action_modoops_lead_import", text)
+
 
 if __name__ == "__main__":
     unittest.main()
