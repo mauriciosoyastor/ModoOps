@@ -1,0 +1,145 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { BffError } from "../../lib/bff/errors.ts";
+import { invalidateBffSession } from "../../lib/bff/http.ts";
+import { getBackend } from "../../lib/bff/get-backend.ts";
+import type { LeadFilters } from "../../lib/bff/leads.ts";
+
+const _sessA = (Astro.locals as Record<string, unknown>).session as { name?: string; login?: string } | undefined;
+const _odooA = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
+if (!_odooA) return Astro.redirect("/login");
+let odooSessionId: string = _odooA;
+let userName = _sessA?.name || _sessA?.login || "";
+
+const q = Astro.url.searchParams;
+const filters: LeadFilters = {
+  estado: (["nuevo", "contactado", "descartado"].includes(q.get("estado") || "") ? q.get("estado") : "") as LeadFilters["estado"],
+  sinTelefono: q.get("sin_telefono") === "1",
+  optOut: q.get("opt_out") === "1",
+};
+
+let leads: import("../../lib/bff/leads.ts").LeadRow[] = [];
+let loadError = "";
+try {
+  leads = await getBackend().getLeads(odooSessionId, filters);
+} catch (cause) {
+  if (cause instanceof BffError && cause.code === "unauthorized") {
+    invalidateBffSession(Astro.cookies);
+    return Astro.redirect("/login");
+  }
+  loadError = (cause as Error)?.message || "No se pudo cargar leads";
+}
+---
+
+<BaseLayout title="Leads — ModoOps Admin" description="ModoOps Control Plane — Leads captación propia">
+  <main class="mo-admin">
+    <header class="mo-admin__topbar">
+      <div>
+        <p class="mo-admin__eyebrow">ModoOps Admin · Control Plane</p>
+        <h1>Leads captación propia</h1>
+        <p class="mo-admin__user">{userName} · {leads.length} lead{leads.length===1?"":"s"}</p>
+      </div>
+      <div class="mo-admin__actions">
+        <a href="/admin/tenants">← Tenants</a>
+        <button type="button" data-purge>Purgar vencidos</button>
+        <button type="button" data-logout>Cerrar sesión</button>
+      </div>
+    </header>
+
+    <p class="mo-admin__note">Sin teléfono → descartado visible (regla S4). La baja (opt-out) borra el lead y audita sin PII. Purga: vencidos &gt;90d + opt-out.</p>
+
+    <section class="mo-admin__create">
+      <h2>Filtros</h2>
+      <form id="lead-filters" method="get" action="/admin/leads">
+        <label>Estado
+          <select name="estado">
+            <option value="" selected={!filters.estado}>todos</option>
+            <option value="nuevo" selected={filters.estado==="nuevo"}>nuevo</option>
+            <option value="contactado" selected={filters.estado==="contactado"}>contactado</option>
+            <option value="descartado" selected={filters.estado==="descartado"}>descartado</option>
+          </select>
+        </label>
+        <label class="mo-check"><input type="checkbox" name="sin_telefono" value="1" checked={filters.sinTelefono} /> Sin teléfono</label>
+        <label class="mo-check"><input type="checkbox" name="opt_out" value="1" checked={filters.optOut} /> Opt-out</label>
+        <button type="submit">Filtrar</button>
+        <span id="purge-msg" class="mo-admin__msg"></span>
+      </form>
+    </section>
+
+    {loadError ? <p class="mo-admin__error">{loadError}</p> : null}
+
+    <div class="mo-admin__tablewrap">
+      <table class="mo-admin__table">
+        <thead>
+          <tr><th>Nombre</th><th>Teléfono</th><th>Categoría</th><th>Estado</th><th>Opt-out</th><th>Captura</th><th>Acción</th></tr>
+        </thead>
+        <tbody>
+          {leads.map((l) => (
+            <tr>
+              <td>{l.nombre}{!l.telefono ? <span class="mo-badge is-warn" title="Regla S4: sin canal de contacto">S4</span> : null}</td>
+              <td>{l.telefono || "—"}</td>
+              <td>{l.categoria || "—"}</td>
+              <td><span class:list={["mo-badge", `is-${l.estado}`]}>{l.estado}</span></td>
+              <td>{l.opt_out ? "sí" : "no"}</td>
+              <td>{l.fecha_captura || "—"}</td>
+              <td>{!l.opt_out ? <button type="button" class="mo-btn-sm" data-optout data-lead-id={l.id}>Baja</button> : "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {leads.length===0 && !loadError ? <p class="mo-admin__empty">0 leads con estos filtros. <a href="/admin/leads">Limpiar filtros</a>.</p> : null}
+    </div>
+
+    <p class="mo-admin__foot"><a href="/api/admin/leads" target="_blank">JSON /api/admin/leads</a> · <code>modoops_master</code> · Odoo <code>modoops.lead</code> · Import CSV desde Odoo (Leads → Importar CSV)</p>
+  </main>
+</BaseLayout>
+
+<script>
+  document.querySelector("[data-logout]")?.addEventListener("click", async () => {
+    await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login");
+  });
+  document.querySelector("[data-purge]")?.addEventListener("click", async () => {
+    if (!confirm("¿Purgar leads vencidos (>90d) + opt-out? Se audita en tenant.log.")) return;
+    const msg = document.getElementById("purge-msg") as HTMLSpanElement;
+    msg.textContent = "Purgando…";
+    const res = await fetch("/api/admin/leads", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ action:"purge" }) });
+    const data = await res.json().catch(()=>({})) as { purged?: number; error?: { message?: string } };
+    if (!res.ok) { msg.textContent = data?.error?.message || "Error"; return; }
+    msg.textContent = `Purgados: ${data.purged ?? 0} — recargando…`;
+    setTimeout(()=> window.location.reload(), 700);
+  });
+  document.querySelectorAll("[data-optout]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("¿Dar de baja inmediata (opt-out)? Se borra el lead y se audita sin PII.")) return;
+      const id = Number((btn as HTMLElement).dataset.leadId);
+      const res = await fetch("/api/admin/leads", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ action:"opt_out", id }) });
+      if (!res.ok) { const d = await res.json().catch(()=>({})) as { error?: { message?: string } }; alert(d?.error?.message || "Error"); return; }
+      window.location.reload();
+    });
+  });
+</script>
+
+<style>
+  .mo-admin { max-width:78rem; margin:0 auto; padding:2rem 1rem 3rem; }
+  .mo-admin__topbar { display:flex; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; }
+  .mo-admin__eyebrow { color:var(--sg-flame-orange); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0; font-weight:700; }
+  .mo-admin__user { color:var(--sg-text-muted-dark); margin:.25rem 0 0; }
+  .mo-admin__actions { display:flex; gap:.5rem; align-items:center; }
+  .mo-admin__note { color:var(--sg-text-muted-dark); font-size:.85rem; }
+  .mo-admin__create { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1rem; background:var(--sg-glass-fill); backdrop-filter:blur(10px); margin-bottom:1rem; }
+  .mo-admin__create h2 { margin:0 0 .5rem; font-size:1rem; }
+  .mo-admin__create form { display:flex; gap:.5rem; flex-wrap:wrap; align-items:end; }
+  .mo-admin__create label { display:flex; flex-direction:column; gap:.25rem; font-size:.85rem; }
+  .mo-admin__create select { border:1px solid #2b2b2b; border-radius:.5rem; padding:.45rem .6rem; background:#0a0a0a; color:#fff; }
+  .mo-admin__create button { border-radius:999px; padding:.5rem .9rem; background:#fff; color:#111; border:0; cursor:pointer; font-weight:600; }
+  .mo-check { display:flex !important; flex-direction:row !important; gap:.35rem; align-items:center; }
+  .mo-admin__msg { font-size:.85rem; color:var(--sg-text-muted-dark); }
+  .mo-admin__tablewrap { overflow:auto; border:1px solid var(--sg-glass-border); border-radius:1rem; background:var(--sg-glass-fill); }
+  .mo-admin__table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  .mo-admin__table th, .mo-admin__table td { padding:.6rem .75rem; border-bottom:1px solid var(--sg-glass-border); text-align:left; }
+  .mo-badge { border-radius:999px; padding:.15rem .5rem; font-size:.75rem; font-weight:600; }
+  .mo-badge.is-nuevo { background:#16a34a; color:#fff; } .mo-badge.is-contactado { background:#2563eb; color:#fff; } .mo-badge.is-descartado { background:#6b7280; color:#fff; } .mo-badge.is-warn { background:#f59e0b; color:#111; margin-left:.35rem; }
+  .mo-admin__error { color:#f87171; } .mo-admin__empty { color:var(--sg-text-muted-dark); padding:1rem; }
+  .mo-admin__foot { margin-top:1rem; font-size:.8rem; color:var(--sg-text-muted-dark); }
+  .mo-btn-sm { border:1px solid var(--sg-glass-border); border-radius:999px; padding:.3rem .6rem; background:#fff; color:#111; font-size:.75rem; cursor:pointer; font-weight:600; }
+</style>
