@@ -2,43 +2,43 @@
 
 > Template reutilizable por cliente. Va firmado con el contrato principal.
 > Contrato base: Locación de Servicios – Implementación ModoOps + Abono Mantenimiento (v2 07/09/2026).
-> Uso: copiar por cliente, completar `[]`, firmar. Propuesta válida 20 días.
+> Uso: copiar por cliente, completar los blancos, firmar. Propuesta válida 20 días.
 > Todo destrabe de pago requiere acta firmada (v2: sin silencio=aceptación).
 
 ---
 
 ## 0. Encabezado
 
-Cliente: []
-Fecha: []
-Propuesta válida 20 días hasta: [___]
-Versión Odoo CE acordada: [___]
+Cliente: __________
+Fecha: __________
+Propuesta válida 20 días hasta: __________
+Versión Odoo CE acordada: __________
 Espacio de trabajo: modoops_[cliente]
 Infra: [propia del cliente / central ModoOps – tachar]
 Modalidad capacitación: [presencial / remota]
-Domicilio electrónico cliente: []
+Domicilio electrónico cliente: __________
 
 ---
 
 ## A1. Módulos incluidos (lista cerrada)
 
-- Mostrador – hasta 2 cajas, 1 sucursal: [dirección sucursal]
-- Depósito Inteligente – 1 almacén: [nombre]
+- Mostrador – hasta 2 cajas, 1 sucursal: __________
+- Depósito Inteligente – 1 almacén: __________
 - Compras – proveedores + OC básicas
 - Facturación electrónica estándar – comprobantes según Anexo B, validados con tu contador
 - Contabilidad operativa ligada a ventas/compras (no cierre mensual del estudio)
 - Contactos – clientes/proveedores básicos
-- Ajustes específicos acordados: [___]
+- Ajustes específicos acordados: __________
 
 ## A2. Parámetros incluidos
 
-- Cajas: [1 / 2] – IDs: [___]
-- Usuarios base: hasta 5 – perfiles: [ej. dueño, cajero, depósito]
-- Lista precios venta: 1 + promos simples: [___]
-- Catálogo: carga manual [muestra piloto ___ ítems] / Migración Add-on $150 hasta 500 ítems [SI/NO]
-- Variantes: hasta 2 atributos: [ej. volumen + color – definir]
+- Cajas: [1 / 2] – IDs: __________
+- Usuarios base: hasta 5 – perfiles: __________
+- Lista precios venta: 1 + promos simples: __________
+- Catálogo: carga manual (muestra piloto: __________) / Migración Add-on $150 hasta 500 ítems [SI/NO]
+- Variantes: hasta 2 atributos: __________
 - Ajustes técnicos: 8h incluidas (vistas, campos simples, automatizaciones livianas, parametrización fina)
-- Capacitación: 6h incluidas – fecha [___]
+- Capacitación: 6h incluidas – fecha __________
 - Infra: [según encabezado]
 
 Superadas las 8h de ajustes o pedido fuera de lista = trabajo adicional con presupuesto previo escrito.
@@ -56,7 +56,7 @@ CRM, web/eCommerce, MRP, multi-sucursal/almacén, B2B avanzado, integraciones ex
 
 ## A4. Hito 1 – Núcleo en staging – destraba 25%
 
-Fecha objetivo: [___] (plazo máximo 3 semanas desde anticipo + accesos)
+Fecha objetivo: __________ (plazo máximo 3 semanas desde anticipo + accesos)
 
 Checklist firma cliente:
 
@@ -73,15 +73,15 @@ Firma: ______
 
 ## A5. Hito 2 – Puesta en producción + hipercare – destraba 25% final
 
-Fecha objetivo: [___]
+Fecha objetivo: __________
 
 - [ ] Puesta en producción (una incluida)
 - [ ] Anexo B fiscal cerrado con tu contador + prueba OK
 - [ ] Caja operativa en producción
 - [ ] Compras + inventario operativos
-- [ ] Capacitación 6h dictada [fecha/horas] o plan remanente firmado [fecha]
+- [ ] Capacitación 6h dictada __________ o plan remanente firmado __________
 - [ ] Infra revisada (copia de seguridad, accesos)
-- [ ] Inicio hipercare 10 días hábiles desde [] hasta [] + comunicado mes de acompañamiento y abono $50/mes desde mes 2
+- [ ] Inicio hipercare 10 días hábiles desde __________ hasta __________ + comunicado mes de acompañamiento y abono $50/mes desde mes 2
 
 Hipercare: solo fallas de lo incluido (alta/media sin workaround). No cubre mal uso, datos, tu internet/equipos, servicios de terceros ni lo expresamente excluido.
 
@@ -93,11 +93,11 @@ Firma cliente: ______ Firma prestador: ______
 
 # ACTA DE ACEPTACIÓN HITO 1 – 25%
 
-En [], a los [], MODOOPS y [CLIENTE] dejan constancia:
+En __________, a los __________, MODOOPS y __________ dejan constancia:
 
-1. Hito 1 cumplido según checklist A4. Fallas menores pendientes (si no hay, poner "ninguna"): [___]
+1. Hito 1 cumplido según checklist A4. Fallas menores pendientes (si no hay, poner "ninguna"): __________
 2. Con esta firma EL CLIENTE acepta el núcleo en staging.
-3. Se habilita facturación del 25%: [$200 USD – ARS equiv. TC ], a cuenta Alias iluso.pared.reasume / CBU 3220001888034741040018, contra Factura C N° [].
+3. Se habilita facturación del 25%: [$200 USD – ARS equiv. TC __________, a cuenta Alias iluso.pared.reasume / CBU 3220001888034741040018, contra Factura C N° __________.
 4. Todo destrabe requiere firma (v2: sin silencio=aceptación).
 
 Cliente (firma, aclaración, DNI): ___________
@@ -107,13 +107,13 @@ Prestador Mauricio Matasini (firma): ___________
 
 # ACTA DE ACEPTACIÓN HITO 2 Y COBRO FINAL – 25%
 
-En [], a los [], MODOOPS y [CLIENTE] dejan constancia:
+En __________, a los __________, MODOOPS y __________ dejan constancia:
 
-1. Hito 2 cumplido según checklist A5 arriba. Detalle fallas menores pendientes (si no hay, poner "ninguna"): [___]
-2. Con esta firma EL CLIENTE acepta el sistema en producción e inicia hipercare hasta [fecha 10 días hábiles].
-3. Se habilita facturación del 25% final: [$200 USD – ARS equiv. TC ], a cuenta Alias iluso.pared.reasume / CBU 3220001888034741040018, contra Factura C N° [].
-4. Desde [mes siguiente] rige mes de acompañamiento, desde [mes+2] abono mensual $50 USD con vencimiento 1 al 10, según cláusula 9.
-5. Pendientes fuera de alcance detectados: [___] se presupuestan aparte, no frenan pago.
+1. Hito 2 cumplido según checklist A5 arriba. Detalle fallas menores pendientes (si no hay, poner "ninguna"): __________
+2. Con esta firma EL CLIENTE acepta el sistema en producción e inicia hipercare hasta __________.
+3. Se habilita facturación del 25% final: [$200 USD – ARS equiv. TC __________, a cuenta Alias iluso.pared.reasume / CBU 3220001888034741040018, contra Factura C N° __________.
+4. Desde __________ rige mes de acompañamiento, desde __________ abono mensual $50 USD con vencimiento 1 al 10, según cláusula 9.
+5. Pendientes fuera de alcance detectados: __________ se presupuestan aparte, no frenan pago.
 6. Todo destrabe requiere firma (v2: sin silencio=aceptación).
 
 Cliente (firma, aclaración, DNI): ___________
