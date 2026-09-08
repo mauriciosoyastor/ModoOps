@@ -1,7 +1,8 @@
-# Contrato ModoOps — Versión pedagógica (espejo didáctico v2)
+# Contrato ModoOps — Versión pedagógica (espejo didáctico v3)
 
-> **Vale lo firmado.** Esta es una guía en lenguaje simple del `docs/contrato-modoops-completo.html` + `docs/contrato-modoops-anexo-A.md` (v2 07/09/2026).
+> **Vale lo firmado.** Esta es una guía en lenguaje simple del `docs/contrato-modoops-completo.html` + `docs/contrato-modoops-anexo-A.md` (v3 08/09/2026).
 > Si hay diferencia, manda el contrato firmado.
+> En el formal las partes se llaman EL LOCADOR (Mauricio Matasini) y EL LOCATARIO (el cliente).
 
 ## Cómo leer este documento
 
@@ -46,7 +47,7 @@ Cada sección tiene: **qué dice el contrato** (resumen fiel) + **en criollo** (
 
 ## 5. Precio 50/25/25 — cómo se paga el ancla
 
-**Dice:** total fijo **$800 USD**, propuesta válida 20 días. 50% anticipo ($400) para reservar fecha e iniciar — el alta se confirma con tu transferencia, sin ella no corre plazo. 25% ($200) contra Hito 1 + acta firmada. 25% final ($200) contra go-live + acta firmada. USD por defecto; ARS solo si pedís, con tipo de cambio del día de la factura. Cuenta: Alias **iluso.pared.reasume**, CBU **3220001888034741040018**, Factura C. Recargo por demora: 0,17% diario (≈5% mensual), sin capitalizar.
+**Dice:** total fijo **$800 USD**, propuesta válida 20 días. 50% anticipo ($400) para reservar fecha e iniciar — el alta se confirma con tu transferencia, sin ella no corre plazo. 25% ($200) contra Hito 1 + acta firmada. 25% final ($200) contra go-live + acta firmada. USD por defecto; ARS solo si pedís, con tipo de cambio a definir (ej. Dólar MEP / BNA Vendedor) del día de emisión, detallado en la factura. Cuenta: Alias **iluso.pared.reasume**, CBU **3220001888034741040018**, Factura C. Recargo por demora: 0,17% diario (≈5% mensual), sin capitalizar.
 
 > En criollo: mitad para arrancar (con tu transferencia), un cuarto a mitad de camino y un cuarto al final, cada uno con acta firmada.
 
@@ -66,7 +67,7 @@ Hora extra **$12 USD/h**, día **$55 USD**, módulo extra **$150 USD**. Refs: mi
 
 ## 9. Abono — del 1 al 10
 
-Mes 1 post-hipercare: acompañamiento best effort. Desde mes 2: **$50 USD/mes**, 4h + best effort en bugs, horas que vencen. Pagás del **1 al 10**. Vencido: aviso WhatsApp/email con monto + recargo. **7 días** de gracia → se suspende (solo lectura, sin borrado, nada se pierde). Pagás + recargo → rehabilitación **dentro de la jornada**. A los **15 días** suspendido: backup final y baja (ese mes no se cobra); re-alta **$55 USD**.
+Mes 1 post-hipercare: acompañamiento best effort. Desde mes 2: **$50 USD/mes**, 4h + best effort en bugs, horas que vencen. Pagás del **1 al 10**. Vencido: aviso WhatsApp/email con monto + recargo. **7 días** de gracia → se suspende (solo lectura, sin borrado, nada se pierde). Pagás + recargo → rehabilitación **dentro de la jornada**. A los **15 días** suspendido: backup final y baja (ese mes no se cobra); re-alta **$55 USD**. Actualización de tarifa (9.9): el abono puede actualizarse avisándote 30 días antes por email/WhatsApp; si no aceptás, rescindís el abono sin penalidad antes del aumento.
 
 > En criollo: pagá del 1 al 10 y todo sigue. Si te atrasás 7 días se pausa. Pagás y en el día vuelve. A los 15 se da de baja con backup.
 
@@ -92,7 +93,7 @@ Tribunales de Alta Gracia, Córdoba. El domicilio y el domicilio electrónico de
 
 ## 15. Anexos
 
-A Alcance + checklists + actas Hito 1 y Hito 2. B Fiscal. Firmar.
+A Alcance + checklists + actas Hito 1 y Hito 2. B Fiscal (datos AFIP, puntos de venta, comprobantes cerrados A/B/C/M, certificados, conformidad de prueba con tu contador). Firmar.
 
 ---
 

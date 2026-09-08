@@ -42,7 +42,6 @@ REQUIERE_POR_ARCHIVO = {
     ],
     "docs/contrato-modoops-anexo-A.md": [
         "$150", "$12 USD/h", "$55 USD", "25%",
-        "Domicilio electrónico",
     ],
     "docs/contrato-modoops-pedagogico.md": [
         "$800", "$50", "$12 USD/h", "$55 USD", "$150", "$110",
