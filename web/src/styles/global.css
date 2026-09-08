@@ -41,6 +41,13 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+
+  /* S1 lote 0: foco visible en toda la web (Vercel: clear focus) */
+  :focus-visible {
+    outline: 2px solid var(--color-star-white);
+    outline-offset: 3px;
   }
 
   body {
