@@ -14,6 +14,7 @@
   ul { margin-top: 4px; }
   li { margin-bottom: 3px; }
   .box { border: 1px solid #999; padding: 10px 12px; margin: 10px 0; background: #f9f9f9; }
+  .warn { border: 2px solid #000; padding: 10px 12px; margin: 10px 0; background: #fffbe6; }
   .small { font-size: 9.5pt; color: #333; }
   .pagebreak { page-break-before: always; }
   table.check { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
@@ -23,88 +24,117 @@
 <body>
 
 <h1>CONTRATO DE LOCACIÓN DE SERVICIOS<br>IMPLEMENTACIÓN MODOOPS + ABONO DE MANTENIMIENTO</h1>
-<p class="sub">Contrato civil de obra/servicios – Arts. 1251 y ss. CCCN – Ley 11.723 / 25.036 – Ley 25.326</p>
+<p class="sub">Contrato de servicios – Implementación + mantenimiento · v2 (07/09/2026)</p>
 
 <p>En Alta Gracia, Córdoba, a los ___ de ___ de 2026, entre:</p>
 
-<p><b>EL PRESTADOR:</b> MATASINI Mauricio Nahuel, DNI 36.119.160, CUIT 23-36119160-9, Monotributista prestador de servicios inscripto en ARCA, domicilio Uruguay 1660, Alta Gracia, Córdoba, Cel 3547532008, email consultoria.matasini@gmail.com, en adelante <b>MODOOPS</b>.</p>
+<p><b>EL PRESTADOR:</b> MATASINI Mauricio Nahuel, DNI 36.119.160, CUIT 23-36119160-9, Monotributista prestador de servicios inscripto en ARCA, domicilio Uruguay 1660, Alta Gracia, Córdoba, Cel 3547532008, email mauriciomatasini27@gmail.com, en adelante <b>MODOOPS</b>.</p>
 
 <p><b>EL CLIENTE:</b> [Nombre / Razón Social], [DNI/CUIT], domicilio [___], email [___], tel [___], representante [___], en adelante <b>EL CLIENTE</b>.</p>
 
-<h2>1. OBJETO</h2>
-<p>1.1. Implementación de ModoOps – Sistema de Gestión Modular (marca comercial que corre sobre Odoo CE + módulos validados) según Anexo A.
-1.2. Go-live + hipercare + capacitación.
-1.3. Soporte posterior por Abono Mensual.
-1.4. Este es un contrato entre independientes. No hay relación de dependencia Ley 20.744.</p>
+<p>Cada parte constituye <b>domicilio electrónico</b> en el email del encabezado. Los avisos a esos emails valen como notificación.</p>
 
-<h2>2. DEFINICIONES</h2>
+<h2>1. OBJETO</h2>
 <ul>
-<li><b>Descubrimiento pago:</b> servicio previo de 3 días $155 USD que produce informe + propuesta. No es parte del ancla.</li>
-<li><b>Paquete ancla:</b> implementación precio fijo por alcance cerrado Anexo A.</li>
-<li><b>Hito:</b> aceptación formal que destraba pago.</li>
-<li><b>Go-live:</b> puesta en producción (una incluida).</li>
-<li><b>Hipercare:</b> 10 días hábiles post go-live solo bugs alta/media sin workaround.</li>
-<li><b>Bug:</b> falla respecto a alcance aceptado.</li>
-<li><b>Cambio:</b> todo fuera de alcance, se cotiza.</li>
-<li><b>Add-on:</b> trabajo fuera del ancla con precio propio.</li>
-<li><b>Ajuste técnico:</b> hasta 8h incluidas para vistas, campos simples, automatizaciones livianas, parametrización fina.</li>
+<li>1.1. Implementación de ModoOps – Sistema de Gestión Modular según Anexo A (lista cerrada, no "todo Odoo").</li>
+<li>1.2. Go-live (puesta en producción: prender el sistema en tu local, una incluida) + hipercare (10 días hábiles para arreglar fallas de lo incluido, gratis) + capacitación.</li>
+<li>1.3. Soporte posterior por Abono Mensual.</li>
+<li>1.4. Contrato entre independientes. No hay relación de dependencia (Ley 20.744).</li>
+</ul>
+
+<h2>2. DEFINICIONES (hablamos el mismo idioma)</h2>
+<ul>
+<li><b>Paquete ancla:</b> implementación a precio fijo ($800 USD) por alcance cerrado del Anexo A.</li>
+<li><b>Hito:</b> aceptación formal <b>con acta firmada</b> que destraba un pago. Sin firma no hay pago.</li>
+<li><b>Go-live (puesta en producción):</b> prender el sistema en tu local. Una puesta incluida.</li>
+<li><b>Hipercare (10 días hábiles para arreglar fallas de lo incluido, gratis):</b> solo bugs de alta/media sin workaround del alcance aceptado.</li>
+<li><b>Staging (ambiente de prueba):</b> copia del sistema donde se prueba antes de producción. Producción no es laboratorio.</li>
+<li><b>Bug:</b> falla respecto al alcance aceptado y documentado.</li>
+<li><b>Cambio:</b> todo lo fuera de alcance. Se cotiza y requiere tu aprobación escrita previa.</li>
+<li><b>Add-on:</b> trabajo fuera del ancla con precio propio (ej. módulo extra $150 USD).</li>
+<li><b>Best effort:</b> esfuerzo razonable en horario comercial, sin horas garantizadas.</li>
+<li><b>Ajuste técnico:</b> hasta 8h incluidas (vistas, campos simples, automatizaciones livianas, parametrización fina).</li>
 <li><b>Capacitación:</b> hasta 6h incluidas.</li>
 </ul>
 
-<h2>3. ALCANCE – ANEXO A</h2>
-<p>3.1. Anexo A define lista cerrada: módulos ModoOps (ej. Mostrador hasta 2 cajas 1 sucursal, Depósito Inteligente 1 almacén, Compras, Fiscal AR), usuarios base ~5, variantes básicas hasta 2 atributos, 1 lista de precios, ajustes 8h, capacitación 6h.<br>
-3.2. Excluido salvo Add-on escrito: CRM, web/eCommerce, MRP, multi-sucursal/almacén, B2B avanzado, integraciones externas, migración histórica, fiscal fuera de estándar.<br>
-3.3. Precio fijo es por alcance, no por horas ilimitadas. Superadas las 8h de ajustes o pedido fuera de lista = Cambio/Add-on con presupuesto previo escrito.<br>
-3.4. Criterios de aceptación Hito 1 staging y Hito 2 producción en Anexo A. Plazo para observar: 5 días hábiles desde notificación. Silencio = aceptación.</p>
+<h2>3. ALCANCE – ANEXO A (lista cerrada)</h2>
+<ul>
+<li>3.1. El Anexo A define la lista cerrada: Mostrador hasta 2 cajas en 1 sucursal, Depósito Inteligente 1 almacén, Compras, Facturación electrónica estándar, Contabilidad operativa, Contactos, ~5 usuarios, 1 lista de precios, variantes hasta 2 atributos, ajustes 8h, capacitación 6h.</li>
+<li>3.2. Excluido salvo Add-on con precio escrito: CRM, web/eCommerce, MRP, multi-sucursal/almacén, B2B avanzado, integraciones externas, migración histórica, fiscal fuera de estándar.</li>
+<li>3.3. El precio fijo es por alcance, no por horas ilimitadas. Superadas las 8h de ajustes, o pedido fuera de lista = Cambio/Add-on con presupuesto previo escrito.</li>
+<li>3.4. Hito 1 (núcleo en staging) destraba 25% contra acta Hito 1 firmada. Hito 2 (producción) destraba 25% final contra acta Hito 2 firmada. <b>Todo destrabe requiere firma.</b></li>
+</ul>
 
-<h2>4. ANEXO FISCAL – ANEXO B</h2>
-<p>4.1. Tipos de comprobante y casos incluidos se definen en Anexo B, validado por el asesor fiscal/contador del CLIENTE y firmado por EL CLIENTE.<br>
-4.2. Sin Anexo B firmado + prueba en staging/homologación no hay go-live ni emisión real.<br>
-4.3. Entorno de prueba AFIP/ARCA, certificados y puntos de venta prueba los provee EL CLIENTE. Demora fiscal = replanificación sin penalidad. Incluye 2 semanas hábiles de coordinación desde staging, luego se cotiza a $10.5 USD/h o $52 USD/día.</p>
+<h2>4. FACTURACIÓN ELECTRÓNICA – ANEXO B</h2>
+<ul>
+<li>4.1. El ancla no promete comprobantes salvo la lista explícita del <b>Anexo B</b>, que se cierra durante la implementación con tu contador y tu firma, antes del go-live.</li>
+<li>4.2. Sin Anexo B firmado + prueba en staging no hay puesta en producción ni emisión real.</li>
+<li>4.3. Certificados y puntos de venta de prueba los proveés vos (o tu contador). Si la validación se demora, la fecha se reprograma sin penalidad.</li>
+<li>4.4. Ventana de coordinación fiscal incluida: 2 semanas hábiles desde el Hito 1. Después, el seguimiento por demora atribuible al cliente se cotiza.</li>
+<li>4.5. Devoluciones y notas de crédito quedan fuera del ancla salvo lista explícita en el Anexo B.</li>
+</ul>
 
-<h2>5. PRECIO IMPLEMENTACIÓN – 50% / 50%</h2>
-<p>5.1. Precio fijo total: [___ USD – ref. Ancla $800 USD]. Propuesta válida 20 días. Si viene de Descubrimiento y firma en 20 días, se acreditan $77.5 USD al anticipo.<br>
-5.2. 50% anticipo para iniciar: [$___]. Requisito para reservar fecha e iniciar. Sin acreditación no corre plazo.<br>
-5.3. 50% saldo al terminar implementación: [$___] contra go-live + fin hipercare y acta Hito 2.<br>
-5.4. Moneda USD. Si pide ARS: tipo de cambio [BNA vendedor día factura – definir] + índice actualización si aplica. Solo una moneda por factura.<br>
-5.5. Pago por transferencia a cuenta dólares Mercado Pago – Banco Industrial BIND: Alias <b>iluso.pared.reasume</b>, CBU <b>3220001888034741040018</b>, titular Mauricio Nahuel Matasini Turri. Por cada cobro se emite Factura C ARCA.<br>
-5.6. Mora automática desde vencimiento + interés [___% mensual, ej. activa BNA].</p>
+<h2>5. PRECIO IMPLEMENTACIÓN – 50% / 25% / 25%</h2>
+<ul>
+<li>5.1. Precio fijo total: <b>$800 USD</b> (ancla). Propuesta válida 20 días.</li>
+<li>5.2. 50% anticipo ($400 USD) para iniciar. <b>El alta de trabajo se confirma con tu transferencia del 50%</b>: reserva fecha e inicia el plazo. Sin acreditación no corre plazo.</li>
+<li>5.3. 25% ($200 USD) contra Hito 1 en staging + acta Hito 1 firmada.</li>
+<li>5.4. 25% final ($200 USD) contra go-live + acta Hito 2 firmada.</li>
+<li>5.5. Moneda USD. Si pedís ARS: tipo de cambio del día de la factura (se escribe en la factura). Solo una moneda por factura.</li>
+<li>5.6. Recargo por demora: <b>0,17% diario (≈5% mensual)</b> sobre el monto vencido, desde el vencimiento hasta el pago. Sin capitalización.</li>
+<li>5.7. Pago por transferencia a cuenta dólares Mercado Pago – Banco Industrial BIND: Alias <b>iluso.pared.reasume</b>, CBU <b>3220001888034741040018</b>, titular Mauricio Nahuel Matasini Turri. Por cada cobro se emite Factura C.</li>
+</ul>
+<div class="warn"><b>⚠ Sin tu transferencia del 50% no hay fecha reservada ni plazo corriendo. Cada pago se destraba solo con acta firmada.</b></div>
 
 <h2>6. OBLIGACIONES DEL CLIENTE</h2>
-<p>Proveer accesos, infra, internet, PC/cajas, datos en plantilla, tiempo para capacitación y fiscal con su contador. Si no entrega, plazo se desplaza.</p>
+<p>Proveer accesos, internet, PC/cajas, datos en plantilla, tiempo para capacitación y a tu contador a tiempo para el Anexo B. Si no entregás, el plazo se desplaza sin penalidad para el prestador. Plazo máximo de implementación: 3 semanas desde el anticipo + entrega de accesos.</p>
 
-<h2>7. CAMBIOS Y ADD-ON</h2>
-<p>Tarifa hora adicional $10.5 USD/h. Día $52 USD. SKUs ref.: Migración catálogo hasta 500 ítems $155 USD, B2B básico $155 USD, integración desde $104 USD (mín. 2 días). Todo con aprobación escrita previa.</p>
+<h2>7. CAMBIOS Y AGREGADOS</h2>
+<p>Hora adicional $12 USD/h. Día $55 USD. Módulo fuera del ancla $150 USD. Refs.: Migración catálogo hasta 500 ítems $150 USD, B2B básico $150 USD, integración desde $110 USD (mín. 2 días). Todo con tu aprobación escrita previa. Nada se hace "de palabra".</p>
 
-<h2>8. GARANTÍA</h2>
-<p>En hipercare se corrigen sin costo bugs del alcance. No cubre mal uso, datos, infra, terceros, fiscal no incluido, Odoo upstream. Después solo con abono.</p>
+<h2>8. GARANTÍA – HIPERCARE</h2>
+<p>10 días hábiles post go-live: se corrigen sin costo solo fallas de lo incluido en el Anexo A (alta/media sin workaround). No cubre mal uso, datos cargados por vos, tu internet/equipos, servicios de terceros ni lo expresamente excluido. Después del hipercare, solo con abono.</p>
 
-<h2>9. ABONO MENSUAL – PAGO 1 AL 10 + SUSPENSIÓN 7 DÍAS</h2>
-<p>9.1. Primer mes post-hipercare: transición best effort horario comercial, sin bolsa.<br>
-9.2. Desde mes 2: Abono [$45 USD/mes ref.] incluye 4h/mes + best effort bugs. Horas no usadas vencen, no acumulan. Cambios se cotizan.<br>
-9.3. Vence del 1 al 10 del mes siguiente. Factura C el día 1.<br>
-9.4. Vencido el 10: mora automática. Se notifica por WhatsApp/email.<br>
-9.5. A los 7 días corridos de notificado sin pago: se suspende (Tenant Suspendido: login bloqueado, solo lectura, sin borrado, IA bloqueada). Se rehabilita en 24/48h hábiles de pago + interés.<br>
-9.6. A los 15 días suspendido: backup final y baja. Re-alta = cargo [___].<br>
-9.7. Sin abono: sin soporte reactivo, solo trabajos puntuales cotizados.</p>
+<h2>9. ABONO MENSUAL – PAGO 1 AL 10</h2>
+<ul>
+<li>9.1. Primer mes post-hipercare: acompañamiento best effort en horario comercial, sin bolsa de horas.</li>
+<li>9.2. Desde mes 2: Abono <b>$50 USD/mes</b> con 4h/mes + best effort en bugs. Las horas no usadas vencen (no acumulan). Cambios se cotizan.</li>
+<li>9.3. Vence del 1 al 10. Factura C el día 1.</li>
+<li>9.4. Vencido el 10: aviso por WhatsApp + email con monto + recargo (0,17% diario).</li>
+<li>9.5. 7 días corridos de gracia desde el aviso. Sin pago: se suspende (solo lectura, sin borrado, IA bloqueada).</li>
+<li>9.6. Pagás + recargo → rehabilitación <b>dentro de la jornada</b>.</li>
+<li>9.7. A los 15 días corridos suspendido: backup final y baja. El mes suspendido no se cobra. Re-alta = $55 USD.</li>
+<li>9.8. Sin abono: sin soporte reactivo, solo trabajos puntuales cotizados.</li>
+</ul>
+<div class="warn"><b>⚠ Pagá del 1 al 10 y todo sigue. A los 7 días de avisado sin pago se pausa (solo lectura, nada se borra). A los 15 se da de baja con backup.</b></div>
 
-<h2>10. PROPIEDAD INTELECTUAL – Ley 11.723 / 25.036</h2>
-<p>ModoOps, scripts y desarrollos del PRESTADOR siguen siendo del PRESTADOR salvo cesión escrita total con pago total. EL CLIENTE recibe licencia de uso intransferible en su tenant modoops_[cliente] mientras esté al día. Odoo CE es licencia GPL/LGPL de terceros que EL CLIENTE acepta. EL CLIENTE licencia Odoo a su nombre si corresponde.</p>
+<h2>10. PROPIEDAD INTELECTUAL</h2>
+<p>ModoOps, scripts y desarrollos del PRESTADOR siguen siendo del PRESTADOR salvo cesión escrita con pago total. EL CLIENTE recibe licencia de uso intransferible en su espacio de trabajo ModoOps (tenant modoops_[cliente]) mientras esté al día. Componentes de terceros open-source (incluido Odoo CE, versión acordada en Anexo A) se rigen por sus licencias respectivas.</p>
 
-<h2>11. CONFIDENCIALIDAD Y DATOS – Ley 25.326</h2>
-<p>Confidencialidad 3 años post-contrato. Datos del tenant son del CLIENTE. No se venden. Memoria IA en tenant, retención 90 días.</p>
+<h2>11. CONFIDENCIALIDAD Y DATOS (Ley 25.326)</h2>
+<ul>
+<li>11.1. Confidencialidad 3 años post-contrato.</li>
+<li>11.2. Los datos de tu operación son del CLIENTE: no se venden ni se comparten. Finalidad: operar tu gestión en tu tenant. Responsable: el prestador como encargado de tratamiento.</li>
+<li>11.3. Podés pedir acceso, rectificación y supresión de tus datos (derechos ARCO) al email del encabezado. Medidas de seguridad y backup según cláusula 12. Memoria de IA en tu tenant con retención de 90 días.</li>
+</ul>
 
-<h2>12. INFRA Y LÍMITE</h2>
-<p>Sin SLA salvo anexo escrito. Si infra es del CLIENTE: diagnóstico y coordinación, no arreglo de hosting. Si es central ModoOps Fase 1: backups nightly, RPO 24h / RTO 60min. Tope responsabilidad: monto pagado del ancla. No responde lucro cesante.</p>
+<h2>12. INFRA Y LÍMITE DE RESPONSABILIDAD</h2>
+<p>Sin garantía de disponibilidad salvo anexo escrito. Si la infra es tuya: diagnosticamos y coordinamos, no reparamos tu hosting. Si es central ModoOps: copia de seguridad diaria. La responsabilidad del prestador se limita a lo pagado del ancla, sin daños indirectos ni lucro cesante, salvo dolo.</p>
 
 <h2>13. PLAZO Y RESCISIÓN</h2>
-<p>Plazo implementación: [___ semanas desde anticipo + accesos]. Rescisión con 15 días preaviso. Si rescinde CLIENTE sin causa: paga avance + hitos aceptados, anticipo no se devuelve en proporción ejecutada. Si rescinde PRESTADOR sin causa: devuelve proporcional no ejecutado. Abono se rescinde mes a mes avisando antes del 20. Incumplimiento grave: intimación 10 días y luego resolución.</p>
+<ul>
+<li>13.1. Plazo máximo: 3 semanas desde el anticipo del 50% + entrega de accesos.</li>
+<li>13.2. Si rescindís vos sin causa: pagás el avance ejecutado + hitos aceptados. El anticipo se imputa primero a lo ejecutado y no vuelve lo ya trabajado. Anticipo no iniciado = devolución.</li>
+<li>13.3. Si rescindimos nosotros sin causa: devolvemos la parte proporcional no ejecutada.</li>
+<li>13.4. Abono: se rescinde mes a mes avisando antes del 20.</li>
+<li>13.5. Incumplimiento grave: reclamo escrito con 10 días hábiles para corregir, luego resolución.</li>
+</ul>
 
 <h2>14. JURISDICCIÓN</h2>
-<p>Tribunales ordinarios Alta Gracia, Córdoba. Domicilios y emails arriba valen como notificación fehaciente.</p>
+<p>Tribunales de Alta Gracia, Córdoba. Los domicilios y domicilios electrónicos del encabezado valen como notificación.</p>
 
 <h2>15. ANEXOS</h2>
-<p>A Alcance/lista cerrada + checklists, B Fiscal, C Precio y actas.</p>
+<p>A Alcance/lista cerrada + checklists y actas (Hito 1 y Hito 2). B Fiscal (comprobantes, se cierra antes del go-live).</p>
 
 <div class="firma">
 <div>EL PRESTADOR<br><br>__________<br>Aclaración, DNI, fecha</div>
@@ -114,77 +144,91 @@
 <div class="pagebreak"></div>
 
 <h1>ANEXO A – ALCANCE CERRADO MODOOPS</h1>
-<p class="sub">Va firmado con el contrato – Cliente: [___] Fecha: [___] – Propuesta válida 20 días hasta [___]<br>Versión Odoo CE: [17 / 18 / 19] – Tenant: modoops_[cliente]</p>
+<p class="sub">Va firmado con el contrato – Cliente: [___] Fecha: [___] – Propuesta válida 20 días hasta [___]<br>Espacio de trabajo: modoops_[cliente] – Infra: [propia / central ModoOps]</p>
 
 <h3>A1. Módulos incluidos (lista cerrada)</h3>
 <ul>
 <li>Mostrador (POS) – hasta 2 cajas, 1 sucursal: [dirección]</li>
 <li>Depósito Inteligente (Stock) – 1 almacén: [nombre]</li>
 <li>Compras – proveedores + OC básicas</li>
-<li>Fiscal AR – según Anexo B</li>
-<li>Contabilidad operativa ligada a ventas/compras</li>
+<li>Facturación electrónica estándar – comprobantes según Anexo B, validados con tu contador</li>
+<li>Contabilidad operativa ligada a ventas/compras (no cierre mensual del estudio)</li>
 <li>Contactos – clientes/proveedores básicos</li>
-<li>Localización AR módulos exactos: [___]</li>
-<li>Terceros OCA: [ninguno / nombre + versión + repo]</li>
+<li>Odoo CE – versión acordada: [___]</li>
+<li>Ajustes específicos acordados: [___]</li>
 </ul>
 
-<h3>A2. Parámetros ICP incluidos</h3>
+<h3>A2. Parámetros incluidos</h3>
 <ul>
 <li>Cajas: [1/2] – IDs: [___]</li>
 <li>Usuarios base: hasta 5 – perfiles: [dueño, cajero, depósito]</li>
 <li>Lista precios venta: 1 + promos simples: [___]</li>
-<li>Catálogo: carga manual [piloto ___ ítems] / Migración Add-on $155 hasta 500 ítems [SI/NO]</li>
+<li>Catálogo: carga manual [piloto ___ ítems] / Migración Add-on $150 hasta 500 ítems [SI/NO]</li>
 <li>Variantes: hasta 2 atributos: [___]</li>
 <li>Ajustes técnicos: 8h incluidas</li>
 <li>Capacitación: 6h incluidas – modalidad [presencial/remota] fecha [___]</li>
 <li>Infra: [propia / central ModoOps Fase 1]</li>
 </ul>
+<p class="small">Superadas las 8h de ajustes o pedido fuera de lista = trabajo adicional con presupuesto previo escrito. Hora adicional $12 USD/h. Día $55 USD.</p>
 
 <h3>A3. Excluido expreso (= Add-on)</h3>
-<p>CRM, web/eCommerce, MRP, multi-sucursal/almacén, B2B avanzado, integraciones (ML, balanza, etc.), histórico años, percepciones/retenciones complejas, multi-moneda, exportaciones.</p>
+<p>CRM, web/eCommerce, MRP, multi-sucursal/almacén, B2B avanzado ($150 USD), integraciones (desde $110 USD, mín. 2 días), histórico años, percepciones/retenciones complejas, multi-moneda, exportaciones.</p>
 
-<h3>A4. Hito 1 – Núcleo en staging</h3>
+<h3>A4. Hito 1 – Núcleo en staging – destraba 25%</h3>
 <p>Fecha objetivo: [___]</p>
 <table class="check">
-<tr><td>☐</td><td>Apps instaladas CE versión acordada</td></tr>
+<tr><td>☐</td><td>Sistema instalado en ambiente de prueba</td></tr>
 <tr><td>☐</td><td>Catálogo piloto / migración validada</td></tr>
 <tr><td>☐</td><td>Compra → recepción en 1 almacén OK</td></tr>
-<tr><td>☐</td><td>Venta POS en cada caja descuenta stock OK</td></tr>
+<tr><td>☐</td><td>Venta en cada caja descuenta stock OK</td></tr>
 <tr><td>☐</td><td>Usuarios y permisos OK</td></tr>
-<tr><td>☐</td><td>Contabilidad operativa en staging OK (sin fiscal real)</td></tr>
+<tr><td>☐</td><td>Contabilidad operativa en prueba OK (sin emisión real)</td></tr>
 </table>
-<p class="small">Observaciones 5 días hábiles. Silencio = aceptación. Firma: ______</p>
+<p class="small">Se destraba solo con acta Hito 1 firmada. Firma: ______</p>
 
-<h3>A5. Hito 2 – Go-live + hipercare – destraba 50% final</h3>
+<h3>A5. Hito 2 – Puesta en producción + hipercare – destraba 25% final</h3>
 <p>Fecha objetivo: [___]</p>
 <table class="check">
-<tr><td>☐</td><td>Go-live en ambiente cliente (una puesta)</td></tr>
-<tr><td>☐</td><td>Anexo B fiscal cerrado + prueba staging OK</td></tr>
-<tr><td>☐</td><td>POS operativo cada caja producción</td></tr>
+<tr><td>☐</td><td>Puesta en producción (una incluida)</td></tr>
+<tr><td>☐</td><td>Anexo B fiscal cerrado con tu contador + prueba OK</td></tr>
+<tr><td>☐</td><td>Caja operativa en producción</td></tr>
 <tr><td>☐</td><td>Compras + inventario operativos</td></tr>
 <tr><td>☐</td><td>Capacitación 6h dictada [fecha/horas] o plan remanente firmado</td></tr>
-<tr><td>☐</td><td>Checklist infra revisado (backup, SSL, accesos) – sin SLA</td></tr>
+<tr><td>☐</td><td>Infra revisada (copia de seguridad, accesos)</td></tr>
 <tr><td>☐</td><td>Inicio hipercare 10 días hábiles desde [___] hasta [___]</td></tr>
 </table>
 <p>Firma cliente: ______ &nbsp;&nbsp; Firma prestador: ______</p>
 
 <div class="pagebreak"></div>
 
-<h1>ACTA DE ACEPTACIÓN Y COBRO FINAL</h1>
-<p>En [___], a los [___], MODOOPS y [CLIENTE] dejan constancia:</p>
+<h1>ACTA DE ACEPTACIÓN HITO 1 – 25%</h1>
 <div class="box">
-<p>1. Hito 2 cumplido según checklist A5 arriba. Fallas menores pendientes (si no hay, “ninguna”): [___]<br>
-2. Con esta firma EL CLIENTE acepta el sistema en producción e inicia hipercare hasta [fecha 10 días hábiles].<br>
-3. Se habilita facturación del 50% saldo final: [$___ USD – ARS equiv. TC ___], a cuenta Alias <b>iluso.pared.reasume</b> / CBU <b>3220001888034741040018</b>, contra Factura C N° [___].<br>
-4. Desde [mes siguiente] rige mes transición, desde [mes+2] abono mensual $___ con vencimiento 1 al 10, suspensión a 7 días de notificada mora según cláusula 9.<br>
-5. Pendientes fuera de alcance: [___] se presupuestan como Cambio/Add-on, no frenan pago.<br>
-6. Si no firma ni observa en 5 días hábiles, vale como aceptado (cláusula 3.4).</p>
+<p>En [___], a los [___], MODOOPS y [CLIENTE] dejan constancia:<br>
+1. Hito 1 cumplido según checklist A4. Fallas menores pendientes (si no hay, "ninguna"): [___]<br>
+2. Con esta firma EL CLIENTE acepta el núcleo en staging.<br>
+3. Se habilita facturación del 25%: [$200 USD – ARS equiv. TC ___], a cuenta Alias <b>iluso.pared.reasume</b> / CBU <b>3220001888034741040018</b>, contra Factura C N° [___].<br>
+4. Todo destrabe requiere firma (v2: sin silencio=aceptación).</p>
 </div>
 <div class="firma">
 <div>Cliente (firma, aclaración, DNI)<br><br>___________</div>
 <div>Prestador Mauricio Matasini<br><br>___________</div>
 </div>
-<p class="small" style="margin-top:20px;">Tip: enviar por WhatsApp + email el día del go-live, pedir foto firmada o firma digital.</p>
+
+<h1>ACTA DE ACEPTACIÓN HITO 2 Y COBRO FINAL – 25%</h1>
+<div class="box">
+<p>En [___], a los [___], MODOOPS y [CLIENTE] dejan constancia:<br>
+1. Hito 2 cumplido según checklist A5. Fallas menores pendientes (si no hay, "ninguna"): [___]<br>
+2. Con esta firma EL CLIENTE acepta el sistema en producción e inicia hipercare hasta [fecha 10 días hábiles].<br>
+3. Se habilita facturación del 25% final: [$200 USD – ARS equiv. TC ___], a cuenta Alias <b>iluso.pared.reasume</b> / CBU <b>3220001888034741040018</b>, contra Factura C N° [___].<br>
+4. Desde [mes siguiente] rige mes de acompañamiento, desde [mes+2] abono mensual $50 USD con vencimiento 1 al 10 según cláusula 9.<br>
+5. Pendientes fuera de alcance: [___] se presupuestan aparte, no frenan pago.<br>
+6. Todo destrabe requiere firma (v2: sin silencio=aceptación).</p>
+</div>
+<div class="firma">
+<div>Cliente (firma, aclaración, DNI)<br><br>___________</div>
+<div>Prestador Mauricio Matasini<br><br>___________</div>
+</div>
+<p class="small" style="margin-top:20px;">Enviar por WhatsApp + email el día de cada hito, pedir foto firmada o firma digital.</p>
 
 </body>
 </html>

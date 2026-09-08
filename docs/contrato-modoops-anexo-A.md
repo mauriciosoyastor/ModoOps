@@ -1,8 +1,9 @@
-# ANEXO A – ALCANCE CERRADO MODOOPS + ACTA DE ACEPTACIÓN
+# ANEXO A – ALCANCE CERRADO MODOOPS + ACTAS DE ACEPTACIÓN (v2)
 
 > Template reutilizable por cliente. Va firmado con el contrato principal.
-> Contrato base: Locación de Servicios – Implementación ModoOps + Abono Mantenimiento.
+> Contrato base: Locación de Servicios – Implementación ModoOps + Abono Mantenimiento (v2 07/09/2026).
 > Uso: copiar por cliente, completar `[]`, firmar. Propuesta válida 20 días.
+> Todo destrabe de pago requiere acta firmada (v2: sin silencio=aceptación).
 
 ---
 
@@ -11,92 +12,109 @@
 Cliente: []
 Fecha: []
 Propuesta válida 20 días hasta: [___]
-Versión Odoo CE acordada: [17 / 18 / 19 – tachar]
-Tenant: modoops_[cliente]
-Infra: [propia del cliente / central ModoOps Fase 1 – tachar]
+Versión Odoo CE acordada: [___]
+Espacio de trabajo: modoops_[cliente]
+Infra: [propia del cliente / central ModoOps – tachar]
 Modalidad capacitación: [presencial / remota]
+Domicilio electrónico cliente: []
 
 ---
 
-## A1. Módulos incluidos (lista cerrada, no "todo Odoo")
+## A1. Módulos incluidos (lista cerrada)
 
-- Mostrador (POS) – hasta 2 cajas, 1 sucursal: [dirección sucursal]
-- Depósito Inteligente (Stock) – 1 almacén: [nombre]
+- Mostrador – hasta 2 cajas, 1 sucursal: [dirección sucursal]
+- Depósito Inteligente – 1 almacén: [nombre]
 - Compras – proveedores + OC básicas
-- Fiscal AR – según Anexo B (no se asume por defecto)
+- Facturación electrónica estándar – comprobantes según Anexo B, validados con tu contador
 - Contabilidad operativa ligada a ventas/compras (no cierre mensual del estudio)
 - Contactos – clientes/proveedores básicos
-- Localización AR módulos exactos: [___]
-- Terceros OCA: [ninguno / nombre + versión + repo]
+- Ajustes específicos acordados: [___]
 
-## A2. Parámetros ICP incluidos
+## A2. Parámetros incluidos
 
 - Cajas: [1 / 2] – IDs: [___]
 - Usuarios base: hasta 5 – perfiles: [ej. dueño, cajero, depósito]
 - Lista precios venta: 1 + promos simples: [___]
-- Catálogo: carga manual [muestra piloto ___ ítems] / Migración Add-on $155 hasta 500 ítems [SI/NO]
+- Catálogo: carga manual [muestra piloto ___ ítems] / Migración Add-on $150 hasta 500 ítems [SI/NO]
 - Variantes: hasta 2 atributos: [ej. volumen + color – definir]
 - Ajustes técnicos: 8h incluidas (vistas, campos simples, automatizaciones livianas, parametrización fina)
 - Capacitación: 6h incluidas – fecha [___]
 - Infra: [según encabezado]
 
-Superadas las 8h de ajustes o pedido fuera de lista = Cambio/Add-on con presupuesto previo escrito.
-Tarifa hora adicional $10.5 USD/h. Día $52 USD.
+Superadas las 8h de ajustes o pedido fuera de lista = trabajo adicional con presupuesto previo escrito.
+Tarifa hora adicional $12 USD/h. Día $55 USD.
 
 Referencias Add-on:
-- Migración catálogo hasta 500 ítems $155 USD
-- B2B básico $155 USD
-- Integración desde $104 USD (mín. 2 días)
+- Migración catálogo hasta 500 ítems $150 USD
+- B2B básico $150 USD
+- Módulo fuera del ancla $150 USD
+- Integración desde $110 USD (mín. 2 días)
 
-## A3. Excluido expreso (si lo pide = Add-on escrito)
+## A3. Excluido expreso (si lo pide = presupuesto aparte)
 
-CRM, web/eCommerce, MRP, multi-sucursal/almacén, B2B avanzado, integraciones externas (ML, balanza, etc.), migración histórica, fiscal fuera de estándar, percepciones/retenciones complejas, multi-moneda, exportaciones.
+CRM, web/eCommerce, MRP, multi-sucursal/almacén, B2B avanzado, integraciones externas (ML, balanza, etc.), migración histórica, facturación fuera del estándar, percepciones/retenciones complejas, multi-moneda, exportaciones. Devoluciones y notas de crédito: fuera salvo lista explícita en Anexo B.
 
-## A4. Hito 1 – Núcleo en staging (control interno)
+## A4. Hito 1 – Núcleo en staging – destraba 25%
 
-Fecha objetivo: [___]
+Fecha objetivo: [___] (plazo máximo 3 semanas desde anticipo + accesos)
 
 Checklist firma cliente:
 
-- [ ] Apps instaladas CE versión acordada
+- [ ] Sistema instalado en ambiente de prueba
 - [ ] Catálogo piloto / migración validada
 - [ ] Compra → recepción en 1 almacén OK
-- [ ] Venta POS en cada caja descuenta stock OK
+- [ ] Venta en cada caja descuenta stock OK
 - [ ] Usuarios y permisos OK
-- [ ] Contabilidad operativa en staging OK (sin fiscal real)
+- [ ] Contabilidad operativa en prueba OK (sin emisión real)
 
-Plazo para observar: 5 días hábiles desde notificación. Silencio = aceptación (cláusula 3.4).
+Se destraba solo con acta Hito 1 firmada (25% = $200 USD).
 
 Firma: ______
 
-## A5. Hito 2 – Go-live + hipercare – destraba 50% final
+## A5. Hito 2 – Puesta en producción + hipercare – destraba 25% final
 
 Fecha objetivo: [___]
 
-- [ ] Go-live en ambiente cliente (una puesta incluida)
-- [ ] Anexo B fiscal cerrado + prueba staging/homologación OK
-- [ ] POS operativo cada caja producción
+- [ ] Puesta en producción (una incluida)
+- [ ] Anexo B fiscal cerrado con tu contador + prueba OK
+- [ ] Caja operativa en producción
 - [ ] Compras + inventario operativos
 - [ ] Capacitación 6h dictada [fecha/horas] o plan remanente firmado [fecha]
-- [ ] Checklist infra revisado (backup, SSL, accesos) – sin SLA
-- [ ] Inicio hipercare 10 días hábiles desde [] hasta [] + comunicado mes transición y abono desde mes 2
+- [ ] Infra revisada (copia de seguridad, accesos)
+- [ ] Inicio hipercare 10 días hábiles desde [] hasta [] + comunicado mes de acompañamiento y abono $50/mes desde mes 2
 
-Hipercare: solo bugs alta/media sin workaround respecto a alcance aceptado. No cubre mal uso, datos, infra, terceros, fiscal no incluido, Odoo upstream.
+Hipercare: solo fallas de lo incluido (alta/media sin workaround). No cubre mal uso, datos, tu internet/equipos, servicios de terceros ni lo expresamente excluido.
+
+Se destraba solo con acta Hito 2 firmada (25% final = $200 USD).
 
 Firma cliente: ______ Firma prestador: ______
 
 ---
 
-# ACTA DE ACEPTACIÓN Y COBRO FINAL – 1 carilla
+# ACTA DE ACEPTACIÓN HITO 1 – 25%
+
+En [], a los [], MODOOPS y [CLIENTE] dejan constancia:
+
+1. Hito 1 cumplido según checklist A4. Fallas menores pendientes (si no hay, poner "ninguna"): [___]
+2. Con esta firma EL CLIENTE acepta el núcleo en staging.
+3. Se habilita facturación del 25%: [$200 USD – ARS equiv. TC ], a cuenta Alias iluso.pared.reasume / CBU 3220001888034741040018, contra Factura C N° [].
+4. Todo destrabe requiere firma (v2: sin silencio=aceptación).
+
+Cliente (firma, aclaración, DNI): ___________
+Prestador Mauricio Matasini (firma): ___________
+
+---
+
+# ACTA DE ACEPTACIÓN HITO 2 Y COBRO FINAL – 25%
 
 En [], a los [], MODOOPS y [CLIENTE] dejan constancia:
 
 1. Hito 2 cumplido según checklist A5 arriba. Detalle fallas menores pendientes (si no hay, poner "ninguna"): [___]
 2. Con esta firma EL CLIENTE acepta el sistema en producción e inicia hipercare hasta [fecha 10 días hábiles].
-3. Se habilita facturación del 50% saldo final: [$___ USD – ARS equiv. TC ], a cuenta Alias iluso.pared.reasume / CBU 3220001888034741040018, contra Factura C N° [].
-4. Desde [mes siguiente] rige mes transición, desde [mes+2] abono mensual $___ con vencimiento 1 al 10, suspensión a 7 días de notificada mora según cláusula 9.
-5. Pendientes fuera de alcance detectados: [___] se presupuestan como Cambio/Add-on, no frenan pago.
-6. Si el cliente no firma ni observa en 5 días hábiles, vale como aceptado por cláusula 3.4.
+3. Se habilita facturación del 25% final: [$200 USD – ARS equiv. TC ], a cuenta Alias iluso.pared.reasume / CBU 3220001888034741040018, contra Factura C N° [].
+4. Desde [mes siguiente] rige mes de acompañamiento, desde [mes+2] abono mensual $50 USD con vencimiento 1 al 10, según cláusula 9.
+5. Pendientes fuera de alcance detectados: [___] se presupuestan aparte, no frenan pago.
+6. Todo destrabe requiere firma (v2: sin silencio=aceptación).
 
 Cliente (firma, aclaración, DNI): ___________
 Prestador Mauricio Matasini (firma): ___________
@@ -105,4 +123,4 @@ Prestador Mauricio Matasini (firma): ___________
 
 ## Tip para cobrar sin pelea
 
-Mandalo por WhatsApp + email el día del go-live, pedí foto firmada o firma digital. Sin esta acta el 50% se demora. Dejá por escrito en el mensaje: "Si no hay observaciones en 5 días hábiles se considera aceptado según cláusula 3.4".
+Mandalo por WhatsApp + email el día de cada hito, pedí foto firmada o firma digital. Sin acta firmada el tramo se demora. El alta de trabajo se confirma con la transferencia del 50%.

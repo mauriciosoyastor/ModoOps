@@ -456,7 +456,7 @@ _Avoid_: prometer “cualquier ERP” en el hero sin capacidad; ocultar Odoo en 
 ### Captación (CTA)
 
 - **Formulario:** nombre, empresa, rubro, mensaje breve.  
-- **Email:** [consultoria.matasini@gmail.com](mailto:consultoria.matasini@gmail.com)  
+- **Email:** [mauriciomatasini27@gmail.com](mailto:mauriciomatasini27@gmail.com)  
 - **WhatsApp comercial:** **+54 9 354 753-2008** (número publicado: 3547532008) — consultas y pedido de descubrimiento; **no** canal de soporte ilimitado post contrato.
 
 **Email de contacto comercial**:
@@ -480,7 +480,7 @@ _Avoid_: confundir con **Captación (CTA)** de prospectos entrantes; exponer lea
 - **Subtítulo:** ModoOps — Sistema de Gestión Modular — Argentina, PYME, una sucursal.  
 - **Firma:** ModoOps (Mauricio Matasini, arquitecto).  
 - **Modelo landing:** hero amplio; **Odoo no se nombra** en Solución/Camino (marca blanca comercial). Anexo técnico sí lista Odoo CE 19.  
-- **CTA:** Formulario + **consultoria.matasini@gmail.com** + WhatsApp **+54 9 354 753-2008**.
+- **CTA:** Formulario + **mauriciomatasini27@gmail.com** + WhatsApp **+54 9 354 753-2008**.
 
 ## Descubrimiento pago — entregables
 

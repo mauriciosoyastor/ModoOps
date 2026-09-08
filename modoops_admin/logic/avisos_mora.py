@@ -18,6 +18,16 @@ def mora_days(abono_due_date: date | None, today: date) -> int | None:
     return (today - abono_due_date).days
 
 
+TASA_DIARIA_MORA_V2 = 0.0017  # 0,17% diario ≈ 5% mensual (contrato v2, sin capitalizar)
+
+
+def recargo_mora(monto_vencido: float, dias_mora: int, tasa_diaria: float = TASA_DIARIA_MORA_V2) -> float:
+    """Recargo por demora: monto × tasa diaria × días. Sin capitalización (art. 770)."""
+    if not monto_vencido or dias_mora <= 0:
+        return 0.0
+    return round(monto_vencido * tasa_diaria * dias_mora, 2)
+
+
 def debe_avisar(
     *,
     tenant_state: str = "activo",
@@ -67,8 +77,38 @@ def mensaje_aviso(
         f"(día {dia_mora} de mora). Pagos del 1 al 10."
     )
     if dia_mora >= 5:
-        return base + " Si no se acredita, el día 8 se suspende el acceso (solo lectura, sin borrado). ¿Regularizamos hoy?"
+        return base + " Si no se acredita, el día 8 se suspende el acceso (solo lectura, sin borrado). Pagás + recargo y se rehabilita dentro de la jornada. ¿Regularizamos hoy?"
     return base + " ¿Confirmás pago para mantener el servicio activo?"
+
+
+def acta_hito1_texto(
+    *,
+    contrato_name: str,
+    tenant_name: str,
+    db_name: str = "",
+    monto_total: float = 0.0,
+    tramo: float = 0.0,
+    moneda: str = "USD",
+    pendientes: str = "",
+) -> str:
+    """Texto del acta de aceptación Hito 1 (staging + cobro 25%).
+
+    Contrato v2: todo destrabe requiere acta firmada (sin silencio=aceptación).
+    """
+    return (
+        "ACTA DE ACEPTACIÓN HITO 1 — NÚCLEO EN STAGING + COBRO 25%\n"
+        "ModoOps — Sistema de Gestión Modular\n"
+        f"Contrato: {contrato_name} — Cliente: {tenant_name} ({db_name})\n"
+        f"Total: {monto_total} {moneda} — Tramo 25% a cobrar: {tramo} {moneda}\n"
+        "Checklist staging: catálogo piloto validado / compra → recepción en 1 almacén / "
+        "venta en cada caja descuenta stock / usuarios y permisos / "
+        "contabilidad operativa en prueba (sin emisión real).\n"
+        f"Pendientes fuera de alcance (no frenan pago, se cotizan): {pendientes or 'ninguno'}\n"
+        "Con esta firma el cliente acepta el núcleo en staging. "
+        "El cobro del 25% requiere acta firmada (v2: sin silencio=aceptación).\n"
+        "Firma cliente (aclaración/DNI/fecha): ___________   "
+        "Prestador Mauricio Matasini: ___________\n"
+    )
 
 
 def acta_hito2_texto(
@@ -82,20 +122,25 @@ def acta_hito2_texto(
     go_live_date: date | None = None,
     anexo_fiscal_ok: bool = False,
     pendientes: str = "",
+    tramo: str = "25% final",
 ) -> str:
-    """Texto del acta de aceptación Hito 2 (go-live + cobro 50% saldo)."""
+    """Texto del acta de aceptación Hito 2 (go-live + cobro tramo final).
+
+    Contrato v2 (ancla 50/25/25): el saldo a cobrar es el tramo final 25%,
+    y todo destrabe requiere acta firmada (sin silencio=aceptación).
+    """
     return (
-        "ACTA DE ACEPTACIÓN HITO 2 — GO-LIVE + COBRO SALDO 50%\n"
+        f"ACTA DE ACEPTACIÓN HITO 2 — GO-LIVE + COBRO SALDO {tramo}\n"
         "ModoOps — Sistema de Gestión Modular\n"
         f"Contrato: {contrato_name} — Cliente: {tenant_name} ({db_name})\n"
         f"Fecha go-live: {go_live_date or '___'}\n"
-        f"Total: {monto_total} {moneda} — Saldo 50% a cobrar: {saldo} {moneda}\n"
+        f"Total: {monto_total} {moneda} — Saldo {tramo} a cobrar: {saldo} {moneda}\n"
         f"Anexo B fiscal cerrado: {'SI' if anexo_fiscal_ok else 'NO — bloquear emisión real hasta cierre'}\n"
         "Checklist: POS operativo cada caja / compras+stock / capacitación 6h / "
         "infra revisada sin SLA / inicio hipercare 10 días hábiles.\n"
         f"Pendientes fuera de alcance (no frenan pago, se cotizan): {pendientes or 'ninguno'}\n"
         "Con esta firma el cliente acepta producción e inicia hipercare. "
-        "Sin firma ni observaciones en 5 días hábiles vale como aceptado.\n"
+        "El cobro requiere acta firmada (v2: sin silencio=aceptación).\n"
         "Firma cliente (aclaración/DNI/fecha): ___________   "
         "Prestador Mauricio Matasini: ___________\n"
     )

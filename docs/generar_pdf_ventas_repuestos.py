@@ -343,7 +343,7 @@ def build_pdf() -> None:
     pdf.multi_cell(
         0,
         5,
-        "Contacto: consultoria.matasini@gmail.com  |  WhatsApp +54 9 354 753-2008\n"
+        "Contacto: mauriciomatasini27@gmail.com  |  WhatsApp +54 9 354 753-2008\n"
         "Documento generado desde el modelo comercial GalaxyGroup / consultoria/CONTEXT.md",
         align="C",
     )
