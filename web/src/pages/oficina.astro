@@ -1,0 +1,557 @@
+---
+// Ruta REAL del portal (ticket 03) — recorrido guiado + hero 3D, reescrita con polish.
+// No es prototype: sin precios como oferta, borrador completo v1, localStorage, envío.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { OBJETO_LABEL, PUERTA_FUTURO, horasDe, type Objeto3DId } from '../lib/oficina-mapping';
+
+const NOMBRES: Record<string, string> = {
+  mostrador: 'Mostrador',
+  deposito: 'Depósito Inteligente',
+  ventas: 'Ventas',
+  compras: 'Compras',
+  fiscal_ar: 'Fiscal AR',
+  contactos: 'Contactos',
+  plataforma: 'Plataforma ModoOps',
+  puente_factura: 'Puente Factura Web',
+  taller: 'Taller',
+  migracion_excel: 'Migración Excel',
+  b2b_basico: 'B2B Básico',
+  ia: 'IA ModoOps',
+};
+const SIEMPRE = ['contactos', 'plataforma', 'puente_factura'];
+const objetos: Objeto3DId[] = [
+  'mostrador-3d',
+  'estanteria-3d',
+  'gondola-3d',
+  'computadora-3d',
+  'pizarron-fiscal-3d',
+  'puerta-crecer-3d',
+];
+const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo'];
+---
+
+<BaseLayout
+  title="Oficina virtual — armá tu borrador | ModoOps"
+  description="Recorré la oficina ModoOps, cargá los datos de tu negocio por objeto y enviá tu borrador no vinculante al consultor."
+>
+  <main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-8" data-portal>
+    <p class="rounded-full border border-dashed px-3 py-1 text-xs text-neutral-500">
+      Borrador no vinculante · lo valida el consultor en el Descubrimiento · nada de acá crea tu sistema
+    </p>
+    <h1 class="mt-2 text-3xl font-semibold">Tu oficina, tu borrador</h1>
+    <p class="mt-1 text-sm text-neutral-500">
+      Tres pasos: tu negocio, lo que necesitás hoy (ancla) y para dónde querés crecer.
+    </p>
+
+    <div class="mt-4 grid gap-4 md:grid-cols-[1fr_320px]">
+      <div class="rounded-2xl border bg-white p-4">
+        <ol class="flex flex-wrap gap-2 text-xs" data-pasos>
+          <li><button data-paso="0" class="rounded-full border px-3 py-1 font-semibold">1 · Tu negocio</button></li>
+          <li><button data-paso="1" class="rounded-full border px-3 py-1">2 · Tu ancla</button></li>
+          <li><button data-paso="2" class="rounded-full border px-3 py-1">3 · Para crecer</button></li>
+        </ol>
+
+        <section data-panel="0" class="mt-4">
+          <h2 class="text-lg font-semibold">Paso 1 — Tu negocio</h2>
+          <div data-hero class="relative mt-2">
+            <canvas
+              data-hero-canvas
+              class="block w-full rounded-xl"
+              aria-label="Oficina virtual ModoOps: tocá un mueble para ir a su ficha"
+              aria-describedby="hero-ayuda"
+            ></canvas>
+            <div data-hero-etiquetas class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"></div>
+            <div data-hero-fallback hidden class="rounded-xl border bg-neutral-50 p-3">
+              <p class="text-sm font-semibold">Plano del local (sin 3D)</p>
+              <p class="text-xs text-neutral-500">Tocá un sector para ir a su ficha.</p>
+              <div class="mt-2 flex flex-wrap gap-1">
+                {objetos.map((id) => (
+                  <button data-hero-fallback-btn={id} class="rounded-full border bg-white px-2 py-1 text-xs">
+                    {OBJETO_LABEL[id]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p class="px-1 py-1 text-xs text-neutral-500" data-hero-estado id="hero-ayuda">
+              Arrastrá para girar · click en un mueble para ir a su ficha.
+            </p>
+            <details class="mt-2 rounded-xl border bg-neutral-50 p-3">
+              <summary class="cursor-pointer text-sm font-semibold">Elegir objeto sin 3D (teclado)</summary>
+              <div class="mt-2 flex flex-wrap gap-1">
+                {objetos.map((id) => (
+                  <button data-hero-fallback-btn={id} class="rounded-full border bg-white px-2 py-1 text-xs">
+                    {OBJETO_LABEL[id]}
+                  </button>
+                ))}
+              </div>
+            </details>
+          </div>
+
+          <div class="mt-3 grid gap-2 text-sm">
+            <label>Nombre del negocio *
+              <input data-prospecto="nombre" autocomplete="organization" class="mt-1 w-full rounded border p-2" placeholder="Ej: Pinturería Centro" /></label>
+            <div class="grid gap-2 md:grid-cols-2">
+              <label>Tu nombre
+                <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border p-2" placeholder="Ej: Ana" /></label>
+              <label>Teléfono *
+                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border p-2" placeholder="Ej: 3547 000000" /></label>
+            </div>
+            <div class="grid gap-2 md:grid-cols-2">
+              <label>Email
+                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border p-2" placeholder="Ej: ana@negocio.com" /></label>
+              <label>Rubro
+                <select data-prospecto="rubro" class="mt-1 w-full rounded border p-2">
+                  <option value="retail">Retail mostrador</option>
+                  <option value="distribucion">Distribución chica</option>
+                  <option value="servicios">Servicios</option>
+                </select></label>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
+              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border p-2" /></label>
+              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="mt-1 w-full rounded border p-2" /></label>
+            </div>
+            <div class="grid gap-2 md:grid-cols-2">
+              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="mt-1 w-full rounded border p-2" /></label>
+              <label class="flex items-center gap-2">¿Llevás stock en Excel hoy?
+                <input data-dato="tiene_excel" type="checkbox" class="h-4 w-4" /></label>
+            </div>
+            <fieldset class="rounded border p-2">
+              <legend class="px-1 text-xs text-neutral-500">Tu infraestructura (solo sí/no)</legend>
+              <div class="flex flex-wrap gap-3">
+                <label class="flex items-center gap-2">¿Hosting propio? <input data-infra="hosting_propio" type="checkbox" class="h-4 w-4" /></label>
+                <label class="flex items-center gap-2">¿Dominio con SSL? <input data-infra="dominio_ssl" type="checkbox" class="h-4 w-4" /></label>
+                <label class="flex items-center gap-2">¿Backups? <input data-infra="backups" type="checkbox" class="h-4 w-4" /></label>
+              </div>
+            </fieldset>
+            <p class="text-xs text-neutral-500">* Solo nombre y un contacto (teléfono o email) son obligatorios. Todo lo demás ayuda al consultor pero es opcional.</p>
+          </div>
+        </section>
+
+        <section data-panel="1" class="mt-4" hidden>
+          <h2 class="text-lg font-semibold">Paso 2 — Tu ancla (combo cerrado)</h2>
+          <p class="text-sm text-neutral-500">Tildá lo que necesitás hoy. Siempre incluidos: {SIEMPRE.map((k) => NOMBRES[k]).join(' · ')}.</p>
+
+          <div class="mt-3 grid gap-3" data-fichas>
+            <article data-ficha="mostrador-3d" class="rounded-xl border p-3">
+              <label class="flex items-center gap-2 font-semibold">
+                <input data-incluir="mostrador-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['mostrador-3d']} → {NOMBRES.mostrador}</label>
+              <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
+                <label>¿Cuántas cajas? <input data-obj="mostrador-3d" data-campo="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border p-2" /></label>
+                <label class="flex items-center gap-2">¿Hacés descuento en caja? <input data-obj="mostrador-3d" data-campo="descuento" type="checkbox" class="h-4 w-4" /></label>
+              </div>
+            </article>
+
+            <article data-ficha="estanteria-3d" class="rounded-xl border p-3">
+              <label class="flex items-center gap-2 font-semibold">
+                <input data-incluir="estanteria-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['estanteria-3d']} → {NOMBRES.deposito}</label>
+              <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
+                <label>¿Cuántos depósitos? <input data-obj="estanteria-3d" data-campo="almacenes" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
+                <label class="flex items-center gap-2">¿Ubicaciones por estante? <input data-obj="estanteria-3d" data-campo="ubicaciones" type="checkbox" class="h-4 w-4" /></label>
+              </div>
+            </article>
+
+            <article data-ficha="gondola-3d" class="rounded-xl border p-3">
+              <label class="flex items-center gap-2 font-semibold">
+                <input data-incluir="gondola-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['gondola-3d']} → {NOMBRES.ventas}</label>
+              <div class="mt-2 text-sm">
+                <label>¿Cuántas listas de precio? <input data-obj="gondola-3d" data-campo="listas_precio" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
+              </div>
+            </article>
+
+            <article data-ficha="computadora-3d" class="rounded-xl border p-3">
+              <label class="flex items-center gap-2 font-semibold">
+                <input data-incluir="computadora-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['computadora-3d']} → {NOMBRES.compras}</label>
+              <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
+                <label>¿Cuántos proveedores? <input data-obj="computadora-3d" data-campo="proveedores" type="number" min="0" value="0" class="mt-1 w-full rounded border p-2" /></label>
+                <label class="flex items-center gap-2">¿Usás orden de compra? <input data-obj="computadora-3d" data-campo="orden_compra" type="checkbox" class="h-4 w-4" /></label>
+              </div>
+            </article>
+
+            <article data-ficha="pizarron-fiscal-3d" class="rounded-xl border p-3">
+              <label class="flex items-center gap-2 font-semibold">
+                <input data-incluir="pizarron-fiscal-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['pizarron-fiscal-3d']} → {NOMBRES.fiscal_ar}</label>
+              <p class="mt-1 text-xs text-neutral-500">Borrador sin validez: el cierre real lo hacés con tu contador antes de salir en vivo.</p>
+              <fieldset class="mt-2 text-sm">
+                <legend class="text-xs text-neutral-500">¿Qué comprobantes creés que usás?</legend>
+                <div class="flex flex-wrap gap-2">
+                  {COMPROBANTES.map((c) => (
+                    <label class="flex items-center gap-1 rounded border px-2 py-1 text-xs">
+                      <input data-obj="pizarron-fiscal-3d" data-campo="comprobantes" value={c} type="checkbox" class="h-3 w-3" /> {c}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <label class="mt-2 block text-sm">Tu contador <input data-obj="pizarron-fiscal-3d" data-campo="contador" class="mt-1 w-full rounded border p-2" placeholder="Ej: Estudio López" /></label>
+            </article>
+          </div>
+        </section>
+
+        <section data-panel="2" class="mt-4" hidden>
+          <h2 class="text-lg font-semibold">Paso 3 — Para crecer (futuro, no ancla)</h2>
+          <p class="text-sm text-neutral-500">Lo que hoy no entra, pero querés dejar anotado.</p>
+          <article data-ficha="puerta-crecer-3d" class="mt-3 rounded-xl border border-dashed p-3">
+            <p class="font-semibold">{OBJETO_LABEL['puerta-crecer-3d']}</p>
+            <div class="mt-2 grid gap-2 text-sm">
+              {PUERTA_FUTURO.map((k) => (
+                <label class="flex items-center gap-2 rounded border p-2">
+                  <input data-futuro={k} type="checkbox" class="h-4 w-4" /> {NOMBRES[k]}
+                </label>
+              ))}
+            </div>
+          </article>
+
+          <div class="mt-4 rounded-xl bg-neutral-50 p-3">
+            <h3 class="font-semibold">Enviá tu borrador al consultor</h3>
+            <ul class="mt-1 text-sm text-red-700" data-errores aria-live="polite"></ul>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <button data-copiar class="rounded-full bg-black px-4 py-2 text-sm text-white">Copiar JSON</button>
+              <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-sm text-green-700">Enviar por WhatsApp</a>
+            </div>
+            <p class="mt-1 text-xs text-neutral-500" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
+          </div>
+        </section>
+
+        <div class="mt-4 flex justify-between">
+          <button data-atras class="rounded-full border px-4 py-2 text-sm">← Atrás</button>
+          <button data-adelante class="rounded-full bg-black px-4 py-2 text-sm text-white">Seguir →</button>
+        </div>
+      </div>
+
+      <aside class="rounded-2xl border bg-white p-4" aria-live="polite">
+        <h2 class="text-lg font-semibold">Borrador vivo</h2>
+        <p class="text-xs text-neutral-500">Se guarda solo en tu navegador.</p>
+        <ul class="mt-2 flex flex-wrap gap-1" data-seleccion></ul>
+        <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-neutral-950 p-2 text-xs text-green-200" data-json>{}</pre>
+      </aside>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  /* S5: inputs a 16px para que iOS no haga zoom al enfocar */
+  [data-portal] input:not([type='checkbox']):not([type='radio']),
+  [data-portal] select {
+    font-size: 1rem;
+  }
+  :global(.oficina-cartel) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.92);
+    border: 1px solid rgb(0 0 0 / 0.15);
+    padding: 0.1rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
+  }
+  :global(.oficina-cartel--activo) {
+    background: #111;
+    color: #fff;
+  }
+  @media (max-width: 480px) {
+    :global(.oficina-cartel) {
+      font-size: 0.6rem;
+      padding: 0.05rem 0.4rem;
+    }
+  }
+  .ficha-flash {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+  }
+</style>
+
+<script>
+  import {
+    OBJETO_A_MODULO,
+    construirBorrador,
+    esAncla,
+    guardarBorrador,
+    cargarBorrador,
+    horasDe,
+    validarBorrador,
+  } from '../lib/oficina-mapping';
+
+  const NOMBRES = {
+    mostrador: 'Mostrador',
+    deposito: 'Depósito Inteligente',
+    ventas: 'Ventas',
+    compras: 'Compras',
+    fiscal_ar: 'Fiscal AR',
+    contactos: 'Contactos',
+    plataforma: 'Plataforma ModoOps',
+    puente_factura: 'Puente Factura Web',
+    taller: 'Taller',
+    migracion_excel: 'Migración Excel',
+    b2b_basico: 'B2B Básico',
+    ia: 'IA ModoOps',
+  };
+  const SIEMPRE = ['contactos', 'plataforma', 'puente_factura'];
+  const WHATSAPP = 'https://wa.me/5493547532008';
+
+  const root = document.querySelector('[data-portal]');
+  if (root instanceof HTMLElement) {
+    const num = (sel) => {
+      const el = root.querySelector(sel);
+      const v = el instanceof HTMLInputElement ? Number(el.value) : NaN;
+      return Number.isFinite(v) ? v : 0;
+    };
+    const bool = (sel) => {
+      const el = root.querySelector(sel);
+      return el instanceof HTMLInputElement ? el.checked : false;
+    };
+    const texto = (sel) => {
+      const el = root.querySelector(sel);
+      return el instanceof HTMLInputElement ? el.value : '';
+    };
+
+    function leeEstado() {
+      const incluidos = ['mostrador-3d', 'estanteria-3d', 'gondola-3d', 'computadora-3d', 'pizarron-fiscal-3d']
+        .filter((id) => bool(`[data-incluir="${id}"]`))
+        .map((id) => OBJETO_A_MODULO[id]);
+      const futuros = [...root.querySelectorAll('[data-futuro]')]
+        .filter((el) => el instanceof HTMLInputElement && el.checked)
+        .map((el) => el.getAttribute('data-futuro'));
+      const comprobantes = [...root.querySelectorAll('[data-obj="pizarron-fiscal-3d"][data-campo="comprobantes"]')]
+        .filter((el) => el instanceof HTMLInputElement && el.checked)
+        .map((el) => el.value);
+      return {
+        prospecto: {
+          nombre: texto('[data-prospecto="nombre"]'),
+          contacto_nombre: texto('[data-prospecto="contacto_nombre"]'),
+          telefono: texto('[data-prospecto="telefono"]'),
+          email: texto('[data-prospecto="email"]'),
+          rubro: texto('[data-prospecto="rubro"]') || 'retail',
+          sucursales: num('[data-prospecto="sucursales"]'),
+          cajas: num('[data-prospecto="cajas"]'),
+          usuarios: num('[data-prospecto="usuarios"]'),
+        },
+        objetos: {
+          'mostrador-3d': { cajas: num('[data-obj="mostrador-3d"][data-campo="cajas"]'), descuento: bool('[data-obj="mostrador-3d"][data-campo="descuento"]') },
+          'estanteria-3d': { almacenes: num('[data-obj="estanteria-3d"][data-campo="almacenes"]'), ubicaciones: bool('[data-obj="estanteria-3d"][data-campo="ubicaciones"]') },
+          'gondola-3d': { listas_precio: num('[data-obj="gondola-3d"][data-campo="listas_precio"]') },
+          'computadora-3d': { proveedores: num('[data-obj="computadora-3d"][data-campo="proveedores"]'), orden_compra: bool('[data-obj="computadora-3d"][data-campo="orden_compra"]') },
+          'pizarron-fiscal-3d': { comprobantes, contador: texto('[data-obj="pizarron-fiscal-3d"][data-campo="contador"]') },
+          'puerta-crecer-3d': { futuros },
+        },
+        seleccion: [...SIEMPRE, ...incluidos, ...futuros],
+        datos: { productos_aprox: num('[data-dato="productos_aprox"]'), tiene_excel: bool('[data-dato="tiene_excel"]') },
+        infra: {
+          hosting_propio: bool('[data-infra="hosting_propio"]'),
+          dominio_ssl: bool('[data-infra="dominio_ssl"]'),
+          backups: bool('[data-infra="backups"]'),
+        },
+      };
+    }
+
+    const chips = root.querySelector('[data-seleccion]');
+    const json = root.querySelector('[data-json]');
+    const listaErrores = root.querySelector('[data-errores]');
+    const btnCopiar = root.querySelector('[data-copiar]');
+    const linkWa = root.querySelector('[data-whatsapp]');
+    const avisoCopiado = root.querySelector('[data-copiado]');
+    let borradorActual = null;
+
+    function pinta() {
+      const estado = leeEstado();
+      const b = construirBorrador(estado);
+      borradorActual = b;
+      guardarBorrador(b);
+      const errores = validarBorrador(b);
+      if (chips) {
+        chips.innerHTML = '';
+        for (const k of [...b.modulos_ancla, ...b.modulos_futuros]) {
+          const li = document.createElement('li');
+          li.className = 'rounded-full border px-2 py-0.5 text-xs' + (esAncla(k) ? ' bg-black text-white' : ' bg-amber-100');
+          li.textContent = (NOMBRES[k] ?? k) + ' · ' + horasDe(k) + ' h';
+          chips.appendChild(li);
+        }
+      }
+      if (json) json.textContent = JSON.stringify(b, null, 1);
+      if (listaErrores) {
+        listaErrores.innerHTML = '';
+        for (const e of errores) {
+          const li = document.createElement('li');
+          li.textContent = '• ' + e;
+          listaErrores.appendChild(li);
+        }
+      }
+      const textoWa = 'Hola ModoOps, te paso mi borrador (no vinculante):\n```json\n' + JSON.stringify(b) + '\n```';
+      if (linkWa instanceof HTMLAnchorElement) {
+        linkWa.href = WHATSAPP + '?text=' + encodeURIComponent(textoWa);
+        linkWa.classList.toggle('opacity-40', errores.length > 0);
+        linkWa.setAttribute('aria-disabled', errores.length > 0 ? 'true' : 'false');
+      }
+      if (btnCopiar instanceof HTMLButtonElement) {
+        btnCopiar.classList.toggle('opacity-40', errores.length > 0);
+      }
+    }
+
+    root.querySelectorAll('input, select').forEach((el) => {
+      el.addEventListener('input', pinta);
+      el.addEventListener('change', pinta);
+    });
+
+    async function copiar() {
+      if (!borradorActual) return;
+      const texto = JSON.stringify(borradorActual, null, 1);
+      try {
+        await navigator.clipboard.writeText(texto);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = texto;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+      if (avisoCopiado instanceof HTMLElement) {
+        avisoCopiado.hidden = false;
+        setTimeout(() => { avisoCopiado.hidden = true; }, 3000);
+      }
+    }
+    btnCopiar?.addEventListener('click', (e) => {
+      if (borradorActual && validarBorrador(borradorActual).length > 0) {
+        e.preventDefault();
+        document.querySelector('[data-paso="0"]')?.dispatchEvent(new Event('click'));
+        root.querySelector('[data-prospecto="nombre"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      copiar();
+    });
+    linkWa?.addEventListener('click', (e) => {
+      if (borradorActual && validarBorrador(borradorActual).length > 0) e.preventDefault();
+    });
+
+    // Restaura lo guardado en este navegador
+    try {
+      const previo = cargarBorrador();
+      if (previo) {
+        const setT = (sel, v) => { const el = root.querySelector(sel); if (el instanceof HTMLInputElement) el.value = v ?? ''; };
+        const setB = (sel, v) => { const el = root.querySelector(sel); if (el instanceof HTMLInputElement) el.checked = !!v; };
+        const setN = (sel, v) => { const el = root.querySelector(sel); if (el instanceof HTMLInputElement) el.value = String(v ?? el.value); };
+        const p = previo.prospecto ?? {};
+        setT('[data-prospecto="nombre"]', p.nombre); setT('[data-prospecto="contacto_nombre"]', p.contacto_nombre);
+        setT('[data-prospecto="telefono"]', p.telefono); setT('[data-prospecto="email"]', p.email);
+        setT('[data-prospecto="rubro"]', p.rubro);
+        setN('[data-prospecto="sucursales"]', p.sucursales); setN('[data-prospecto="cajas"]', p.cajas); setN('[data-prospecto="usuarios"]', p.usuarios);
+        const o = previo.objetos ?? {};
+        setN('[data-obj="mostrador-3d"][data-campo="cajas"]', o['mostrador-3d']?.cajas);
+        setB('[data-obj="mostrador-3d"][data-campo="descuento"]', o['mostrador-3d']?.descuento);
+        setN('[data-obj="estanteria-3d"][data-campo="almacenes"]', o['estanteria-3d']?.almacenes);
+        setB('[data-obj="estanteria-3d"][data-campo="ubicaciones"]', o['estanteria-3d']?.ubicaciones);
+        setN('[data-obj="gondola-3d"][data-campo="listas_precio"]', o['gondola-3d']?.listas_precio);
+        setN('[data-obj="computadora-3d"][data-campo="proveedores"]', o['computadora-3d']?.proveedores);
+        setB('[data-obj="computadora-3d"][data-campo="orden_compra"]', o['computadora-3d']?.orden_compra);
+        const comp = new Set(o['pizarron-fiscal-3d']?.comprobantes ?? []);
+        root.querySelectorAll('[data-obj="pizarron-fiscal-3d"][data-campo="comprobantes"]').forEach((el) => {
+          if (el instanceof HTMLInputElement) el.checked = comp.has(el.value);
+        });
+        setT('[data-obj="pizarron-fiscal-3d"][data-campo="contador"]', o['pizarron-fiscal-3d']?.contador);
+        const fut = new Set([...(previo.modulos_futuros ?? []), ...(o['puerta-crecer-3d']?.futuros ?? [])]);
+        root.querySelectorAll('[data-futuro]').forEach((el) => {
+          if (el instanceof HTMLInputElement) el.checked = fut.has(el.getAttribute('data-futuro'));
+        });
+        const ancla = new Set(previo.modulos_ancla ?? []);
+        const mapaIncluir = { 'mostrador-3d': 'mostrador', 'estanteria-3d': 'deposito', 'gondola-3d': 'ventas', 'computadora-3d': 'compras', 'pizarron-fiscal-3d': 'fiscal_ar' };
+        for (const [id, mod] of Object.entries(mapaIncluir)) setB(`[data-incluir="${id}"]`, ancla.has(mod));
+        const d = previo.datos ?? {};
+        setN('[data-dato="productos_aprox"]', d.productos_aprox); setB('[data-dato="tiene_excel"]', d.tiene_excel);
+        const inf = previo.infra ?? {};
+        setB('[data-infra="hosting_propio"]', inf.hosting_propio); setB('[data-infra="dominio_ssl"]', inf.dominio_ssl); setB('[data-infra="backups"]', inf.backups);
+      }
+    } catch { /* borrador corrupto: se ignora y se empieza de cero */ }
+
+    // Wizard
+    let paso = 0;
+    function pintaPaso() {
+      root.querySelectorAll('[data-panel]').forEach((p) => {
+        if (p instanceof HTMLElement) p.hidden = p.getAttribute('data-panel') !== String(paso);
+      });
+      root.querySelectorAll('[data-paso]').forEach((b) => {
+        if (b instanceof HTMLElement) b.classList.toggle('font-semibold', b.getAttribute('data-paso') === String(paso));
+      });
+    }
+    function irAPaso(n) {
+      paso = Math.max(0, Math.min(2, n));
+      pintaPaso();
+    }
+    root.querySelectorAll('[data-paso]').forEach((b) => {
+      b.addEventListener('click', () => irAPaso(Number(b.getAttribute('data-paso')) || 0));
+    });
+    root.querySelector('[data-atras]')?.addEventListener('click', () => irAPaso(paso - 1));
+    root.querySelector('[data-adelante]')?.addEventListener('click', () => irAPaso(paso + 1));
+
+    // Hero 3D → ficha (click en mueble tilda y baja a la ficha).
+    // S5: el objeto vive en ?objeto= para compartir y refrescar (deep-link).
+    function irAFicha(id) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('objeto', id);
+        window.history.replaceState(null, '', url);
+      } catch { /* sin URL disponible: se sigue sin deep-link */ }
+      const card = root.querySelector(`[data-ficha="${id}"]`);
+      if (id !== 'puerta-crecer-3d') {
+        const check = root.querySelector(`[data-incluir="${id}"]`);
+        if (check instanceof HTMLInputElement && !check.checked) {
+          check.checked = true;
+          pinta();
+        }
+      } else {
+        irAPaso(2);
+      }
+      if (card instanceof HTMLElement) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('ficha-flash');
+        setTimeout(() => card.classList.remove('ficha-flash'), 1600);
+      }
+    }
+    const heroCanvas = root.querySelector('[data-hero-canvas]');
+    const heroCapa = root.querySelector('[data-hero-etiquetas]');
+    const heroFallback = root.querySelector('[data-hero-fallback]');
+    const heroEstado = root.querySelector('[data-hero-estado]');
+    root.querySelectorAll('[data-hero-fallback-btn]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const id = b.getAttribute('data-hero-fallback-btn');
+        if (typeof id === 'string') irAFicha(id);
+      });
+    });
+    if (heroCanvas instanceof HTMLCanvasElement && !heroCanvas.dataset.mounted) {
+      const io = new IntersectionObserver(async (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        try {
+          const { mountOficinaScene } = await import('../scripts/oficina-scene');
+          const cleanup = mountOficinaScene(
+            heroCanvas,
+            (id) => irAFicha(id),
+            heroCapa instanceof HTMLElement ? heroCapa : undefined,
+          );
+          window.addEventListener('pagehide', cleanup, { once: true });
+          document.addEventListener('astro:before-swap', cleanup, { once: true });
+          if (heroEstado) heroEstado.textContent = 'Escena 3D activa: click en un mueble para ir a su ficha.';
+        } catch {
+          heroCanvas.style.display = 'none';
+          if (heroCapa instanceof HTMLElement) heroCapa.style.display = 'none';
+          if (heroFallback instanceof HTMLElement) heroFallback.hidden = false;
+          if (heroEstado) heroEstado.textContent = 'Sin WebGL: usá el plano para ir a cada ficha.';
+        }
+      }, { rootMargin: '200px' });
+      io.observe(heroCanvas);
+    }
+
+    pintaPaso();
+    pinta();
+    // S5: al abrir con ?objeto= se va al panel y la ficha que corresponde.
+    try {
+      const inicial = new URL(window.location.href).searchParams.get('objeto');
+      const ids = ['mostrador-3d', 'estanteria-3d', 'gondola-3d', 'computadora-3d', 'pizarron-fiscal-3d', 'puerta-crecer-3d'];
+      if (inicial && ids.includes(inicial)) {
+        irAPaso(inicial === 'puerta-crecer-3d' ? 2 : 1);
+        irAFicha(inicial);
+      }
+    } catch { /* sin URL disponible: se arranca en paso 0 */ }
+  }
+</script>

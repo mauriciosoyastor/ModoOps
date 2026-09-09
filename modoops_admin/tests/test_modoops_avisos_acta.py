@@ -46,18 +46,36 @@ class AvisosTests(unittest.TestCase):
         msg = avisos.mensaje_aviso(dia_mora=5, tenant_name="Pinturería", abono_due_date=date(2026, 9, 10))
         self.assertIn("día 8", msg)
         self.assertIn("Pinturería", msg)
+        self.assertIn("dentro de la jornada", msg)
+
+    def test_recargo_mora_tasa_v2(self):
+        self.assertAlmostEqual(avisos.recargo_mora(200.0, 10), 3.40)
+        self.assertAlmostEqual(avisos.recargo_mora(50.0, 10), 0.85)
+        self.assertEqual(avisos.recargo_mora(200.0, 0), 0.0)
 
     def test_acta_contiene_saldo_y_firmas(self):
         txt = avisos.acta_hito2_texto(
             contrato_name="MO-2026-001", tenant_name="Pinturería Centro",
-            db_name="modoops_pintureria_centro", monto_total=800, saldo=400,
+            db_name="modoops_pintureria_centro", monto_total=800, saldo=200,
             go_live_date=date(2026, 9, 3), anexo_fiscal_ok=True,
         )
         low = txt.lower()
-        for expected in ["MO-2026-001", "400", "Matasini"]:
+        for expected in ["MO-2026-001", "200", "Matasini", "25%"]:
             self.assertIn(expected, txt)
         self.assertTrue("go-live" in low or "go live" in low)
-        self.assertIn("5 días hábiles", txt)
+        self.assertIn("firma", low)
+        self.assertNotIn("5 días hábiles", txt)
+
+    def test_acta_hito1_staging_25(self):
+        txt = avisos.acta_hito1_texto(
+            contrato_name="MO-2026-001", tenant_name="Pinturería Centro",
+            db_name="modoops_pintureria_centro", monto_total=800, tramo=200,
+        )
+        low = txt.lower()
+        for expected in ["MO-2026-001", "200", "Matasini", "25%", "HITO 1"]:
+            self.assertIn(expected, txt)
+        self.assertIn("firma", low)
+        self.assertNotIn("5 días hábiles", txt)
 
 
 class ViewsCronoTests(unittest.TestCase):

@@ -5,7 +5,7 @@ from odoo.addons.modoops_admin.logic.contrato_situacion import situacion_contrat
 
 class ModoopsTenantContrato(models.Model):
     _name = "modoops.tenant.contrato"
-    _description = "Contrato ModoOps por Tenant (ancla 50/50 + abono)"
+    _description = "Contrato ModoOps por Tenant (ancla 50/25/25 + abono)"
     _order = "fecha_firma desc, id desc"
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
@@ -25,15 +25,17 @@ class ModoopsTenantContrato(models.Model):
     moneda = fields.Selection([("USD", "USD"), ("ARS", "ARS")], string="Moneda", default="USD", required=True)
     monto_total_usd = fields.Float(string="Total USD", help="Ref ancla $800")
     anticipo_usd = fields.Float(string="Anticipo 50% USD", help="Condición previa para iniciar Fase 1")
-    saldo_usd = fields.Float(string="Saldo 50% USD", compute="_compute_saldo", store=True)
+    saldo_usd = fields.Float(string="Saldo USD", compute="_compute_saldo", store=True,
+                              help="Resto tras anticipo (25% Hito 1 + 25% Hito 2)")
     anticipo_cobrado = fields.Boolean(string="Anticipo cobrado", tracking=True)
-    saldo_cobrado = fields.Boolean(string="Saldo cobrado", tracking=True)
+    hito1_cobrado = fields.Boolean(string="Hito 1 cobrado (25%)", tracking=True)
+    saldo_cobrado = fields.Boolean(string="Saldo cobrado (25% final)", tracking=True)
     hito1_ok = fields.Boolean(string="Hito 1 staging OK", tracking=True)
     hito2_ok = fields.Boolean(string="Hito 2 go-live OK", tracking=True)
     go_live_date = fields.Date(string="Go-live", tracking=True)
     hipercare_hasta = fields.Date(string="Hipercare hasta (10 días hábiles)")
     anexo_fiscal_ok = fields.Boolean(string="Anexo B fiscal cerrado", tracking=True, help="Validado por contador del cliente")
-    abono_mensual_usd = fields.Float(string="Abono USD/mes", default=45.0, help="Ref $45/mes, 4h + best effort bugs")
+    abono_mensual_usd = fields.Float(string="Abono USD/mes", default=50.0, help="Ref $50/mes, 4h + best effort bugs")
     ajustes_horas_pactadas = fields.Float(string="Ajustes pactados (h)", default=8.0)
     ajustes_horas_consumidas = fields.Float(string="Ajustes consumidas (h)")
     capacitacion_horas_pactadas = fields.Float(string="Capacitación pactada (h)", default=6.0)
@@ -50,7 +52,7 @@ class ModoopsTenantContrato(models.Model):
             rec.saldo_usd = (rec.monto_total_usd or 0.0) - (rec.anticipo_usd or 0.0)
 
     @api.depends(
-        "state", "hito2_ok", "saldo_cobrado", "go_live_date",
+        "state", "hito1_ok", "hito1_cobrado", "hito2_ok", "saldo_cobrado", "go_live_date",
         "tenant_id.state", "tenant_id.abono_due_date",
     )
     def _compute_situacion(self):
@@ -58,6 +60,8 @@ class ModoopsTenantContrato(models.Model):
             sem, det = situacion_contrato(
                 tenant_state=rec.tenant_id.state if rec.tenant_id else "activo",
                 contrato_state=rec.state,
+                hito1_ok=bool(rec.hito1_ok),
+                hito1_cobrado=bool(rec.hito1_cobrado),
                 hito2_ok=bool(rec.hito2_ok),
                 saldo_cobrado=bool(rec.saldo_cobrado),
                 go_live_date=rec.go_live_date,
@@ -101,7 +105,8 @@ class ModoopsTenantContrato(models.Model):
                 tenant_name=rec.tenant_id.name if rec.tenant_id else "",
                 db_name=rec.tenant_id.db_name if rec.tenant_id else "",
                 monto_total=rec.monto_total_usd or 0.0,
-                saldo=rec.saldo_usd or 0.0,
+                # Ancla 50/25/25: el saldo_usd cubre Hito 1 + Hito 2; el acta Hito 2 cobra la mitad.
+                saldo=(rec.saldo_usd or 0.0) / 2,
                 moneda=rec.moneda or "USD",
                 go_live_date=rec.go_live_date,
                 anexo_fiscal_ok=bool(rec.anexo_fiscal_ok),

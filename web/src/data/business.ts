@@ -6,9 +6,9 @@ export const brand = {
 } as const;
 
 export const contact = {
-  email: 'consultoria.matasini@gmail.com',
+  email: 'mauriciomatasini27@gmail.com',
   whatsapp: 'https://wa.me/5493547532008',
-  whatsappLabel: '+54 9 354 753-2008',
+  whatsappLabel: '+54 9 354 753-2008',
 } as const;
 
 const ALLOWED_UTM_KEYS = [
@@ -61,14 +61,13 @@ export function whatsappWithUtm(source: string): string {
 }
 
 export const footer = {
-  contactLead: 'Escribinos por WhatsApp o email. El descubrimiento arranca cuando hay fit.',
+  contactLead: 'Escribinos por WhatsApp o email. Arrancamos cuando hay fit.',
   newsletterLead: 'Novedades sobre ModoOps — sin spam.',
   copyright: `© ${new Date().getFullYear()} ModoOps — Sistema de Gestión Modular.`,
 } as const;
 
 /** Solo precios publicables en web/PDF — USD canónico. */
 export const publicPricing = {
-  discovery: { amount: '$155 USD', currency: 'USD', label: 'Descubrimiento pago' },
   extraDay: { amount: '$52 USD', currency: 'USD', label: 'Jornada extra' },
 } as const;
 
@@ -93,28 +92,28 @@ export const problem = {
 
 export const solution = {
   title: 'ModoOps modular — elegís los módulos que tu operación necesita',
-  lead: 'Mostrador, Depósito Inteligente, Compras, Fiscal AR y más — del Catálogo ModoOps validado. Sin exponer Odoo en la propuesta comercial.',
+  lead: 'Mostrador, Depósito Inteligente, Compras, Facturación electrónica y más — del Catálogo ModoOps validado.',
   highlights: [
     { title: 'Mostrador', detail: 'Punto de venta — hasta 2 cajas, 1 sucursal.' },
     { title: 'Depósito Inteligente', detail: 'Inventario — 1 almacén integrado con la caja.' },
     { title: 'Compras', detail: 'Proveedores y órdenes de compra básicas.' },
-    { title: 'Fiscal AR', detail: 'Según anexo fiscal cerrado con tu contador (no se asume por defecto).' },
+    { title: 'Facturación electrónica', detail: 'Comprobantes validados con tu contador.' },
   ],
 } as const;
 
 export const path = {
   title: 'Cómo empezamos',
-  lead: 'Primero diagnóstico, después implementación y soporte.',
+  lead: 'Primero propuesta, después implementación y soporte.',
   steps: [
     {
       step: 'Paso 1',
-      title: 'Descubrimiento',
-      detail: `3 días · ${publicPricing.discovery.amount} · informe + propuesta con alcance y precio.`,
+      title: 'Propuesta',
+      detail: 'Relevamiento + propuesta con alcance, precio y plazos.',
     },
     {
       step: 'Paso 2',
       title: 'Implementación',
-      detail: 'Retail acotado · staging y go-live con hitos y criterios de aceptación.',
+      detail: 'Retail acotado · prueba y puesta en producción con hitos y criterios de aceptación.',
     },
     {
       step: 'Paso 3',
@@ -123,18 +122,7 @@ export const path = {
     },
   ],
   footnote:
-    'Los montos de implementación y soporte se definen en la propuesta tras el descubrimiento. Validez de propuesta: 20 días.',
-} as const;
-
-export const discovery = {
-  title: 'Descubrimiento pago',
-  price: '$155 USD',
-  duration: '3 jornadas',
-  extraDay: '$52 USD por jornada adicional',
-  includes: [
-    'Informe de diagnóstico — proceso actual, riesgos, gaps, recomendación técnica.',
-    'Propuesta comercial — alcance, exclusiones, plazos, precio de implementación.',
-  ],
+    'Los montos de implementación y soporte se definen en la propuesta. Validez de propuesta: 20 días.',
 } as const;
 
 export const audience = {
@@ -144,7 +132,7 @@ export const audience = {
     'PYME comercial en Argentina: retail, pinturerías, ferreterías, librerías, kioscos, almacenes, dietéticas, pet shops o mostrador.',
     'Tenés una sucursal (o empezás por una), equipo chico (~5 personas).',
     'Querés caja, stock y compras en un solo sistema ModoOps.',
-    'Aceptás arrancar con descubrimiento ($155 USD) antes del proyecto.',
+    'Aceptás arrancar con propuesta y anticipo antes del proyecto.',
   ],
   noTitle: 'No es para vos si…',
   no: [
@@ -160,14 +148,13 @@ export const howWeWork = {
   lead: 'Alcance claro, sin sorpresas.',
   rules: [
     'Alcance y exclusiones por escrito antes de empezar.',
-    'Pagos por hitos con criterios de aceptación verificables (staging y go-live).',
-    'Licencia a cargo del cliente; sin SLA de infra del consultor.',
-    'Fiscal: anexo cerrado con tu contador antes de emitir en producción.',
+    'Pagos por hitos con criterios de aceptación verificables (prueba y puesta en producción).',
+    'Licencia a cargo del cliente; sin garantía de disponibilidad del consultor.',
+    'Facturación: comprobantes validados con tu contador antes de emitir en producción.',
   ],
 } as const;
 
 export const nav = [
   { href: '#camino', label: 'Camino' },
-  { href: '#descubrimiento', label: 'Descubrimiento' },
   { href: '#contacto', label: 'Contacto' },
 ] as const;

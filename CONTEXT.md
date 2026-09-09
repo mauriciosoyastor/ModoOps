@@ -9,7 +9,7 @@ Contexto de negocio para **ModoOps** (evolución de Consultoría Matasini) en Ar
 ### Comercial y precios
 
 **Moneda de cotización**:
-Honorarios expresados por defecto en **USD** (dólares estadounidenses). **ARS** solo si el **Cliente** lo solicita, con tipo de cambio definido al momento de facturar.
+Honorarios expresados por defecto en **USD** (dólares estadounidenses). **ARS** solo si el **Cliente** lo solicita, con tipo de cambio a definir (ref v3: ej. Dólar MEP / BNA Vendedor) del día de emisión de la factura, detallado en la misma. **Solo una moneda por factura.**
 _Avoid_: mezclar monedas en la misma propuesta sin tipo de cambio claro.
 
 **Revisión de honorarios**:
@@ -34,7 +34,7 @@ _Avoid_: aplicar tarifa de bolsa a cambios de alcance; regalar horas post-techo 
 
 **Política de precios públicos**:
 En web y PDF: solo se publica el **Precio del Descubrimiento pago** (**$155 USD**). **Paquete ancla** y **Abono mensual**: “a medida tras diagnóstico” (montos de referencia internos en propuesta, no en carta pública). El **Crédito por cierre del ancla** no se publica en landing/PDF (solo en propuesta o charla comercial).
-_Avoid_: publicar $800, $45 o $77.5 de crédito en landing si el alcance aún se cierra en descubrimiento.
+_Avoid_: publicar $800, $50 o $77.5 de crédito en landing si el alcance aún se cierra en descubrimiento.
 
 **Meta de ingreso (fase inicial ModoOps)**:
 Objetivo de facturación: **$600 USD/mes** durante los **primeros 6 meses**, con revisión **trimestral al alza** según demanda y **Capacidad de entrega** (red a demanda, máx 2 anclas en paralelo); no es un precio de lista, es meta operativa. Tras validar 2 anclas + 2 abonos, revisar escala.
@@ -46,6 +46,12 @@ _Avoid_: usar “cliente” para prospectos sin contrato.
 
 **Prospecto**:
 Organización en conversación previa a contrato; el alcance no está congelado hasta firmar.
+
+**Usuario tenant** (empleado):
+Persona que trabaja dentro del negocio Cliente (vendedor, depósito, taller). Entra a su `modoops_<slug>`
+por acceso asignado, ve solo su stack y nunca otros tenants ni el Control Plane. Distinto de **Consultor**
+(ModoOps interno, opera el Control Plane en master) y de **Cliente** (la organización).
+_Avoid_: "usuario" genérico sin decir si es consultor o usuario tenant; empleado viendo otros tenants.
 
 **ModoOps**:
 Marca comercial de sistema de gestión modular. En marketing y propuesta comercial **no se menciona Odoo**; en **anexo técnico y licencia** se explicita que ModoOps corre sobre **Odoo CE 19** + módulos validados. Operativos viven en **Shell Astro BFF + Liquid Glass** sin exponer UI Odoo nativa.
@@ -188,7 +194,7 @@ Decisión de dejar el empleo de mañana y dedicarse 100% a ModoOps cuando se cum
 _Avoid_: saltar por un solo pago grande sin runway ni clientes en producción.
 
 **Abono mensual**:
-Cuota fija mensual de **Soporte** post-hipercare: **$45 USD/mes**; incluye **4 horas/mes** en bolsa (soporte operativo y ajustes menores acordados) + **best effort** en horario comercial para **bugs** dentro del alcance aceptado; todo **Cambio** queda fuera y se cotiza. Horas de bolsa **no usadas vencen** al cierre del mes (no acumulan).
+Cuota fija mensual de **Soporte** post-hipercare: **$50 USD/mes**; incluye **4 horas/mes** en bolsa (soporte operativo y ajustes menores acordados) + **best effort** en horario comercial para **bugs** dentro del alcance aceptado; todo **Cambio** queda fuera y se cotiza. Horas de bolsa **no usadas vencen** al cierre del mes (no acumulan). **Actualización de tarifa (v3 9.9):** el abono puede actualizarse con aviso previo de 30 días corridos por email/WhatsApp; si el **Cliente** no acepta, rescinde el abono sin penalidad antes del aumento (vía cláusula 13.4).
 _Avoid_: abono sin tope para cambios; tratar mejoras como bugs “porque paguen abono”.
 
 **Mes de transición de soporte**:
@@ -250,7 +256,7 @@ Módulo Odoo en base `modoops_master` (mismo VPS/ Postgres) que centraliza gesti
 `Activo` (opera normal) → `Suspendido` (login bloqueado, solo lectura, tras gracia) → `Baja` (backup y cierre). Transición por **Suspensión por mora**.
 
 **Suspensión por mora**:
-Bloqueo de acceso Tenant por falta de pago Abono $45/mes. Regla: **gracia 7 días** con aviso WhatsApp/email, luego `Suspendido` (no borra DB), a los 15 días backup final y baja. No es corte día 1.
+Bloqueo de acceso Tenant por falta de pago Abono $50/mes. Regla: **gracia 7 días** con aviso WhatsApp/email, luego `Suspendido` (no borra DB), rehabilitación dentro de la jornada de pago + recargo; a los 15 días backup final y baja (mes suspendido no se cobra). No es corte día 1.
 
 **Emergencia (WhatsApp)**:
 Incidente que impide vender o emitir comprobantes por falla atribuible al trabajo entregado; fuera de horario comercial solo si se definió así por escrito.
@@ -317,7 +323,7 @@ _Avoid_: `mo.agent`, mezclar lógica pura con ORM en el mismo archivo, nuevo có
 - Ante **Demora fiscal del Cliente**: **replanificación del Go-live** sin penalidad al consultor; los **Hitos** se pagan solo al cumplir criterios; aplica **Ventana de coordinación fiscal** y luego trabajo cotizado.
 - **Cambio** no consume **Hipercare** salvo acuerdo explícito; **Bug** sí según severidad y ventana; **Cambio** y horas fuera de techo se facturan a **Tarifa hora adicional** (**$10.5 USD/h**) salvo **Add-on** con precio fijo.
 - **Soporte** sucede a **Hipercare** y no incluye por defecto **SLA de infra**.
-- Tras **Hipercare** aplica **Mes de transición de soporte**; desde el mes 2, **Soporte continuo** exige **Abono mensual** (**$45 USD/mes, 4 h/mes** + best effort para **bugs**; **Cambio** cotizado). Sin abono: solo trabajo contratado puntual.
+- Tras **Hipercare** aplica **Mes de transición de soporte**; desde el mes 2, **Soporte continuo** exige **Abono mensual** (**$50 USD/mes, 4 h/mes** + best effort para **bugs**; **Cambio** cotizado). Sin abono: solo trabajo contratado puntual.
 - **ModoOps es marca blanca comercial**: en marketing/propuesta no se menciona Odoo; en anexo técnico/licencia sí se lista Odoo CE 19 + Módulos ModoOps. El **Catálogo ModoOps** es el universo ofrecible.
 - **Infra Centralizada Multi-DB**: 1 VPS central → N tenants (bases `modoops_<cliente>` aisladas). Fase 1 backups/S3, Fase 2 hot standby. Selección de módulos (incluida IA) por tenant vía Configurador + **Control Plane**.
 - **Control Plane**: `modoops_admin` en base `modoops_master` gestiona Tenants; no es base de Cliente. Suspensión por mora con gracia 7 días.
@@ -456,7 +462,7 @@ _Avoid_: prometer “cualquier ERP” en el hero sin capacidad; ocultar Odoo en 
 ### Captación (CTA)
 
 - **Formulario:** nombre, empresa, rubro, mensaje breve.  
-- **Email:** [consultoria.matasini@gmail.com](mailto:consultoria.matasini@gmail.com)  
+- **Email:** [mauriciomatasini27@gmail.com](mailto:mauriciomatasini27@gmail.com)  
 - **WhatsApp comercial:** **+54 9 354 753-2008** (número publicado: 3547532008) — consultas y pedido de descubrimiento; **no** canal de soporte ilimitado post contrato.
 
 **Email de contacto comercial**:
@@ -480,7 +486,7 @@ _Avoid_: confundir con **Captación (CTA)** de prospectos entrantes; exponer lea
 - **Subtítulo:** ModoOps — Sistema de Gestión Modular — Argentina, PYME, una sucursal.  
 - **Firma:** ModoOps (Mauricio Matasini, arquitecto).  
 - **Modelo landing:** hero amplio; **Odoo no se nombra** en Solución/Camino (marca blanca comercial). Anexo técnico sí lista Odoo CE 19.  
-- **CTA:** Formulario + **consultoria.matasini@gmail.com** + WhatsApp **+54 9 354 753-2008**.
+- **CTA:** Formulario + **mauriciomatasini27@gmail.com** + WhatsApp **+54 9 354 753-2008**.
 
 ## Descubrimiento pago — entregables
 
@@ -507,7 +513,7 @@ Documento **separado** del informe. Secciones:
 5. **Plazo orientativo** (capacidad ModoOps: hasta 2 anclas paralelas, 15–18 h/semana c/u)  
 6. **Add-ons** opcionales con precios  
 7. **Supuestos del Cliente** (infra, fiscal, contador, datos)  
-8. **Soporte** post go-live (hipercare, transición, abono $45 USD)  
+8. **Soporte** post go-live (hipercare, transición, abono $50 USD)  
 9. **Validez** de la propuesta: **20 días** desde la fecha de emisión  
 10. **Próximo paso** (firma + anticipo **$400 USD**, menos **Crédito por cierre del ancla** si aplica → **$322.5 USD** netos)
 
@@ -519,13 +525,18 @@ Documento **separado** del informe. Secciones:
 | **2** | Fiscal (borrador anexo) con **Asesor fiscal del Cliente** si puede; datos/catálogo; infra | Borrador anexo fiscal + **Lista cerrada de módulos** |
 | **3** | Cierre alcance, riesgos; redacción **Informe de diagnóstico** + **Propuesta comercial** | Entrega de **ambos documentos** (o **Salida anticipada** si no hay fit ICP) |
 
-## Anexo fiscal (Argentina) — plantilla de lista cerrada
+## Anexo fiscal (Argentina) — Anexo B v3
 
-> Completar y validar con **asesor fiscal** antes de prometer en contrato. Esta sección es el lugar canónico del “**A**” acordado en *grill-with-docs*.
+> Completar y validar con **asesor fiscal** antes de prometer en contrato. El **Anexo B** se cierra durante la implementación **antes del go-live** (sin descubrimiento previo).
 
 - **Flujo incluido:** venta minorista en mostrador (POS / flujo equivalente acordado).
-- **Comprobantes incluidos:** **por definir en Descubrimiento pago** — el anexo fiscal firmado (tipos exactos + casos de uso) se cierra **antes de iniciar Fase 1**; el **Paquete ancla** no promete comprobantes por defecto.
-- **Operaciones incluidas (devoluciones / notas de crédito):** **por definir en Descubrimiento pago**; **excluidas del Paquete ancla** salvo que figuren **explícitamente** en el anexo fiscal firmado (sin asumir “básicas” por defecto).
+- **B1 datos fiscales:** razón social, CUIT, condición IVA, IIBB, inicio de actividades.
+- **B2 puntos de venta AFIP:** solo PV Web Service creados por el **Cliente**/contador; el consultor no tramita habilitaciones.
+- **B3 comprobantes (lista cerrada):** A / B / C / M + remitos X a tildar; lo no tildado es **Add-on**. El **Paquete ancla** no promete comprobantes por defecto.
+- **B4 certificados:** delegación + CSR/CRT provistos por el **Cliente**; la renovación anual es del **Cliente**.
+- **B5 impuestos:** alícuotas IVA estándar; retenciones/percepciones solo básicas, padrones automatizados = **Add-on**.
+- **B6 conformidad:** pruebas en homologación AFIP con resultado exitoso + firma del **Cliente** (contador opcional pero recomendada) autorizan producción.
+- **Operaciones incluidas (devoluciones / notas de crédito):** **excluidas del Paquete ancla** salvo que figuren **explícitamente** en el anexo firmado (sin asumir “básicas” por defecto).
 - **Exclusiones típicas (personalizar):** regímenes especiales no listados, percepciones/retenciones complejas, multi-moneda, exportaciones, escenarios B2B fuera del ancla, integraciones con autoridades o terceros fuera del anexo.
 
 ## Catálogo ModoOps — Catálogo canónico (inicial validado en Servigas)
@@ -580,7 +591,7 @@ Documento **separado** del informe. Secciones:
 | **Tarifa diaria interna** (6 h) | **$52** |
 | **Descubrimiento pago** (3 días, fijo) | **$155** (+ **$52**/día extra); **50%** acreditable al anticipo si cierra ancla en 20 días → crédito $77.5 |
 | **Paquete ancla** (Fase 1, fijo + techo ~92 h) | **$800** (50% / 25% / 25% → $400 / $200 / $200) |
-| **Abono mensual** (4 h + best effort bugs) | **$45/mes** |
+| **Abono mensual** (4 h + best effort bugs) | **$50/mes** |
 | **Tarifa hora adicional** (cambios / fuera de alcance) | **$10.5/h** |
 | **Meta de ingreso ModoOps** | **$600/mes** (primeros 6 meses; revisión trimestral al alza) |
 | **Público (web/PDF)** | Descubrimiento **$155**; ancla y abono **tras diagnóstico** |

@@ -4,10 +4,12 @@ Golden path: un tenant tiene 0..N contratos, pero el análisis mira el
 contrato vigente (o el último). Devuelve (semaforo, detalle) para el
 tree/form y para decidir suspender/cobrar.
 
-Reglas (alineadas a contrato ModoOps 50/50 + abono 1-10 + gracia 7 días):
+Reglas (alineadas a contrato ModoOps v2: ancla 50/25/25 + abono 1-10 + gracia 7 días):
 - sin_contrato: no hay contrato vigente
-- en_implementacion: ancla firmada, falta hito2/go-live, saldo sin cobrar
-- listo_cobrar_saldo: hito2 OK pero saldo sin cobrar
+- en_implementacion: ancla firmada, falta hito1/staging, 25% sin destrabar
+- listo_cobrar_hito1: hito1 OK con acta firmada pero 25% sin cobrar
+- en_go_live: hito1 cobrado, rumbo a go-live, falta hito2 (25% final)
+- listo_cobrar_saldo: hito2 OK con acta firmada pero 25% final sin cobrar
 - en_hipercare: go-live hecho, dentro de 10 días hábiles (~14 corridos)
 - al_dia: abono al día o sin vencimiento futuro superado
 - en_gracia: venció abono (día 1-7), avisar WhatsApp
@@ -24,6 +26,8 @@ def situacion_contrato(
     *,
     tenant_state: str = "activo",
     contrato_state: str | None = None,
+    hito1_ok: bool = False,
+    hito1_cobrado: bool = False,
     hito2_ok: bool = False,
     saldo_cobrado: bool = False,
     go_live_date: date | None = None,
@@ -35,20 +39,26 @@ def situacion_contrato(
 
     # Espejo de lifecycle: si el tenant ya está fuera, el contrato no manda.
     if tenant_state == "suspendido":
-        return ("suspendido", "Tenant suspendido — regularizar abono para reactivar.")
+        return ("suspendido", "Tenant suspendido — regularizar abono para reactivar dentro de la jornada.")
     if tenant_state == "baja":
         return ("baja", "Tenant en baja — backup final, requiere re-alta.")
+
 
     if not contrato_state or contrato_state in ("borrador", "rescindido"):
         return ("sin_contrato", "Sin contrato vigente — firmar Anexo A+B antes de Fase 1.")
     if contrato_state == "finalizado":
         return ("finalizado", "Contrato finalizado — solo add-ons o nuevo proyecto.")
 
-    # Contrato vigente: primero implementación (ancla 50/50).
+    # Contrato vigente: implementación por hitos (ancla 50/25/25).
+    # Todo destrabe requiere acta firmada (v2: sin silencio=aceptación).
+    if not hito1_ok:
+        return ("en_implementacion", "En implementación — falta Hito 1 staging para destrabar 25% con acta firmada.")
+    if not hito1_cobrado:
+        return ("listo_cobrar_hito1", "Hito 1 OK — cobrar 25% contra acta Hito 1 firmada.")
     if not hito2_ok:
-        return ("en_implementacion", "En implementación — falta go-live + acta Hito 2 para cobrar 50% saldo.")
+        return ("en_go_live", "Hito 1 cobrado — rumbo a go-live, falta acta Hito 2 para 25% final.")
     if not saldo_cobrado:
-        return ("listo_cobrar_saldo", "Go-live OK — cobrar 50% saldo contra acta Hito 2.")
+        return ("listo_cobrar_saldo", "Go-live OK — cobrar 25% final contra acta Hito 2 firmada.")
 
     # Post go-live: hipercare ~14 corridos como proxy de 10 hábiles.
     if go_live_date and day <= go_live_date + timedelta(days=14):

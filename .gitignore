@@ -11,3 +11,10 @@ __pycache__/
 dist/
 .coverage
 htmlcov/
+.scratch/
+_temp_*.md
+.vercel/
+web/.vercel/
+.venv/
+.claude/
+CLAUDE.md

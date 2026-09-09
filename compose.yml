@@ -51,7 +51,30 @@ services:
       - ./odoo.conf:/etc/odoo/odoo.conf
     command: --dev=all
 
+  web:
+    image: node:22-alpine
+    depends_on:
+      odoo:
+        condition: service_started
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./web:/app
+      # deps Linux solo-contenedor: el host corre su propio dev :4321 con node_modules Windows
+      - web_node_modules:/app/node_modules
+    env_file:
+      - web/.env
+    environment:
+      ODOO_URL: http://odoo:8069
+    # bind-mount directo: las deps del host sirven (el binding musl de rollup
+    # falta en el log pero las rutas verificadas renderizan igual)
+    # pin local (npx resolvía astro@7 del registry y rompía el boot; local es 5.18.2)
+    command: ["node", "/app/node_modules/astro/astro.js", "dev", "--host", "0.0.0.0", "--port", "3001"]
+
 volumes:
   db_data:
   odoo_data:
   ollama_data:
+  web_node_modules:

@@ -95,7 +95,8 @@ class ModoopsTenant(models.Model):
         for rec in self:
             rec.modules_installed_count = ModulesInstalados.from_csv(rec.modules_installed).count
 
-    @api.depends("contrato_ids.state", "contrato_ids.saldo_usd", "contrato_ids.saldo_cobrado")
+    @api.depends("contrato_ids.state", "contrato_ids.saldo_usd", "contrato_ids.saldo_cobrado",
+                 "contrato_ids.hito1_ok", "contrato_ids.hito1_cobrado")
     def _compute_contrato_resumen(self):
         from odoo.addons.modoops_admin.logic.contrato_situacion import situacion_contrato
 
@@ -112,6 +113,8 @@ class ModoopsTenant(models.Model):
             sem, _det = situacion_contrato(
                 tenant_state=rec.state,
                 contrato_state=c.state,
+                hito1_ok=bool(c.hito1_ok),
+                hito1_cobrado=bool(c.hito1_cobrado),
                 hito2_ok=bool(c.hito2_ok),
                 saldo_cobrado=bool(c.saldo_cobrado),
                 go_live_date=c.go_live_date,

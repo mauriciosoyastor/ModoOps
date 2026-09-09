@@ -41,6 +41,31 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+
+  /* S2: sin scroll suave para quien prefiere movimiento reducido */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  /* S2: anclas visibles bajo el header fijo (prototipo guidelines-hero) */
+  [id] {
+    scroll-margin-top: 5rem;
+  }
+
+  /* S2: sin doble-tap zoom en controles */
+  a,
+  button {
+    touch-action: manipulation;
+  }
+
+  /* S1 lote 0: foco visible en toda la web (Vercel: clear focus) */
+  :focus-visible {
+    outline: 2px solid var(--color-star-white);
+    outline-offset: 3px;
   }
 
   body {
@@ -77,6 +102,13 @@
 }
 
 @layer utilities {
+  /* S2: hit mínimo 24px en links chicos (Vercel: match visual & hit targets) */
+  .hit-fix {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
+
   .galaxy-card {
     border: 1px solid color-mix(in srgb, var(--color-nebula-cyan) 32%, transparent);
     background-color: color-mix(in srgb, var(--color-galaxy-deep) 72%, transparent);

@@ -304,7 +304,7 @@ gitnexus_impact(_ensure_pos_order_discount upstream) → impactedCount:1, risk:L
 
 - Contenido no-code: strings UI, CSS, markdown, JSON de config, assets, paths de imágenes.
 - Símbolo no indexado (generado dinámicamente, `eval`, template strings).
-- Búsqueda literal de texto que no es símbolo (ej. "¿dónde aparece el mail `consultoria.matasini@gmail.com`?").
+- Búsqueda literal de texto que no es símbolo (ej. "¿dónde aparece el mail `mauriciomatasini27@gmail.com`?").
 - En esos casos, `Grep` es correcto — pero **siempre después** de haber probado `query`/`context`/`cypher` primero.
 
 ---

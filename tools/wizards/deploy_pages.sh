@@ -83,7 +83,7 @@ say "Chequeos manuales:"
 step "Abre la URL preview → Hero debe decir 'Tu operación, en modo.' (ModoOps)"
 step "Verifica #descubrimiento muestra \$155 USD y tope 500 no es visible en landing"
 step "Verifica /grafo carga (vis-network) pero no está en nav"
-step "Verifica mailto consultoria.matasini@gmail.com + WhatsApp +54 9 354 753-2008"
+step "Verifica mailto mauriciomatasini27@gmail.com + WhatsApp +54 9 354 753-2008"
 if confirm "¿Preview se ve canónico (8 secciones, sin Formspree, favicon M)?"; then
   say "Perfecto."
 else
