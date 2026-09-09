@@ -15,19 +15,20 @@ except Exception:  # pragma: no cover - offline test
 
     api = fields = models = _Stub()  # type: ignore
 
-# lógica pura
+# lógica pura (SSOT tools/configurador/logic/configurador.py)
+# En el contenedor Odoo ese dir llega por mount /mnt/tools (ver compose.yml);
+# en repo local se resuelve relativo. Sin lógica, el wizard no opera.
 try:
     import sys
     from pathlib import Path
 
-    LOGIC_DIR = Path(__file__).resolve().parents[2] / ".." / "tools" / "configurador" / "logic"
-    # fallback absolute
-    import pathlib
-
-    repo = pathlib.Path(__file__).resolve().parents[2]
-    logic_path = repo / "tools" / "configurador" / "logic"
-    if str(logic_path) not in sys.path:
-        sys.path.insert(0, str(logic_path))
+    _CANDIDATOS = [
+        Path("/mnt/tools/configurador/logic"),
+        Path(__file__).resolve().parents[2] / "tools" / "configurador" / "logic",
+    ]
+    for _cand in _CANDIDATOS:
+        if _cand.is_dir() and str(_cand) not in sys.path:
+            sys.path.insert(0, str(_cand))
     import configurador as cfg_logic
 except Exception:  # pragma: no cover
     cfg_logic = None  # type: ignore
@@ -52,10 +53,10 @@ if HAS_ODOO:
         anexo_fiscal_ref = fields.Char()  # type: ignore
         sku_count = fields.Integer(default=0)  # type: ignore
 
-        def action_generar(self):
+        def _generar_input(self):
             self.ensure_one()
             modulos = [m.strip() for m in (self.modulos_tildados or "").split(",") if m.strip()]
-            inp = {
+            return {
                 "vertical": self.vertical,
                 "sucursales": self.sucursales,
                 "almacenes": self.almacenes,
@@ -64,6 +65,16 @@ if HAS_ODOO:
                 "anexo_fiscal_ref": self.anexo_fiscal_ref or None,
                 "sku_count": self.sku_count,
             }
+
+        def quote_preview(self):
+            """G2 puente portal→Odoo: misma SSOT que action_generar pero sin
+            persistencia (sin attachment ni log). Para el endpoint público de
+            cotización: el record transient lo limpia el vacuum de Odoo."""
+            out = cfg_logic.generar(self._generar_input())  # type: ignore
+            return out
+
+        def action_generar(self):
+            inp = self._generar_input()
             out = cfg_logic.generar(inp)  # type: ignore
             if out["errors"]:
                 return {"errors": out["errors"]}

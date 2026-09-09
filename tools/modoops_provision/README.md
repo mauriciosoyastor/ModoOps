@@ -20,9 +20,11 @@ python tools/modoops_provision/provision_tenant.py --backup modoops_pintureria_c
 
 **RPO 24h / RTO 60min** — sin hot standby. Fase 2 (10+ tenants, >$400/mes recurrente) → Streaming Replication + Floating IP.
 
-## Control Plane mock
+## Control Plane real (G7)
 
-El wizard `Instalar módulo` en `modoops_admin` es **mock**: escribe `modules_installed` + log, no ejecuta `odoo-bin` real. Ejecución real manual:
+El wizard `Instalar módulo` encola `modoops.tenant.install.job` y el cron
+(5min) ejecuta `odoo-bin` real en la DB tenant; recién en `hecho` escribe
+`modules_installed`. `remove` sigue mock. Ejecución manual equivalente:
 
 ```bash
 odoo-bin -d modoops_pintureria_centro -i l10n_ar  # Fiscal AR tras anexo firmado

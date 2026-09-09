@@ -2,7 +2,8 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { BffError } from "../../../lib/bff/errors.ts";
 import { invalidateBffSession } from "../../../lib/bff/http.ts";
-import { getBackend } from "../../../lib/bff/get-backend.ts";
+import { loadTenantLauncher } from "../../../lib/bff/launcher.ts";
+import { withMasterSession } from "../../../lib/bff/tenant-status.ts";
 
 
 export const prerender = false;
@@ -22,29 +23,38 @@ let userName = _sessT?.name || _sessT?.login || "";
 // Solo interno Hub1 q5: si no es admin/modoops, igual allow para demo — en prod check groups_id
 let tenant: import("../../../lib/bff/backend-client.ts").TenantRow | null = null;
 let tenantError = "";
+let tiles: import("../../../lib/bff/types.ts").LauncherTile[] = [];
+let launcherError = "";
+// G8 launcher real: metadata vía master + tiles vía DB del tenant, sin
+// fallback silencioso a master. Si la DB tenant no responde, se muestra
+// estado explícito en vez de tiles ficticios.
 try {
-  tenant = await getBackend().getTenantBySlug(odooSessionId, slug);
-  if (!tenant) tenantError = `Tenant '${slug}' no existe en modoops_master`;
+  const res = await loadTenantLauncher(slug, odooSessionId);
+  tenant = res.tenant;
+  tiles = res.tiles;
 } catch (cause) {
   if (cause instanceof BffError && cause.code === "unauthorized") {
     invalidateBffSession(Astro.cookies);
     return Astro.redirect("/login");
   }
-  tenantError = (cause as Error)?.message || "No se pudo cargar tenant";
-}
-
-let tiles: import("../../../lib/bff/types.ts").LauncherTile[] = [];
-let launcherError = "";
-if (tenant && !tenantError) {
-  // Hub2 intenta traer launcher tenant-scoped si la DB tenant existe, fallback a master tiles
-  try {
-    tiles = (await getBackend().getLauncher(odooSessionId)).tiles;
-  } catch (cause) {
-    if (cause instanceof BffError && cause.code === "unauthorized") {
-      invalidateBffSession(Astro.cookies);
-      return Astro.redirect("/login");
+  if (cause instanceof BffError && cause.code === "not_found") {
+    tenantError = cause.message;
+  } else {
+    // La metadata puede estar bien aunque el launcher falle: re-resolver
+    // el tenant solo para el encabezado, y mostrar el error del launcher.
+    try {
+      tenant = await withMasterSession((master, sessionId) => master.getTenantBySlug(sessionId, slug));
+      if (!tenant) tenantError = `Tenant '${slug}' no existe en modoops_master`;
+    } catch {
+      tenantError = `Tenant '${slug}' no existe en modoops_master`;
     }
-    launcherError = (cause as Error)?.message || "No se pudo cargar launcher";
+    if (!tenantError) {
+      const raw = (cause as Error)?.message || "No se pudo cargar launcher";
+      launcherError =
+        cause instanceof BffError && cause.code === "odoo_unavailable"
+          ? `DB del tenant no responde — ${raw}`
+          : raw;
+    }
   }
 }
 
@@ -150,6 +160,7 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
 
 <script>
   import { CATALOGO_LABELS } from "../../../lib/catalogo.generated.ts";
+  import { describeJobState, shouldPollJob } from "../../../lib/bff/install-job.ts";
   const CATALOGO = Object.entries(CATALOGO_LABELS) as unknown as readonly (readonly [string, string])[];
 
   const root = document.getElementById("tenant-install-root") as HTMLDivElement | null;
@@ -192,7 +203,7 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
     grid.querySelectorAll<HTMLInputElement>("[data-mod]").forEach(i=>i.checked=false);
     dlg.showModal();
   });
-  cancelBtn?.addEventListener("click", () => dlg?.close());
+  let pollActiva = false;
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!Number.isFinite(tenantId) || !grid || !msgEl || !previewEl || !form) return;
@@ -203,12 +214,39 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
     const notes = String(fd.get("notes")||"");
     msgEl.textContent = "Ejecutando…";
     const res = await fetch(`/api/admin/tenants/${tenantId}/install`, { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ modules: mods, action, notes }) });
-    const data = await res.json().catch(()=>({})) as { preview_command?: string; error?: { message?: string } };
+    const data = await res.json().catch(()=>({})) as { preview_command?: string; job_id?: number | null; job_state?: string; error?: { message?: string } };
     if (!res.ok) { msgEl.textContent = data?.error?.message || "Error"; return; }
-    previewEl.textContent = (data as { preview_command?: string }).preview_command || previewEl.textContent;
-    msgEl.textContent = "OK — recargando…";
-    setTimeout(()=> window.location.reload(), 700);
+    previewEl.textContent = data.preview_command || previewEl.textContent;
+    // G7: install real = job async; remove mock recarga directo
+    if (typeof data.job_id !== "number") {
+      msgEl.textContent = "OK — recargando…";
+      setTimeout(()=> window.location.reload(), 700);
+      return;
+    }
+    const jobId = data.job_id;
+    pollActiva = true;
+    msgEl.textContent = describeJobState(data.job_state || "pendiente");
+    while (pollActiva) {
+      await new Promise((r) => setTimeout(r, 5000));
+      if (!pollActiva) return;
+      try {
+        const jr = await fetch(`/api/admin/tenants/${tenantId}/install/${jobId}`);
+        const jd = await jr.json().catch(()=>({})) as { state?: string; output?: string };
+        if (!jr.ok) { msgEl.textContent = "No se pudo leer el job"; return; }
+        const estado = String(jd.state || "");
+        msgEl.textContent = describeJobState(estado);
+        if (jd.output) previewEl.textContent = String(jd.output).slice(-1500);
+        if (!shouldPollJob(estado)) {
+          if (estado === "hecho") {
+            msgEl.textContent = describeJobState(estado) + " Recargando…";
+            setTimeout(()=> window.location.reload(), 900);
+          }
+          return;
+        }
+      } catch { msgEl.textContent = "Sin conexión — reintentando…"; }
+    }
   });
+  cancelBtn?.addEventListener("click", () => { pollActiva = false; dlg?.close(); });
   document.querySelector("[data-logout]")?.addEventListener("click", async()=>{ await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login"); });
 
   // Chat IA herramental — hidrata BFF /api/modoops/:db/agent/run con {message, requestId}

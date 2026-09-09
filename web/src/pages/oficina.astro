@@ -225,6 +225,12 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         <p class="text-xs text-neutral-500">Se guarda solo en tu navegador.</p>
         <ul class="mt-2 flex flex-wrap gap-1" data-seleccion></ul>
         <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-neutral-950 p-2 text-xs text-green-200" data-json>{}</pre>
+        <div class="mt-3 rounded-xl border p-3" data-cotizacion-panel>
+          <h3 class="font-semibold">Validación del servidor</h3>
+          <p class="text-xs text-neutral-500">Cotizá tu selección contra el catálogo vivo de Odoo (sin guardar nada).</p>
+          <button data-cotizar class="mt-2 rounded-full bg-black px-4 py-2 text-sm text-white">Cotizar en servidor</button>
+          <div class="mt-2 text-sm" data-cotizacion aria-live="polite"></div>
+        </div>
       </aside>
     </div>
   </main>
@@ -459,6 +465,64 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         avisaEnviado('No se pudo enviar: ' + (err?.message || 'error de red') + '. Probá por WhatsApp.', false);
       } finally {
         btnEnviar.disabled = false;
+      }
+    });
+
+    // G2: cotización contra Odoo (panel aditivo; el cálculo local no cambia)
+    const btnCotizar = root.querySelector('[data-cotizar]');
+    const cajaCotizacion = root.querySelector('[data-cotizacion]');
+    const formatoUSD = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' });
+    function pintaCotizacion(nodo) {
+      if (!(cajaCotizacion instanceof HTMLElement)) return;
+      cajaCotizacion.innerHTML = '';
+      cajaCotizacion.appendChild(nodo);
+    }
+    function lineaCotizacion(texto, negrita) {
+      const p = document.createElement('p');
+      if (negrita) p.className = 'font-semibold';
+      p.textContent = texto;
+      return p;
+    }
+    btnCotizar?.addEventListener('click', async () => {
+      if (!borradorActual) return;
+      if (!(btnCotizar instanceof HTMLButtonElement)) return;
+      btnCotizar.disabled = true;
+      pintaCotizacion(lineaCotizacion('Cotizando…'));
+      try {
+        const res = await fetch('/api/oficina/cotizar', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            modulos: [...borradorActual.modulos_ancla, ...borradorActual.modulos_futuros],
+            rubro: borradorActual.prospecto?.rubro || 'retail',
+            sku_count: borradorActual.datos?.productos_aprox || 0,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error?.message || ('Error ' + res.status));
+        const q = data.quote ?? {};
+        const caja = document.createElement('div');
+        const precio = q.precio ?? {};
+        if (typeof precio.ancla === 'number') {
+          caja.appendChild(lineaCotizacion('Precio ancla: ' + formatoUSD.format(precio.ancla) + ' (validez ' + (precio.validez_dias ?? '—') + ' días)', true));
+        }
+        if (typeof precio.anticipo_neto === 'number') {
+          caja.appendChild(lineaCotizacion('Anticipo neto: ' + formatoUSD.format(precio.anticipo_neto)));
+        }
+        for (const w of q.warnings ?? []) caja.appendChild(lineaCotizacion('• ' + String(w)));
+        for (const e of q.errors ?? []) {
+          const p = lineaCotizacion('• ' + String(e), true);
+          p.classList.add('text-red-700');
+          caja.appendChild(p);
+        }
+        if (!(q.errors ?? []).length && !(q.warnings ?? []).length) {
+          caja.appendChild(lineaCotizacion('Validado por el servidor, sin observaciones.'));
+        }
+        pintaCotizacion(caja);
+      } catch (err) {
+        pintaCotizacion(lineaCotizacion('No se pudo validar en el servidor (' + (err?.message || 'error de red') + '); el cálculo local sigue valiendo.'));
+      } finally {
+        btnCotizar.disabled = false;
       }
     });
 

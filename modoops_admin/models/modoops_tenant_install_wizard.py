@@ -30,7 +30,7 @@ class ModoopsTenantInstallWizardLine(models.TransientModel):
 
 class ModoopsTenantInstallWizard(models.TransientModel):
     _name = "modoops.tenant.install.wizard"
-    _description = "Instalar/Quitar módulo del Catálogo ModoOps (mock)"
+    _description = "Instalar/Quitar módulo del Catálogo ModoOps (install = job real G7)"
 
     tenant_id = fields.Many2one("modoops.tenant", required=True, readonly=True)
     module_key = fields.Selection(CATALOGO_MODOOPS, string="Módulo Catálogo")
@@ -74,15 +74,18 @@ class ModoopsTenantInstallWizard(models.TransientModel):
             return []
         return [CATALOGO_DICT.get(self.module_key, self.module_key)]
 
-    def action_confirm(self):
-        self.ensure_one()
+    def _collect_keys(self) -> list[str]:
+        if self.line_ids:
+            return [l.module_key for l in self.line_ids]
+        if not self.module_key:
+            return []
+        return [self.module_key]
+
+    def _fail_duplicado(self, labels: list[str]):
         tenant = self.tenant_id
-        labels = self._collect_labels()
-        if not labels:
-            raise UserError(_("Seleccioná al menos un módulo del Catálogo."))
         current = ModulesInstalados.from_csv(tenant.modules_installed)
         try:
-            updated = apply_modules(current, labels, self.action)  # type: ignore[arg-type]
+            apply_modules(current, labels, self.action)  # type: ignore[arg-type]
         except ValueError as e:
             msg = str(e)
             # mapear ValueError puro a mensaje con db_name para compatibilidad
@@ -93,12 +96,33 @@ class ModoopsTenantInstallWizard(models.TransientModel):
                 label = msg.split("'")[1] if "'" in msg else labels[0]
                 raise UserError(_("Módulo '%s' no está instalado en %s.") % (label, tenant.db_name))
             raise UserError(_(msg))
+
+    def action_confirm(self):
+        self.ensure_one()
+        tenant = self.tenant_id
+        labels = self._collect_labels()
+        if not labels:
+            raise UserError(_("Seleccioná al menos un módulo del Catálogo."))
+        # validación fail-fast (duplicados) antes de encolar/ejecutar
+        self._fail_duplicado(labels)
+        if self.action == "install":
+            # G7 real: encola job, el cron instala en la DB tenant. Recién en
+            # hecho se escribe modules_installed. Sin mock.
+            job = self.env["modoops.tenant.install.job"].create(
+                {
+                    "tenant_id": tenant.id,
+                    "module_keys": ",".join(self._collect_keys()),
+                    "notes": self.notes or False,
+                }
+            )
+            tenant._log("install_encolado", f"{','.join(labels)} — job {job.id}")
+            return {"job_id": job.id, "preview_command": self.preview_command, "state": "pendiente"}
+        # remove sigue mock (fuera de alcance G7: desinstalar puede perder datos)
+        current = ModulesInstalados.from_csv(tenant.modules_installed)
+        updated = apply_modules(current, labels, self.action)  # type: ignore[arg-type]
         tenant.write({"modules_installed": updated.to_csv()})
         # logs por cada label (preserva auditoría granular)
         for label in labels:
             tenant._log(self.action, f"{label} (mock) — {self.notes or 'Control Plane'}")
-            if self.action == "install":
-                tenant.message_post(body=_("Mock install %(mod)s en %(db)s — ejecutar: odoo-bin -d %(db)s -i %(mod)s") % {"mod": label, "db": tenant.db_name})
-            else:
-                tenant.message_post(body=_("Mock remove %(mod)s en %(db)s") % {"mod": label, "db": tenant.db_name})
+            tenant.message_post(body=_("Mock remove %(mod)s en %(db)s") % {"mod": label, "db": tenant.db_name})
         return {"type": "ir.actions.act_window_close"}

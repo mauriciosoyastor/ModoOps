@@ -53,7 +53,23 @@ export class OdooAdapter implements BackendClient {
       { jsonrpc: "2.0", params: { model, method, args, kwargs } },
       sessionId
     );
-    const payload = (await res.json()) as JsonRpcResponse<T>;
+    // Polish replay: con sesión muerta Odoo responde 404 HTML (sin DB en
+    // sesión) en vez de JSON-RPC. Eso es credencial muerta (401), no Odoo
+    // caído (503): la red respondió, el que no vale es el session_id.
+    // Odoo caído de verdad sigue siendo fetch-rechazado → 503 en #post.
+    // Solo 401/403/404 = firma de sesión muerta (el 404 HTML "sin DB en
+    // sesión" es el caso replay). Otros 5xx = Odoo roto de verdad: se dejan
+    // pasar al manejo genérico (503), no se disfrazan de sesión expirada.
+    if (res.status === 401 || res.status === 403 || res.status === 404) {
+      throw new BffError("unauthorized", 401, "Sesión expirada");
+    }
+    if (!res.ok) throw new BffError("odoo_unavailable", 503, "Odoo devolvió error");
+    let payload: JsonRpcResponse<T>;
+    try {
+      payload = (await res.json()) as JsonRpcResponse<T>;
+    } catch {
+      throw new BffError("unauthorized", 401, "Sesión inválida");
+    }
     if (payload.error !== undefined) {
       const err = payload.error as { data?: { message?: string; name?: string }; message?: string };
       const msg = err?.data?.message || err?.message || "Odoo error";
@@ -203,7 +219,7 @@ export class OdooAdapter implements BackendClient {
     odooSessionId: string,
     tenantId: number,
     vals: { modules: string[]; action?: "install" | "remove"; notes?: string }
-  ): Promise<{ preview_command: string; modules_installed: string | false }> {
+  ): Promise<import("./backend-client.ts").InstallResult> {
     const modules = (vals.modules || []).map((m) => String(m).trim()).filter(Boolean);
     if (!modules.length) throw new BffError("validation_error", 400, "Seleccioná al menos un módulo");
     const action = vals.action === "remove" ? "remove" : "install";
@@ -217,9 +233,10 @@ export class OdooAdapter implements BackendClient {
       odooSessionId, "modoops.tenant.install.wizard", "search_read", [[[ "id", "=", wizardId ]], ["preview_command"]]
     );
     const preview = String(previewRows[0]?.preview_command || "");
-    // 3) confirm (writes modules_installed + _log)
+    // 3) confirm: install → encola job real; remove → mock legacy
+    let confirm: { job_id?: number; state?: string } | null = null;
     try {
-      await this.#callKw(odooSessionId, "modoops.tenant.install.wizard", "action_confirm", [[wizardId]]);
+      confirm = await this.#callKw(odooSessionId, "modoops.tenant.install.wizard", "action_confirm", [[wizardId]]);
     } catch (e) {
       // surface Odoo UserError verbatim (validation duplicate/not-installed)
       if (e instanceof BffError) throw e;
@@ -228,7 +245,50 @@ export class OdooAdapter implements BackendClient {
     const tenantRows = await this.#callKw<Record<string, unknown>[]>(
       odooSessionId, "modoops.tenant", "search_read", [[[ "id", "=", tenantId ]], ["modules_installed"]]
     );
-    return { preview_command: preview, modules_installed: (tenantRows[0]?.modules_installed as string | false) ?? false };
+    const installed = (tenantRows[0]?.modules_installed as string | false) ?? false;
+    if (confirm && typeof confirm.job_id === "number") {
+      return { preview_command: preview, modules_installed: installed, job_id: confirm.job_id, job_state: String(confirm.state || "pendiente") };
+    }
+    return { preview_command: preview, modules_installed: installed, job_id: null, job_state: "mock" };
+  }
+
+  async getInstallJob(odooSessionId: string, jobId: number): Promise<import("./backend-client.ts").InstallJobStatus | null> {
+    const id = Number(jobId);
+    if (!Number.isInteger(id) || id <= 0) throw new BffError("validation_error", 400, "Job inválido");
+    const rows = await this.#callKw<Record<string, unknown>[]>(
+      odooSessionId, "modoops.tenant.install.job", "search_read",
+      [[[ "id", "=", id ]], ["tenant_id", "module_keys", "tech_modules", "state", "output"]],
+      { limit: 1 }
+    );
+    const r = rows[0];
+    if (!r) return null;
+    const tid = r.tenant_id;
+    return {
+      id,
+      tenant_id: Array.isArray(tid) ? Number(tid[0]) : Number(tid),
+      module_keys: String(r.module_keys || ""),
+      tech_modules: (r.tech_modules as string | false) ?? false,
+      state: String(r.state || ""),
+      output: (r.output as string | false) ?? false,
+    };
+  }
+
+  // G2 puente portal→Odoo: crea wizard transient y corre quote_preview
+  // (sin attachment ni log). El vacuum de Odoo limpia el transient.
+  async quotePreview(
+    odooSessionId: string,
+    vals: import("./backend-client.ts").ConfiguradorWizardVals
+  ): Promise<import("./backend-client.ts").ConfiguradorQuote> {
+    const id = await this.#callKw<number>(odooSessionId, "modoops.configurador.wizard", "create", [{
+      vertical: vals.vertical,
+      modulos_tildados: vals.modulos_tildados,
+      sucursales: vals.sucursales,
+      almacenes: vals.almacenes,
+      cajas_pos: vals.cajas_pos,
+      sku_count: vals.sku_count,
+      ...(vals.anexo_fiscal_ref ? { anexo_fiscal_ref: vals.anexo_fiscal_ref } : {}),
+    }]);
+    return this.#callKw(odooSessionId, "modoops.configurador.wizard", "quote_preview", [[Number(id)]]);
   }
 
   async getLeads(odooSessionId: string, filters: LeadFilters = {}): Promise<LeadRow[]> {
