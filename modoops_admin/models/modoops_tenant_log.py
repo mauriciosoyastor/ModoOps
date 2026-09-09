@@ -23,6 +23,7 @@ class ModoopsTenantLog(models.Model):
             ("baja", "Baja"),
             ("backup", "Backup"),
             ("aviso", "Aviso mora"),
+            ("login_bloqueado", "Login bloqueado"),
             ("configurador_generar", "Configurador — Generar Propuesta"),
         ],
         required=True,

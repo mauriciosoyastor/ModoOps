@@ -54,8 +54,7 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
       );
       if (gate.http !== 200) {
         if (gate.http === 403) {
-          // prototipo: selection sin valor login_* → se audita como "aviso" con prefijo (sin cambio de modelo)
-          await master.auditTenantLog(masterSid, tenant!.id, "aviso", `login_bloqueado ${tenant!.state} — ${login}`).catch(() => {});
+          await master.auditTenantLog(masterSid, tenant!.id, "login_bloqueado", `${tenant!.state} — ${login}`).catch(() => {});
         }
         await tenantBackend.logout(sessionId).catch(() => {});
         if (gate.http === 401) {

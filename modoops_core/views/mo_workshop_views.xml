@@ -114,4 +114,15 @@
         <field name="context">{'default_state': 'draft'}</field>
         <field name="group_ids" eval="[(6, 0, [ref('modoops_core.group_modoops_workshop')])]"/>
     </record>
+
+    <!-- B3 login-tenant-build: puerta de entrada Taller (las acciones existían sin menú) -->
+    <menuitem id="menu_mo_workshop" name="Taller" parent="modoops_core.menu_modoops_root"
+        groups="modoops_core.group_modoops_workshop" sequence="20"/>
+    <menuitem id="menu_mo_work_order" name="Órdenes de trabajo" parent="menu_mo_workshop"
+        action="action_mo_work_order" sequence="10"/>
+    <menuitem id="menu_mo_appliance" name="Artefactos" parent="menu_mo_workshop"
+        action="action_mo_appliance" sequence="20"/>
+    <record id="group_modoops_workshop" model="res.groups">
+        <field name="user_ids" eval="[(4, ref('base.user_admin'))]"/>
+    </record>
 </odoo>
