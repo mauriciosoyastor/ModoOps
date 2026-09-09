@@ -17,6 +17,8 @@ class ModoopsTenantLog(models.Model):
         [
             ("creado", "Creado"),
             ("install", "Instalar módulo"),
+            ("install_encolado", "Install encolado (job G7)"),
+            ("install_error", "Install fallido (job G7)"),
             ("remove", "Quitar módulo"),
             ("suspendido", "Suspendido"),
             ("reactivado", "Reactivado"),

@@ -5,3 +5,4 @@ access_modoops_lead_admin,modoops.lead admin,model_modoops_lead,base.group_syste
 access_modoops_lead_import_wizard_admin,modoops.lead.import.wizard admin,model_modoops_lead_import_wizard,base.group_system,1,1,1,1
 access_modoops_lead_import_line_admin,modoops.lead.import.line admin,model_modoops_lead_import_line,base.group_system,1,1,1,1
 access_modoops_tenant_contrato_admin,modoops.tenant.contrato admin,model_modoops_tenant_contrato,base.group_system,1,1,1,1
+access_modoops_tenant_install_job_admin,modoops.tenant.install.job admin,model_modoops_tenant_install_job,base.group_system,1,1,1,1

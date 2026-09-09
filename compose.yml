@@ -47,6 +47,8 @@ services:
       - ./modoops_admin:/mnt/extra-addons/modoops_admin
       - ./modoops_ia:/mnt/extra-addons/modoops_ia
       - ./modoops_catalogo:/mnt/extra-addons/modoops_catalogo
+      # G2: lógica pura del Configurador para el wizard (quote_preview/action_generar)
+      - ./tools:/mnt/tools:ro
       - odoo_data:/var/lib/odoo
       - ./odoo.conf:/etc/odoo/odoo.conf
     command: --dev=all

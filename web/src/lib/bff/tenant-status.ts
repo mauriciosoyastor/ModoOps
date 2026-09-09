@@ -105,6 +105,15 @@ export type MasterApi = {
   getTenantBySlug(sessionId: string, slug: string): Promise<{ id: number; state: string; abono_due_date: string | false } | null>;
   auditTenantLog(sessionId: string, tenantId: number, action: string, detail?: string): Promise<void>;
   createLead(sessionId: string, vals: Record<string, unknown>): Promise<{ id: number }>;
+  quotePreview(sessionId: string, vals: {
+    vertical: string;
+    modulos_tildados: string;
+    sucursales: number;
+    almacenes: number;
+    cajas_pos: number;
+    sku_count: number;
+    anexo_fiscal_ref?: string;
+  }): Promise<{ lista_cerrada: { key: string; modoops: string }[]; precio: Record<string, unknown>; propuesta: { comercial_md: string; validez: number }; errors: string[]; warnings: string[]; hash: string }>;
   login(login: string, password: string): Promise<{ sessionId: string }>;
   logout(sessionId: string): Promise<void>;
 };
