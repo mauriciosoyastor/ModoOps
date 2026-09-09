@@ -27,10 +27,13 @@ export type SessionEntry = {
   odooSessionId: string;
   session: SessionInfo;
   expiresAt: number;
+  // T3 login-tenant (prototipo): tenant-bound opcional; ausente = sesión master (consultor)
+  db?: string;
+  slug?: string;
 };
 
 export type SessionStore = {
-  create(odooSessionId: string, session: SessionInfo): string;
+  create(odooSessionId: string, session: SessionInfo, opts?: { db?: string; slug?: string }): string;
   get(bffSid: string): SessionEntry | undefined;
   updateSession(
     bffSid: string,
@@ -56,12 +59,14 @@ export class MemorySessionStore implements SessionStore {
     this.#ttlSeconds = resolveTtl(options.ttlSeconds);
   }
 
-  create(odooSessionId: string, session: SessionInfo): string {
+  create(odooSessionId: string, session: SessionInfo, opts: { db?: string; slug?: string } = {}): string {
     const sid = randomUUID();
     this.#map.set(sid, {
       odooSessionId,
       session,
       expiresAt: Date.now() + this.#ttlSeconds * 1000,
+      ...(opts.db ? { db: opts.db } : {}),
+      ...(opts.slug ? { slug: opts.slug } : {}),
     });
     return sid;
   }
@@ -119,12 +124,14 @@ export class FileSessionStore implements SessionStore {
     return join(this.#dir, `${bffSid}.json`);
   }
 
-  create(odooSessionId: string, session: SessionInfo): string {
+  create(odooSessionId: string, session: SessionInfo, opts: { db?: string; slug?: string } = {}): string {
     const sid = randomUUID();
     const entry: SessionEntry = {
       odooSessionId,
       session,
       expiresAt: Date.now() + this.#ttlSeconds * 1000,
+      ...(opts.db ? { db: opts.db } : {}),
+      ...(opts.slug ? { slug: opts.slug } : {}),
     };
     this.#write(sid, entry);
     return sid;
@@ -201,8 +208,8 @@ export function resetSessionStoreCache(): void {
 }
 
 export const sessionStore: SessionStore = {
-  create(odooSessionId, session) {
-    return getSessionStore().create(odooSessionId, session);
+  create(odooSessionId, session, opts) {
+    return getSessionStore().create(odooSessionId, session, opts);
   },
   get(bffSid) {
     return getSessionStore().get(bffSid);

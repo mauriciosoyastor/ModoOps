@@ -150,6 +150,13 @@ export class OdooAdapter implements BackendClient {
     return rows[0] ?? null;
   }
 
+  // T5 login-tenant (prototipo): audita intentos en modoops.tenant.log (aditivo, sin callers previos)
+  async auditTenantLog(odooSessionId: string, tenantId: number, action: string, detail?: string): Promise<void> {
+    await this.#callKw(odooSessionId, "modoops.tenant.log", "create", [
+      { tenant_id: tenantId, action, ...(detail ? { detail: detail.slice(0, 500) } : {}) },
+    ]);
+  }
+
   async createTenant(odooSessionId: string, vals: { name: string; slug?: string; vertical?: string }): Promise<{ id: number }> {
     const name = String(vals.name || "").trim();
     if (!name) throw new BffError("validation_error", 400, "Nombre requerido");

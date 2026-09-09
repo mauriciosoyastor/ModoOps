@@ -47,6 +47,12 @@ _Avoid_: usar “cliente” para prospectos sin contrato.
 **Prospecto**:
 Organización en conversación previa a contrato; el alcance no está congelado hasta firmar.
 
+**Usuario tenant** (empleado):
+Persona que trabaja dentro del negocio Cliente (vendedor, depósito, taller). Entra a su `modoops_<slug>`
+por acceso asignado, ve solo su stack y nunca otros tenants ni el Control Plane. Distinto de **Consultor**
+(ModoOps interno, opera el Control Plane en master) y de **Cliente** (la organización).
+_Avoid_: "usuario" genérico sin decir si es consultor o usuario tenant; empleado viendo otros tenants.
+
 **ModoOps**:
 Marca comercial de sistema de gestión modular. En marketing y propuesta comercial **no se menciona Odoo**; en **anexo técnico y licencia** se explicita que ModoOps corre sobre **Odoo CE 19** + módulos validados. Operativos viven en **Shell Astro BFF + Liquid Glass** sin exponer UI Odoo nativa.
 

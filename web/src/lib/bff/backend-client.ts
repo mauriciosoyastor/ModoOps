@@ -28,6 +28,8 @@ export interface BackendClient {
   getHub(odooSessionId: string, app: string, section?: string): Promise<HubPayload>;
   getTenants(odooSessionId: string): Promise<TenantRow[]>;
   getTenantBySlug(odooSessionId: string, slug: string): Promise<TenantRow | null>;
+  // T5 login-tenant (prototipo): audita intentos en modoops.tenant.log
+  auditTenantLog(odooSessionId: string, tenantId: number, action: string, detail?: string): Promise<void>;
   createTenant(odooSessionId: string, vals: { name: string; slug?: string; vertical?: string }): Promise<{ id: number }>;
   installTenantModules(
     odooSessionId: string,

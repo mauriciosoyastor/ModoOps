@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { BffError } from "../../lib/bff/errors.ts";
-import { getBackend } from "../../lib/bff/get-backend.ts";
+import { getBackend, getBackendForDb } from "../../lib/bff/get-backend.ts";
 import { invalidateBffSession } from "../../lib/bff/http.ts";
 
 
@@ -16,10 +16,13 @@ let odooSessionId: string = _odooH;
 let userName = _sessH?.name || _sessH?.login || "";
 
 const section = Astro.url.searchParams.get("section") || "summary";
+// T3 login-tenant (prototipo): sesión de empleado lee su db; sin tenantDb = master (consultor)
+const tenantDb = (Astro.locals as Record<string, unknown>).tenantDb as string | undefined;
+const backend = tenantDb ? getBackendForDb(tenantDb) : getBackend();
 let payload: Awaited<ReturnType<typeof getBackend.prototype.getHub>> | null = null;
 let hubError = "";
 try {
-  payload = await getBackend().getHub(odooSessionId, app, section);
+  payload = await backend.getHub(odooSessionId, app, section);
 } catch (cause) {
   if (cause instanceof BffError && cause.code === "unauthorized") {
     invalidateBffSession(Astro.cookies);
