@@ -72,6 +72,6 @@ Un **chat configurador** al lado de la oficina: el Prospecto responde ~10 pregun
 
 ## Further Notes
 
-- Abierto que refina sin invalidar: verificación interactiva en browser del prototipo y la página (compilación verificada 2026-09-09: `/oficina`, `/oficina-chat` y `/prototype/oficina-chat` devuelven 200 con `npm install` completo; falta el clic real con `three` en pantalla) y re-corrida del ejemplo con Python funcional antes del build real.
+- Verificación interactiva en browser pendiente del clic real con `three` en pantalla (compilación verificada 2026-09-09: `/oficina`, `/oficina-chat` y `/prototype/oficina-chat` devuelven 200). Ejemplo T3 verificado con Python real 2026-09-09 (`.venv-win` 3.12 + pytest 9.1.1; suites configurador+catálogo 31/31): sin anexo → hard gate fiscal; con `AF-2026-014` → limpio, $800/neto $322.5/addons `[migracion_excel]`, warning techo 125h, hash `51ad31ff818a`, propuesta sin técnicos.
 - Research previo en rama `research/oficina-chat-livebuild`; prototipo descartable en ruta `/prototype/oficina-chat` con densidades por URL.
 - Publicación pendiente: crear el issue GitHub con este contenido y aplicar label `ready-for-agent` al tener `gh auth login`.
