@@ -89,7 +89,7 @@ Borde 1px `midnight-void`, texto negro, transparente. Uso: enlaces secundarios e
 `max-width: var(--content-max)`, padding horizontal 24px (mobile) / 40px (desktop), `padding-block: var(--section-gap)`.
 
 ### Price highlight
-`subheading` + `body-sm` ash gray para “ARS” y notas; precio descubrimiento **$155.000** en `heading` weight 500.
+`subheading` + `body-sm` ash gray para “ARS” y notas; precio descubrimiento **$155 USD** en `heading` weight 500.
 
 ---
 
