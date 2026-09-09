@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -14,6 +15,7 @@ import {
   DEFAULT_SESSION_TTL_SECONDS as _DEFAULT_TTL,
   resolveTtl,
   getSessionTtlSeconds,
+  getSessionSecret,
   resolveStoreKind,
   defaultSessionDir,
 } from "./config.ts";
@@ -195,11 +197,104 @@ let cached: SessionStore | undefined;
 export function getSessionStore(): SessionStore {
   if (!cached) {
     const ttlSeconds = getSessionTtlSeconds();
-    cached = resolveStoreKind() === "file"
-      ? new FileSessionStore({ dir: defaultSessionDir(), ttlSeconds })
-      : new MemorySessionStore({ ttlSeconds });
+    const kind = resolveStoreKind();
+    if (kind === "cookie") {
+      cached = new SignedCookieSessionStore({ secret: getSessionSecret(), ttlSeconds });
+    } else {
+      cached = kind === "file"
+        ? new FileSessionStore({ dir: defaultSessionDir(), ttlSeconds })
+        : new MemorySessionStore({ ttlSeconds });
+    }
   }
   return cached;
+}
+
+/**
+ * Sesión en cookie firmada (G6) — sin estado en servidor: sobrevive a
+ * restarts e instancias serverless. El token ES la sesión (HMAC-SHA256);
+ * la revocación ante suspensión la hace el gate por request (tenant-status),
+ * no el store. Límite: cookies ~4KB (la sesión Odoo es chica: uid/login/db).
+ */
+export type SignedCookieStoreOptions = SessionStoreOptions & {
+  secret: string;
+};
+
+function b64urlEncode(raw: string | Buffer): string {
+  return Buffer.from(raw as string).toString("base64url");
+}
+
+function b64urlDecode(raw: string): Buffer {
+  return Buffer.from(raw, "base64url");
+}
+
+export function sealSession(entry: SessionEntry, secret: string): string {
+  const payload = b64urlEncode(JSON.stringify(entry));
+  const sig = createHmac("sha256", secret).update(payload).digest("base64url");
+  return `v1.${payload}.${sig}`;
+}
+
+export function unsealSession(token: string, secret: string): SessionEntry | undefined {
+  const parts = String(token || "").split(".");
+  if (parts.length !== 3 || parts[0] !== "v1") return undefined;
+  const [, payload, sig] = parts;
+  let expected: string;
+  try {
+    expected = createHmac("sha256", secret).update(payload).digest("base64url");
+  } catch {
+    return undefined;
+  }
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return undefined;
+  let entry: SessionEntry;
+  try {
+    entry = JSON.parse(b64urlDecode(payload).toString("utf8")) as SessionEntry;
+  } catch {
+    return undefined;
+  }
+  if (!entry || typeof entry.odooSessionId !== "string" || typeof entry.session !== "object" || !entry.session) {
+    return undefined;
+  }
+  return entry;
+}
+
+export class SignedCookieSessionStore implements SessionStore {
+  #secret: string;
+  #ttlSeconds: number;
+
+  constructor(options: SignedCookieStoreOptions) {
+    if (!options.secret) throw new Error("SignedCookieSessionStore requiere secret");
+    this.#secret = options.secret;
+    this.#ttlSeconds = resolveTtl(options.ttlSeconds);
+  }
+
+  create(odooSessionId: string, session: SessionInfo, opts: { db?: string; slug?: string } = {}): string {
+    const entry: SessionEntry = {
+      odooSessionId,
+      session,
+      expiresAt: Date.now() + this.#ttlSeconds * 1000,
+      ...(opts.db ? { db: opts.db } : {}),
+      ...(opts.slug ? { slug: opts.slug } : {}),
+    };
+    return sealSession(entry, this.#secret);
+  }
+
+  get(bffSid: string): SessionEntry | undefined {
+    const entry = unsealSession(bffSid, this.#secret);
+    if (!entry) return undefined;
+    if (typeof entry.expiresAt !== "number" || isExpired(entry)) return undefined;
+    return entry;
+  }
+
+  updateSession(): boolean {
+    // Sin estado servidor no hay nada que reescribir: el refresh lo hace un
+    // login nuevo. Nadie lo llama hoy (sin callers); false = no soportado.
+    return false;
+  }
+
+  destroy(): void {
+    // Sin estado: el logout borra la cookie en el cliente (clearBffCookie).
+  }
 }
 
 /** Reset factory cache (tests). */

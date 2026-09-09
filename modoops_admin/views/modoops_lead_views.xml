@@ -27,6 +27,7 @@
                 <field name="nombre" />
                 <field name="telefono" />
                 <field name="categoria" />
+                <field name="fuente" />
                 <field name="estado" widget="badge" decoration-muted="estado=='descartado'" decoration-success="estado=='nuevo'" />
                 <field name="opt_out" />
                 <field name="fecha_captura" />
@@ -50,9 +51,11 @@
                         <field name="telefono" />
                         <field name="email" />
                         <field name="categoria" />
+                        <field name="fuente" />
                         <field name="estado" />
                         <field name="opt_out" />
                         <field name="fecha_captura" />
+                        <field name="borrador_json" readonly="1" />
                     </group>
                 </sheet>
             </form>

@@ -10,6 +10,7 @@ export type LeadRow = {
   estado: "nuevo" | "contactado" | "descartado" | string;
   opt_out: boolean;
   fecha_captura: string | false;
+  fuente: string | false;
 };
 
 export type LeadFilters = {
@@ -27,6 +28,7 @@ export const LEAD_FIELDS = [
   "estado",
   "opt_out",
   "fecha_captura",
+  "fuente",
 ] as const;
 
 type Criterion = [string, string, unknown];

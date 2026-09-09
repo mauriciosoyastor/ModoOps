@@ -77,7 +77,15 @@ try {
               <td>{t.modules_installed_count} {t.modules_installed ? `· ${t.modules_installed}` : ""}</td>
               <td>{t.abono_due_date || "—"}</td>
               <td><a href={`/tenant/${t.slug}/app`} class="mo-btn-sm">Abrir</a></td>
-              <td><button type="button" class="mo-btn-sm" data-install-open data-tenant-id={t.id} data-db={t.db_name}>Instalar</button></td>
+              <td>
+                <button type="button" class="mo-btn-sm" data-install-open data-tenant-id={t.id} data-db={t.db_name}>Instalar</button>
+                {t.state === "activo" ? (
+                  <button type="button" class="mo-btn-sm" data-state data-tenant-id={t.id} data-action="suspend" data-name={t.name}>Suspender</button>
+                ) : null}
+                {t.state === "suspendido" ? (
+                  <button type="button" class="mo-btn-sm" data-state data-tenant-id={t.id} data-action="reactivate" data-name={t.name}>Reactivar</button>
+                ) : null}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -190,6 +198,31 @@ try {
     previewEl.textContent = (data as { preview_command?: string }).preview_command || previewEl.textContent;
     msgEl.textContent = "OK — recargando…";
     setTimeout(() => window.location.reload(), 700);
+  });
+
+  // G10 suspender/reactivar con guardas de Odoo (gracia 7d, UserError verbatim)
+  document.querySelectorAll("[data-state]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const el = btn as HTMLElement;
+      const id = Number(el.dataset.tenantId);
+      const action = String(el.dataset.action || "");
+      const name = String(el.dataset.name || `#${id}`);
+      const verbo = action === "suspend" ? "Suspender (bloquea logins)" : "Reactivar";
+      if (!window.confirm(`${verbo} a ${name}?`)) return;
+      el.setAttribute("disabled", "");
+      try {
+        const res = await fetch("/api/admin/tenants/state", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ id, action }),
+        });
+        const data = await res.json().catch(() => ({})) as { error?: { message?: string } };
+        if (!res.ok) { window.alert(data?.error?.message || "Error"); return; }
+        window.location.reload();
+      } finally {
+        el.removeAttribute("disabled");
+      }
+    });
   });
 </script>
 

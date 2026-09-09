@@ -207,8 +207,10 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <div class="mt-2 flex flex-wrap gap-2">
               <button data-copiar class="rounded-full bg-black px-4 py-2 text-sm text-white">Copiar JSON</button>
               <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-sm text-green-700">Enviar por WhatsApp</a>
+              <button data-enviar class="rounded-full bg-orange-600 px-4 py-2 text-sm text-white">Enviar a ModoOps</button>
             </div>
             <p class="mt-1 text-xs text-neutral-500" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
+            <p class="mt-1 text-xs" data-enviado role="status" hidden></p>
           </div>
         </section>
 
@@ -352,6 +354,8 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     const btnCopiar = root.querySelector('[data-copiar]');
     const linkWa = root.querySelector('[data-whatsapp]');
     const avisoCopiado = root.querySelector('[data-copiado]');
+    const btnEnviar = root.querySelector('[data-enviar]');
+    const avisoEnviado = root.querySelector('[data-enviado]');
     let borradorActual = null;
 
     function pinta() {
@@ -423,6 +427,39 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     });
     linkWa?.addEventListener('click', (e) => {
       if (borradorActual && validarBorrador(borradorActual).length > 0) e.preventDefault();
+    });
+
+    // G1: envío directo al consultor (POST /api/oficina/borrador → modoops.lead)
+    function avisaEnviado(texto, ok) {
+      if (!(avisoEnviado instanceof HTMLElement)) return;
+      avisoEnviado.textContent = texto;
+      avisoEnviado.classList.toggle('text-green-700', !!ok);
+      avisoEnviado.classList.toggle('text-red-700', !ok);
+      avisoEnviado.hidden = false;
+    }
+    btnEnviar?.addEventListener('click', async () => {
+      if (!borradorActual || validarBorrador(borradorActual).length > 0) {
+        document.querySelector('[data-paso="0"]')?.dispatchEvent(new Event('click'));
+        root.querySelector('[data-prospecto="nombre"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      if (!(btnEnviar instanceof HTMLButtonElement)) return;
+      btnEnviar.disabled = true;
+      avisaEnviado('Enviando…', true);
+      try {
+        const res = await fetch('/api/oficina/borrador', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(borradorActual),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error?.message || ('Error ' + res.status));
+        avisaEnviado('¡Recibido! Un consultor te va a contactar. (Lead #' + data.lead_id + ')', true);
+      } catch (err) {
+        avisaEnviado('No se pudo enviar: ' + (err?.message || 'error de red') + '. Probá por WhatsApp.', false);
+      } finally {
+        btnEnviar.disabled = false;
+      }
     });
 
     // Restaura lo guardado en este navegador

@@ -6,6 +6,7 @@ export type BffErrorCode =
   | "validation_error"
   | "forbidden"
   | "checkout_failed"
+  | "misconfigured"
   | "action_failed";
 
 export class BffError extends Error {

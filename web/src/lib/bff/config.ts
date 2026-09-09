@@ -39,12 +39,14 @@ export function resolveTtl(ttlSeconds?: number): number {
   return DEFAULT_SESSION_TTL_SECONDS;
 }
 
-export function resolveStoreKind(env?: BffEnv): "memory" | "file" {
+export function resolveStoreKind(env?: BffEnv): "memory" | "file" | "cookie" {
   const e = env ?? readEnv();
   const raw = (e.BFF_SESSION_STORE || "").toLowerCase();
-  if (raw === "file" || raw === "memory") return raw;
+  if (raw === "file" || raw === "memory" || raw === "cookie") return raw;
   if (typeof process !== "undefined" && process.env.NODE_ENV === "test") return "memory";
-  return "file";
+  // G6: default cookie firmada — sin estado en servidor (serverless-safe).
+  // Sesiones previas file/memory se invalidan una vez (re-login).
+  return "cookie";
 }
 
 export function defaultSessionDir(env?: BffEnv): string {
@@ -72,6 +74,31 @@ export function getRpcTimeoutMs(env?: BffEnv): number {
   const raw = Number(e.ODOO_RPC_TIMEOUT_MS);
   if (Number.isFinite(raw) && raw >= 1000) return Math.floor(raw);
   return 15_000;
+}
+
+/** Secreto HMAC de sesiones cookie (G6). Prod sin secreto = throw (ruidoso).
+ *  Dev sin secreto = efímero por proceso + warn (los restarts invalidan). */
+let warnedEphemeralSecret = false;
+
+export function getSessionSecret(env?: BffEnv): string {
+  const e = env ?? readEnv();
+  const raw = ((e.BFF_SESSION_SECRET as string) || "").trim();
+  if (raw) return raw;
+  const isProd = Boolean((typeof import.meta !== "undefined" ? import.meta.env?.PROD : false) ?? false);
+  if (isProd) {
+    throw new Error("BFF_SESSION_SECRET requerido en producción");
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { randomBytes } = require("node:crypto") as typeof import("node:crypto");
+    if (!warnedEphemeralSecret) {
+      warnedEphemeralSecret = true;
+      console.warn("[bff] BFF_SESSION_SECRET ausente: secreto efímero (los restarts invalidan sesiones)");
+    }
+    return randomBytes(32).toString("hex");
+  } catch {
+    throw new Error("BFF_SESSION_SECRET requerido (sin crypto disponible)");
+  }
 }
 
 export function getOdooEnv(name: "ODOO_URL" | "ODOO_DB" | "ODOO_RPC_TIMEOUT_MS", env?: BffEnv): string | undefined {

@@ -7,7 +7,10 @@ import { invalidateBffSession } from "../../lib/bff/http.ts";
 
 const app = String(Astro.params.app || "");
 const ALLOWED = new Set(["inventory", "sales", "purchase", "accounting", "workshop"]);
-if (!ALLOWED.has(app)) return Astro.redirect("/app");
+// Launcher tenant-aware: el empleado vuelve a su launcher, no al /app del consultor
+const tenantSlug = (Astro.locals as Record<string, unknown>).tenantSlug as string | undefined;
+const launcherHref = tenantSlug ? `/tenant/${tenantSlug}/app` : "/app";
+if (!ALLOWED.has(app)) return Astro.redirect(launcherHref);
 
 const _sessH = (Astro.locals as Record<string, unknown>).session as { name?: string; login?: string } | undefined;
 const _odooH = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
@@ -55,7 +58,7 @@ function accentVar(key: string): string {
         <p class="mo-hub__user">{userName}</p>
       </div>
       <div class="mo-hub__actions">
-        <a href="/app" class="mo-hub__back">← Launcher</a>
+        <a href={launcherHref} class="mo-hub__back">← Launcher</a>
         <button type="button" data-logout class="mo-hub__logout">Cerrar sesión</button>
       </div>
     </header>
@@ -91,10 +94,11 @@ function accentVar(key: string): string {
   </main>
 </BaseLayout>
 
-<script>
+<script define:vars={{ tenantSlug }}>
   document.querySelector("[data-logout]")?.addEventListener("click", async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    window.location.assign("/login");
+    // el empleado vuelve a su puerta; el consultor al login global
+    window.location.assign(tenantSlug ? `/tenant/${tenantSlug}/login` : "/login");
   });
 </script>
 

@@ -1,6 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
 import { BFF_COOKIE } from "./lib/bff/config.ts";
 import { sessionStore } from "./lib/bff/session-store.ts";
+import { getGateCache } from "./lib/bff/tenant-status.ts";
 import { isValidTenantSlug } from "./lib/bff/tenant-slug.ts";
 
 // Deep module seam único para Guardia Auth (locality: 7 guards → 1)
@@ -65,6 +66,25 @@ export const onRequest = defineMiddleware(async (context, next) => {
   (locals as Record<string, unknown>).session = entry.session;
   // T3 login-tenant (prototipo): db tenant-bound opcional; ausente = master
   if (entry.db) (locals as Record<string, unknown>).tenantDb = entry.db;
+  if (entry.slug) (locals as Record<string, unknown>).tenantSlug = entry.slug;
+
+  // Fix G3: re-valida suspensión por request (cache TTL corto). Solo frena
+  // estados no-activo; master caído = fail-open (la sesión ya era válida).
+  if (entry.slug) {
+    const gate = await getGateCache().getGate(entry.slug);
+    if (gate.http !== 200) {
+      sessionStore.destroy(sid);
+      cookies.delete(BFF_COOKIE, { path: "/" });
+      if (pathname.startsWith("/api/")) {
+        const message = gate.http === 403 ? gate.message : "Tenés que iniciar sesión";
+        return new Response(JSON.stringify({ error: { code: "tenant_suspended", message } }), {
+          status: gate.http,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return redirect(`/tenant/${entry.slug}/login?suspendido=1`);
+    }
+  }
 
   return next();
 });
