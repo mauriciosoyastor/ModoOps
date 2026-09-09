@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_modoops_lead_purge" model="ir.cron">
+        <field name="name">ModoOps: purga leads vencidos + opt-out</field>
+        <field name="model_id" ref="model_modoops_lead"/>
+        <field name="state">code</field>
+        <field name="code">model.purge_expired_leads()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

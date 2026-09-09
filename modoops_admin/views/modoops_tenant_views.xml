@@ -32,6 +32,9 @@
                 <field name="modules_installed_count" string="Módulos #"/>
                 <field name="abono_due_date"/>
                 <field name="suspend_grace_until"/>
+                <field name="contrato_count" string="Contratos #"/>
+                <field name="situacion" string="Situación"/>
+                <field name="saldo_pendiente_usd" string="Saldo USD"/>
                 <field name="last_backup"/>
             </list>
         </field>
@@ -45,6 +48,7 @@
                 <header>
                     <button name="action_install_module" type="object" string="Instalar/Quitar módulo" icon="fa-cogs" class="oe_highlight"/>
                     <button name="action_suspend" type="object" string="Suspender (mora)" icon="fa-ban" confirm="¿Confirmar Suspender? Día 8 de mora, gracia vencida. WhatsApp avisado día 1 y 5." invisible="state != 'activo'"/>
+                    <button name="action_enviar_aviso_mora" type="object" string="Avisar mora WhatsApp" icon="fa-whatsapp" invisible="state != 'activo'"/>
                     <button name="action_reactivate" type="object" string="Reactivar" icon="fa-check" invisible="state != 'suspendido'"/>
                     <button name="action_mark_baja" type="object" string="Baja (backup final)" icon="fa-trash" confirm="¿Baja definitiva día 15? Requiere backup final y confirmación explícita. No borra DB automáticamente." invisible="state != 'suspendido'" class="oe_highlight"/>
                 </header>
@@ -63,6 +67,7 @@
                             <field name="state" widget="badge" decoration-success="state=='activo'"/>
                         </group>
                         <group string="Gestión">
+                            <field name="phone"/>
                             <field name="abono_due_date"/>
                             <field name="suspend_grace_until" readonly="1"/>
                             <field name="last_warning_sent"/>
@@ -77,6 +82,25 @@
                                 <div class="text-muted">Solo Catálogo ModoOps. Wizard valida dependencias; preview odoo-bin -d &lt;tenant&gt; -i &lt;modulo&gt;. Mock escribe modules_installed + log.</div>
                             </group>
                             <div class="text-muted">Cards Ancla/Add-on con validación module_required / depends en wizard.</div>
+                        </page>
+                        <page string="Contratos" name="contratos">
+                            <div class="alert alert-info" role="alert">Análisis por contrato: situación, saldo 50%, hitos, fiscal y PDF firmado. Sin anticipo no inicia Fase 1.</div>
+                            <field name="contrato_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="tipo"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="situacion"/>
+                                    <field name="saldo_usd"/>
+                                    <field name="saldo_cobrado"/>
+                                    <field name="hito2_ok"/>
+                                </list>
+                            </field>
+                            <group>
+                                <field name="contrato_count" readonly="1"/>
+                                <field name="situacion" readonly="1"/>
+                                <field name="saldo_pendiente_usd" readonly="1"/>
+                            </group>
                         </page>
                         <page string="Logs" name="logs">
                             <div class="alert alert-info" role="alert">Logs auditados en <code>modoops.tenant.log</code> — filtra por tenant/acción, export CSV.</div>

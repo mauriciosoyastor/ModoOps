@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { decide } from '../../../../../lib/orquestador/decide.ts';
 import { createEnvApiKeyValidator, createEnvSuspensionChecker, createMemoryQuotaStore, createMemoryRateLimiter, getEnv } from '../../../../../lib/orquestador/adapters.ts';
+import { callLLM } from '../../../../../lib/orquestador/llm.ts';
 
 export const prerender = false;
 
@@ -35,8 +36,17 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     return json(400, { status: 'error', code: 'invalid_json', error: 'JSON inválido' });
   }
 
-  const { tool, input, requestId } = body as { tool?: string; input?: unknown; requestId?: string };
+  let { tool, input, requestId, message } = body as { tool?: string; input?: unknown; requestId?: string; message?: string };
   const apiKey = getApiKey(request, body);
+
+  // LLM hidratación: si viene message sin tool, resuelve tool/input via Ollama/mock (free)
+  let llmSource: string | null = null;
+  if (!tool && typeof message === "string" && message.trim()) {
+    const llm = await callLLM(message);
+    tool = llm.tool;
+    input = llm.input;
+    llmSource = llm.source;
+  }
 
   // env single parser (locality: no duplicar getEnv en 2 archivos)
   const env = getEnv(locals);
@@ -89,7 +99,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     return json(422, { status: 'needs_tool', code: 'fiscal_not_enabled', error: 'Fiscal no habilitado', output, runId });
   }
 
-  const output = { echo: input, tenantDb: db, tool, runId };
+  const output = { echo: input, tenantDb: db, tool, runId, ...(llmSource ? { llmSource, message } : {}) };
   idempotentMap.set(idemKey, { runId, output, status: 'ok' });
-  return json(200, { status: 'ok', output, runId });
+  return json(200, { status: 'ok', output, runId, ...(llmSource ? { llmSource } : {}) });
 };

@@ -1,6 +1,7 @@
 import type { BackendClient } from "./backend-client.ts";
 import { BffError } from "./errors.ts";
 import type { HubPayload, LauncherPayload, SessionInfo } from "./types.ts";
+import { LEAD_FIELDS, buildLeadDomain, type LeadFilters, type LeadRow } from "./leads.ts";
 
 type JsonRpcResponse<T> = { result?: T; error?: unknown };
 
@@ -134,7 +135,7 @@ export class OdooAdapter implements BackendClient {
   async getTenants(odooSessionId: string): Promise<import("./backend-client.ts").TenantRow[]> {
     return this.#callKw(odooSessionId, "modoops.tenant", "search_read", [
       [],
-      ["id", "name", "db_name", "slug", "vertical", "state", "abono_due_date", "suspend_grace_until", "modules_installed", "modules_installed_count"],
+      ["id", "name", "db_name", "slug", "vertical", "state", "abono_due_date", "suspend_grace_until", "modules_installed", "modules_installed_count", "phone", "situacion", "contrato_count", "saldo_pendiente_usd"],
     ], { order: "name asc" });
   }
 
@@ -143,7 +144,7 @@ export class OdooAdapter implements BackendClient {
       odooSessionId,
       "modoops.tenant",
       "search_read",
-      [[["slug", "=", slug]], ["id", "name", "db_name", "slug", "vertical", "state", "abono_due_date", "suspend_grace_until", "modules_installed", "modules_installed_count"]],
+      [[["slug", "=", slug]], ["id", "name", "db_name", "slug", "vertical", "state", "abono_due_date", "suspend_grace_until", "modules_installed", "modules_installed_count", "phone", "situacion", "contrato_count", "saldo_pendiente_usd"]],
       { limit: 1 }
     );
     return rows[0] ?? null;
@@ -188,5 +189,24 @@ export class OdooAdapter implements BackendClient {
       odooSessionId, "modoops.tenant", "search_read", [[[ "id", "=", tenantId ]], ["modules_installed"]]
     );
     return { preview_command: preview, modules_installed: (tenantRows[0]?.modules_installed as string | false) ?? false };
+  }
+
+  async getLeads(odooSessionId: string, filters: LeadFilters = {}): Promise<LeadRow[]> {
+    return this.#callKw(odooSessionId, "modoops.lead", "search_read", [
+      buildLeadDomain(filters),
+      [...LEAD_FIELDS],
+    ], { order: "fecha_captura desc, id desc", limit: 200 });
+  }
+
+  async optOutLead(odooSessionId: string, leadId: number): Promise<{ ok: true }> {
+    const id = Number(leadId);
+    if (!Number.isInteger(id) || id <= 0) throw new BffError("validation_error", 400, "Lead inválido");
+    await this.#callKw(odooSessionId, "modoops.lead", "action_opt_out", [[id]]);
+    return { ok: true };
+  }
+
+  async purgeLeads(odooSessionId: string): Promise<{ purged: number }> {
+    const purged = await this.#callKw<number>(odooSessionId, "modoops.lead", "purge_expired_leads", [[]]);
+    return { purged: Number(purged) || 0 };
   }
 }

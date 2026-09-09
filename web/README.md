@@ -34,7 +34,7 @@ Scripts que **no** reintroducir (causan conflictos entre ramas):
 - Build command que salte el root y no instale `web`
 
 ## Contacto
-Sin Formspree en v1 — `mailto:consultoria.matasini@gmail.com` + WhatsApp `+54 9 354 753-2008` directo (ver `src/data/business.ts`).
+Sin Formspree en v1 — `mailto:mauriciomatasini27@gmail.com` + WhatsApp `+54 9 354 753-2008` directo (ver `src/data/business.ts`).
 
 ## Pendiente
 - [ ] `site` en `astro.config.mjs` → dominio final (hoy preview Workers)

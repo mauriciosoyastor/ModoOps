@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_modoops_lead_import_wizard_form" model="ir.ui.view">
+        <field name="name">modoops.lead.import.wizard.form</field>
+        <field name="model">modoops.lead.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Importar leads CSV">
+                <field name="state" invisible="1" />
+                <group string="Archivo" invisible="state != 'upload'">
+                    <field name="filename" />
+                    <field name="file_data" filename="filename" />
+                    <button name="action_parse_preview" string="Vista previa" type="object" class="oe_highlight" />
+                </group>
+                <group string="Preview" invisible="state != 'preview'">
+                    <field name="discarded_text" string="Columnas descartadas" />
+                    <field name="line_ids" />
+                    <button name="action_apply" string="Confirmar guardado" type="object" class="oe_highlight" />
+                </group>
+                <group string="Listo" invisible="state != 'done'">
+                    <field name="created_count" string="Leads creados" />
+                    <field name="message" />
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_modoops_lead_import_line_list" model="ir.ui.view">
+        <field name="name">modoops.lead.import.line.list</field>
+        <field name="model">modoops.lead.import.line</field>
+        <field name="arch" type="xml">
+            <list string="Filas" create="0" edit="0">
+                <field name="selected" />
+                <field name="line_number" />
+                <field name="nombre" />
+                <field name="telefono" />
+                <field name="categoria" />
+                <field name="estado" />
+            </list>
+        </field>
+    </record>
+
+    <record id="action_modoops_lead_import" model="ir.actions.act_window">
+        <field name="name">Importar leads CSV</field>
+        <field name="res_model">modoops.lead.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_modoops_leads_import" name="Importar CSV" parent="menu_modoops_leads" action="action_modoops_lead_import" sequence="10" />
+</odoo>

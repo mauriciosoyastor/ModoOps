@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.5; color: #111; }
+  h1 { font-size: 16pt; text-align: center; margin-bottom: 4px; }
+  h2 { font-size: 12pt; margin-top: 22px; border-bottom: 1px solid #999; padding-bottom: 4px; }
+  h3 { font-size: 11pt; margin-top: 14px; }
+  .sub { text-align: center; color: #444; font-size: 10pt; margin-bottom: 20px; }
+  .firma { margin-top: 40px; display: flex; justify-content: space-between; }
+  .firma div { width: 45%; border-top: 1px solid #000; padding-top: 6px; font-size: 10pt; }
+  ul { margin-top: 4px; }
+  li { margin-bottom: 3px; }
+  .box { border: 1px solid #999; padding: 10px 12px; margin: 10px 0; background: #f9f9f9; }
+  .warn { border: 2px solid #000; padding: 10px 12px; margin: 10px 0; background: #fffbe6; }
+  .small { font-size: 9.5pt; color: #333; }
+  .pagebreak { page-break-before: always; }
+  table.check { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
+  table.check td { border: 1px solid #aaa; padding: 5px 8px; }
+</style>
+</head>
+<body>
+
+<h1>CONTRATO DE LOCACIÓN DE SERVICIOS<br>IMPLEMENTACIÓN MODOOPS + ABONO DE MANTENIMIENTO</h1>
+<p class="sub">Contrato de servicios – Implementación + mantenimiento · v3 (08/09/2026)</p>
+
+<p>En Alta Gracia, Córdoba, a los [________] días del mes de [________] de 2026, entre:</p>
+
+<p><b>EL LOCADOR:</b> MATASINI Mauricio Nahuel, DNI 36.119.160, CUIT 23-36119160-9, Monotributista prestador de servicios inscripto en ARCA, domicilio Uruguay 1660, Alta Gracia, Córdoba, Cel 3547532008, email mauriciomatasini27@gmail.com, en adelante EL LOCADOR.</p>
+
+<p><b>EL LOCATARIO:</b> Nombre / Razón Social: [________], DNI/CUIT: [________], domicilio: [________], email: [________], tel: [________], representante: [________], en adelante EL LOCATARIO.</p>
+
+<p>Cada parte constituye domicilio electrónico en el email del encabezado. Los avisos a esos emails valen como notificación fehaciente.</p>
+
+<h2>1. OBJETO</h2>
+<ul>
+<li>1.1. Implementación de ModoOps – Sistema de Gestión Modular según Anexo A (lista cerrada, no "todo Odoo").</li>
+<li>1.2. Go-live (puesta en producción: encender el sistema en el establecimiento del LOCATARIO, una puesta incluida) + hipercare (10 días hábiles para arreglar fallas de lo incluido, gratis) + capacitación.</li>
+<li>1.3. Soporte posterior por Abono Mensual.</li>
+<li>1.4. Contrato entre independientes. No existe relación de dependencia laboral (Ley 20.744).</li>
+</ul>
+
+<h2>2. DEFINICIONES (Terminología acordada)</h2>
+<ul>
+<li><b>Paquete ancla:</b> implementación a precio fijo ($800 USD) por alcance cerrado del Anexo A.</li>
+<li><b>Hito:</b> aceptación formal con acta firmada que destraba un pago. Sin firma no hay pago.</li>
+<li><b>Go-live (puesta en producción):</b> encender el sistema en el establecimiento del LOCATARIO. Una puesta incluida.</li>
+<li><b>Hipercare (10 días hábiles para arreglar fallas de lo incluido, gratis):</b> solo bugs de gravedad alta/media sin workaround del alcance aceptado.</li>
+<li><b>Staging (ambiente de prueba):</b> copia del sistema donde se prueba antes de producción. Producción no es laboratorio.</li>
+<li><b>Bug:</b> falla respecto al alcance aceptado y documentado.</li>
+<li><b>Cambio:</b> todo lo fuera de alcance. Se cotiza y requiere la aprobación escrita previa del LOCATARIO.</li>
+<li><b>Add-on:</b> trabajo fuera del ancla con precio propio (ej. módulo extra $150 USD).</li>
+<li><b>Best effort:</b> esfuerzo razonable en horario comercial, sin horas garantizadas.</li>
+<li><b>Ajuste técnico:</b> hasta 8h incluidas (vistas, campos simples, automatizaciones livianas, parametrización fina).</li>
+<li><b>Capacitación:</b> hasta 6h incluidas.</li>
+</ul>
+
+<h2>3. ALCANCE – ANEXO A (lista cerrada)</h2>
+<ul>
+<li>3.1. El Anexo A define la lista cerrada: Mostrador hasta 2 cajas en 1 sucursal, Depósito Inteligente 1 almacén, Compras, Facturación electrónica estándar, Contabilidad operativa, Contactos, ~5 usuarios, 1 lista de precios, variantes hasta 2 atributos, ajustes 8h, capacitación 6h.</li>
+<li>3.2. Queda excluido salvo Add-on con precio escrito: CRM, web/eCommerce, MRP, multi-sucursal/almacén, B2B avanzado, integraciones externas, migración histórica, fiscal fuera de estándar.</li>
+<li>3.3. El precio fijo es por alcance, no por horas ilimitadas. Superadas las 8h de ajustes, o un pedido fuera de lista = Cambio/Add-on con presupuesto previo escrito.</li>
+<li>3.4. Hito 1 (núcleo en staging) destraba el 25% contra acta Hito 1 firmada. Hito 2 (producción) destraba el 25% final contra acta Hito 2 firmada. Todo destrabe requiere firma.</li>
+</ul>
+
+<h2>4. FACTURACIÓN ELECTRÓNICA</h2>
+<ul>
+<li>4.1. El ancla no promete comprobantes salvo la lista explícita del Anexo B, que se cierra durante la implementación antes del go-live.</li>
+<li>4.2. Sin Anexo B firmado + prueba en staging no hay puesta en producción ni emisión real.</li>
+<li>4.3. Los certificados y puntos de venta de prueba deben ser provistos por EL LOCATARIO (o su contador). Si la validación se demora, la fecha se reprograma sin penalidad.</li>
+<li>4.4. Ventana de coordinación fiscal incluida: 2 semanas hábiles desde el Hito 1. Después, el seguimiento por demora atribuible al LOCATARIO se cotiza.</li>
+<li>4.5. Devoluciones y notas de crédito quedan fuera del ancla salvo lista explícita en el Anexo B.</li>
+</ul>
+
+<h2>5. PRECIO IMPLEMENTACIÓN – 50% / 25% / 25%</h2>
+<ul>
+<li>5.1. Precio fijo total: $800 USD (ancla). Propuesta válida por 20 días.</li>
+<li>5.2. 50% de anticipo ($400 USD) para iniciar. El alta de trabajo se confirma con la transferencia del 50%: reserva de fecha e inicio del plazo. Sin acreditación no corre plazo.</li>
+<li>5.3. 25% ($200 USD) contra Hito 1 en staging + acta Hito 1 firmada.</li>
+<li>5.4. 25% final ($200 USD) contra go-live + acta Hito 2 firmada.</li>
+<li>5.5. Moneda de pago: USD. Si EL LOCATARIO solicita el pago en ARS, se aplicará el tipo de cambio [ESPECIFICAR: ej. Dólar MEP / BNA Vendedor] del día de emisión de la factura (se detallará en la misma). Solo una moneda por factura.</li>
+<li>5.6. Recargo por demora: 0,17% diario (≈5% mensual) sobre el monto vencido, computado desde el vencimiento hasta el efectivo pago. Sin capitalización.</li>
+<li>5.7. Pago mediante transferencia a cuenta en dólares Mercado Pago – Banco Industrial BIND: Alias <b>iluso.pared.reasume</b>, CBU <b>3220001888034741040018</b>, titular Mauricio Nahuel Matasini Turri. Por cada cobro se emite Factura C.</li>
+</ul>
+<div class="warn"><b>⚠ AVISO: Sin la transferencia del anticipo del 50% no hay fecha reservada ni plazo corriendo. Cada pago se destraba únicamente con acta firmada.</b></div>
+
+<h2>6. OBLIGACIONES DEL LOCATARIO</h2>
+<p>Proveer accesos, internet, PC/cajas, datos en plantilla, tiempo para capacitación y la disponibilidad de su contador a tiempo para el Anexo B. Si EL LOCATARIO no realiza las entregas pertinentes, el plazo se desplaza sin penalidad para EL LOCADOR. Plazo máximo de implementación: 3 semanas a contar desde el pago del anticipo y la entrega de accesos.</p>
+
+<h2>7. CAMBIOS Y AGREGADOS</h2>
+<p>Hora adicional $12 USD/h. Día $55 USD. Módulo fuera del ancla $150 USD. Referencias: Migración de catálogo hasta 500 ítems $150 USD, B2B básico $150 USD, integración desde $110 USD (mín. 2 días). Todo sujeto a aprobación escrita previa del LOCATARIO. No se admiten modificaciones "de palabra".</p>
+
+<h2>8. GARANTÍA – HIPERCARE</h2>
+<p>Durante 10 días hábiles post go-live: se corregirán sin costo únicamente fallas de los ítems incluidos en el Anexo A (gravedad alta/media sin workaround). Esta garantía no cubre mal uso, datos cargados por EL LOCATARIO, fallas en la conexión a internet o equipos del LOCATARIO, servicios de terceros, ni lo expresamente excluido en este contrato. Finalizado el hipercare, el soporte se regirá solo mediante abono.</p>
+
+<h2>9. ABONO MENSUAL – PAGO 1 AL 10</h2>
+<ul>
+<li>9.1. Primer mes post-hipercare: acompañamiento best effort en horario comercial, sin bolsa de horas.</li>
+<li>9.2. Desde el mes 2: Abono $50 USD/mes que incluye 4h/mes + best effort en bugs. Las horas no utilizadas vencen en el mes (no son acumulables). Los cambios adicionales se cotizan.</li>
+<li>9.3. Vencimiento del 1 al 10 de cada mes. Se emite Factura C el día 1.</li>
+<li>9.4. Vencido el día 10: se enviará aviso por WhatsApp y email detallando el monto más el recargo (0,17% diario).</li>
+<li>9.5. Se otorgan 7 días corridos de gracia desde el aviso. Ante la falta de pago: se suspende el servicio (solo lectura, sin borrado de datos, IA bloqueada).</li>
+<li>9.6. Abonando el capital + recargo → rehabilitación del servicio dentro de la jornada.</li>
+<li>9.7. A los 15 días corridos de suspensión: se realiza backup final y baja del servicio. El mes suspendido no se cobra. Costo de re-alta = $55 USD.</li>
+<li>9.8. Sin abono vigente: no se brindará soporte reactivo, procediendo únicamente mediante trabajos puntuales previamente cotizados.</li>
+<li>9.9. Actualización de tarifa: El valor del abono mensual podrá ser actualizado por EL LOCADOR mediante notificación previa cursada por correo electrónico o WhatsApp con una anticipación mínima de treinta (30) días corridos a su entrada en vigencia. Si EL LOCATARIO no estuviera de acuerdo con el nuevo monto, podrá rescindir el servicio de abono sin penalidad alguna antes de la fecha de aplicación del aumento, de conformidad con la cláusula 13.4.</li>
+</ul>
+<div class="warn"><b>⚠ AVISO: Abonando del 1 al 10 el servicio continúa con normalidad. A los 7 días de avisado el impago, se pausa el sistema (solo lectura, sin pérdida de datos). A los 15 días se procede a la baja con entrega de backup.</b></div>
+
+<h2>10. PROPIEDAD INTELECTUAL</h2>
+<p>ModoOps, los scripts y desarrollos del LOCADOR siguen siendo propiedad exclusiva del LOCADOR, salvo cesión expresa y escrita con pago total. EL LOCATARIO recibe una licencia de uso intransferible en su espacio de trabajo ModoOps (tenant modoops_[________]) mientras se encuentre al día con los pagos. Los componentes de terceros de código abierto (incluido Odoo CE, en la versión acordada en el Anexo A) se rigen por sus respectivas licencias.</p>
+
+<h2>11. CONFIDENCIALIDAD Y DATOS (Ley 25.326)</h2>
+<ul>
+<li>11.1. Deber de confidencialidad por 3 años posteriores a la finalización del contrato.</li>
+<li>11.2. Los datos de la operación pertenecen exclusivamente al LOCATARIO: no se venden ni se comparten. Finalidad: operar la gestión en el tenant. Responsabilidad: EL LOCADOR actúa únicamente como encargado de tratamiento.</li>
+<li>11.3. EL LOCATARIO podrá ejercer los derechos de acceso, rectificación y supresión de sus datos (derechos ARCO) dirigiendo su solicitud al email del encabezado. Medidas de seguridad y backup según la cláusula 12. La memoria de Inteligencia Artificial en el tenant posee una retención de 90 días.</li>
+</ul>
+
+<h2>12. INFRAESTRUCTURA Y LÍMITE DE RESPONSABILIDAD</h2>
+<p>No se otorga garantía de disponibilidad salvo anexo escrito. Si la infraestructura pertenece al LOCATARIO: EL LOCADOR diagnosticará y coordinará, pero no reparará el hosting del LOCATARIO. Si se utiliza la central ModoOps: se realizará copia de seguridad diaria. La responsabilidad del LOCADOR se limita al monto abonado por el paquete ancla, excluyéndose daños indirectos o lucro cesante, salvo dolo.</p>
+
+<h2>13. PLAZO Y RESCISIÓN</h2>
+<ul>
+<li>13.1. Plazo máximo de implementación: 3 semanas a partir del pago del anticipo del 50% y la entrega de accesos.</li>
+<li>13.2. Si EL LOCATARIO rescinde sin causa: deberá abonar el avance ejecutado y los hitos aceptados. El anticipo se imputará primero a lo ejecutado, sin devolución de lo ya trabajado. En caso de anticipo sin inicio de tareas, procederá su devolución.</li>
+<li>13.3. Si EL LOCADOR rescinde sin causa: devolverá la parte proporcional no ejecutada.</li>
+<li>13.4. Abono de mantenimiento: puede rescindirse mes a mes cursando aviso fehaciente antes del día 20 del mes en curso.</li>
+<li>13.5. Incumplimiento grave: requerirá reclamo escrito otorgando 10 días hábiles para subsanar; vencido dicho plazo, procederá la resolución del contrato.</li>
+</ul>
+
+<h2>14. JURISDICCIÓN</h2>
+<p>Para cualquier controversia, las partes se someten a los Tribunales Ordinarios de la ciudad de Alta Gracia, Provincia de Córdoba. Los domicilios físicos y electrónicos indicados en el encabezado son válidos para cualquier notificación.</p>
+
+<h2>15. ANEXOS</h2>
+<ul>
+<li>A. Alcance / lista cerrada + checklists y actas (Hito 1 y Hito 2).</li>
+<li>B. Fiscal (comprobantes, se cierra antes del go-live).</li>
+</ul>
+
+<div class="firma">
+<div>EL LOCADOR<br><br>__________<br>Aclaración, DNI, fecha</div>
+<div>EL LOCATARIO<br><br>__________<br>Aclaración, DNI, fecha</div>
+</div>
+
+<div class="pagebreak"></div>
+
+<h1>ANEXO A – ALCANCE CERRADO MODOOPS</h1>
+<p class="sub">Forma parte integral del contrato firmado – LOCATARIO: [________] Fecha: [________] – Propuesta válida por 20 días hasta el [________]<br>Espacio de trabajo: modoops_[________] – Infraestructura: [propia / central ModoOps]</p>
+
+<h3>A1. Módulos incluidos (lista cerrada)</h3>
+<ul>
+<li>Mostrador (POS) – hasta 2 cajas, 1 sucursal: [________]</li>
+<li>Depósito Inteligente (Stock) – 1 almacén: [________]</li>
+<li>Compras – proveedores + OC básicas</li>
+<li>Facturación electrónica estándar – comprobantes según Anexo B, validados con el contador del LOCATARIO</li>
+<li>Contabilidad operativa ligada a ventas/compras (no incluye el cierre mensual de estudio contable)</li>
+<li>Contactos – clientes/proveedores básicos</li>
+<li>Odoo CE – versión acordada: [________]</li>
+<li>Ajustes específicos acordados: [________]</li>
+</ul>
+
+<h3>A2. Parámetros incluidos</h3>
+<ul>
+<li>Cajas: [1 / 2] – IDs: [________]</li>
+<li>Usuarios base: hasta 5 – perfiles: [________]</li>
+<li>Lista precios venta: 1 + promociones simples: [________]</li>
+<li>Catálogo: carga manual (piloto: [________]) / Migración Add-on $150 hasta 500 ítems [SI / NO]</li>
+<li>Variantes: hasta 2 atributos: [________]</li>
+<li>Ajustes técnicos: 8h incluidas</li>
+<li>Capacitación: 6h incluidas – modalidad [presencial / remota] fecha: [________]</li>
+<li>Infraestructura: [propia / central ModoOps Fase 1]</li>
+</ul>
+<p class="small">Superadas las 8h de ajustes o pedido fuera de lista = trabajo adicional con presupuesto previo escrito. Hora adicional $12 USD/h. Día $55 USD.</p>
+
+<h3>A3. Excluido de forma expresa (= Add-on)</h3>
+<p>CRM, web/eCommerce, MRP, multi-sucursal/almacén, B2B avanzado ($150 USD), integraciones (desde $110 USD, mín. 2 días), histórico de años anteriores, percepciones/retenciones complejas, multi-moneda, exportaciones.</p>
+
+<h3>A4. Hito 1 – Núcleo en staging – destraba el 25%</h3>
+<p>Fecha objetivo: [________]</p>
+<table class="check">
+<tr><td>☐</td><td>Sistema instalado en ambiente de prueba</td></tr>
+<tr><td>☐</td><td>Catálogo piloto / migración validada</td></tr>
+<tr><td>☐</td><td>Compra → recepción en 1 almacén OK</td></tr>
+<tr><td>☐</td><td>Venta en cada caja descuenta stock OK</td></tr>
+<tr><td>☐</td><td>Usuarios y permisos OK</td></tr>
+<tr><td>☐</td><td>Contabilidad operativa en prueba OK (sin emisión real)</td></tr>
+</table>
+<p class="small">Se destraba únicamente con el acta Hito 1 firmada. Firma: [________]</p>
+
+<h3>A5. Hito 2 – Puesta en producción + hipercare – destraba el 25% final</h3>
+<p>Fecha objetivo: [________]</p>
+<table class="check">
+<tr><td>☐</td><td>Puesta en producción (una incluida)</td></tr>
+<tr><td>☐</td><td>Anexo B fiscal cerrado con el contador del LOCATARIO + prueba OK</td></tr>
+<tr><td>☐</td><td>Caja operativa en producción</td></tr>
+<tr><td>☐</td><td>Compras e inventario operativos</td></tr>
+<tr><td>☐</td><td>Capacitación 6h dictada el [________] o plan remanente firmado</td></tr>
+<tr><td>☐</td><td>Infraestructura revisada (copia de seguridad, accesos)</td></tr>
+<tr><td>☐</td><td>Inicio hipercare 10 días hábiles desde el [________] hasta el [________]</td></tr>
+</table>
+<p>Firma LOCATARIO: [________] Firma LOCADOR: [________]</p>
+
+<div class="pagebreak"></div>
+
+<h1>ACTA DE ACEPTACIÓN HITO 1 – 25%</h1>
+<div class="box">
+<p>En [________], a los [________] días del mes de [________] de 2026, EL LOCADOR y EL LOCATARIO dejan constancia:<br>
+1. Hito 1 cumplido según checklist A4. Fallas menores pendientes (si no hay, "ninguna"): [________].<br>
+2. Con la presente firma, EL LOCATARIO acepta el núcleo en staging.<br>
+3. Se habilita facturación del 25%: [$200 USD – ARS equivalente Tipo de Cambio [________]], a cuenta Alias <b>iluso.pared.reasume</b> / CBU <b>3220001888034741040018</b>, contra Factura C N° [________].<br>
+4. Todo destrabe requiere firma (v2: sin silencio=aceptación).</p>
+</div>
+<div class="firma">
+<div>Firma LOCATARIO: [________]</div>
+<div>Firma LOCADOR: [________]</div>
+</div>
+
+<h1>ACTA DE ACEPTACIÓN HITO 2 Y COBRO FINAL – 25%</h1>
+<div class="box">
+<p>En [________], a los [________] días del mes de [________] de 2026, EL LOCADOR y EL LOCATARIO dejan constancia:<br>
+1. Hito 2 cumplido según checklist A5. Fallas menores pendientes (si no hay, "ninguna"): [________].<br>
+2. Con la presente firma, EL LOCATARIO acepta el sistema en producción e inicia el período de hipercare hasta el [________].<br>
+3. Se habilita facturación del 25% final: [$200 USD – ARS equivalente Tipo de Cambio [________]], a cuenta Alias <b>iluso.pared.reasume</b> / CBU <b>3220001888034741040018</b>, contra Factura C N° [________].<br>
+4. Desde el [________] rige el mes de acompañamiento, y desde el [________] corre el abono mensual de $50 USD con vencimiento del 1 al 10 según la cláusula 9.<br>
+5. Pendientes fuera de alcance: [________] se presupuestan aparte, no frenan el pago.<br>
+6. Todo destrabe requiere firma (v2: sin silencio=aceptación).</p>
+</div>
+<div class="firma">
+<div>Firma LOCATARIO: [________]</div>
+<div>Firma LOCADOR: [________]</div>
+</div>
+<p class="small" style="margin-top:20px;">(Instrucción operativa: Enviar por WhatsApp + email el día de cada hito, pedir foto firmada o firma digital)</p>
+
+<div class="pagebreak"></div>
+
+<h1>ANEXO B – CONFIGURACIÓN FISCAL Y FACTURACIÓN ELECTRÓNICA</h1>
+<p class="sub">Forma parte integral del contrato firmado – LOCATARIO: [________] Fecha de cierre de Anexo: [________]<br>Este anexo debe estar completo y firmado previo al Go-Live (Hito 2).</p>
+
+<h3>B1. Datos Fiscales del LOCATARIO (Titular del sistema)</h3>
+<ul>
+<li>Razón Social / Nombre: [________]</li>
+<li>CUIT: [________]</li>
+<li>Condición frente al IVA: [ Responsable Inscripto / Monotributo / Exento ]</li>
+<li>Ingresos Brutos (Jurisdicción / N° de Padrón): [________]</li>
+<li>Inicio de Actividades: [________]</li>
+</ul>
+
+<h3>B2. Puntos de Venta (AFIP)</h3>
+<p>Se configurarán exclusivamente los siguientes Puntos de Venta (PV) creados en AFIP bajo la modalidad "Web Service":</p>
+<ul>
+<li>PV N°: [________] – Destino/Caja: [________]</li>
+<li>PV N°: [________] – Destino/Caja: [________]</li>
+</ul>
+<p class="small">(Nota: La creación de estos PV en el portal de AFIP es responsabilidad exclusiva del LOCATARIO / su contador).</p>
+
+<h3>B3. Comprobantes Electrónicos Habilitados (Lista Cerrada)</h3>
+<p>El sistema se configurará para emitir de forma estándar los siguientes comprobantes. Cualquier comprobante no marcado aquí se considera fuera de alcance y se cotizará como Add-on.</p>
+<table class="check">
+<tr><td>☐</td><td>Facturas y Notas de Crédito/Débito tipo "A"</td></tr>
+<tr><td>☐</td><td>Facturas y Notas de Crédito/Débito tipo "B"</td></tr>
+<tr><td>☐</td><td>Facturas y Notas de Crédito/Débito tipo "C"</td></tr>
+<tr><td>☐</td><td>Facturas y Notas de Crédito/Débito tipo "M"</td></tr>
+<tr><td>☐</td><td>Remitos X (Uso interno / No fiscales)</td></tr>
+<tr><td>☐</td><td>Otros (Especificar, sujeto a factibilidad técnica): [________]</td></tr>
+</table>
+
+<h3>B4. Certificados Digitales y Delegación</h3>
+<p>EL LOCATARIO (a través de su contador) se compromete a:</p>
+<ul>
+<li>1. Delegar el servicio "Facturación Electrónica" al alias/computador fiscal provisto por EL LOCADOR.</li>
+<li>2. Proveer el Certificado Digital (CSR/CRT) vigente y la contraseña asociada, o en su defecto, autorizar a EL LOCADOR a generarlo mediante delegación en AFIP.</li>
+<li>Fecha de emisión del Certificado: [________]</li>
+<li>Fecha de vencimiento del Certificado: [________]</li>
+</ul>
+<p class="small">(El LOCADOR no se responsabiliza por la caducidad del certificado digital una vez en producción, siendo obligación del LOCATARIO su renovación anual).</p>
+
+<h3>B5. Impuestos, Retenciones y Percepciones</h3>
+<p>Se configurarán las siguientes alícuotas estándar de IVA: [ 21% / 10,5% / 27% / Exento / No Gravado ].</p>
+<p>Régimen de Retenciones/Percepciones (IIBB, IVA, Ganancias):</p>
+<table class="check">
+<tr><td>☐</td><td>No aplica / No es Agente de Recaudación.</td></tr>
+<tr><td>☐</td><td>Sí aplica. Se incluye configuración básica estándar detallada a continuación: [________]</td></tr>
+</table>
+<p class="small">(Aclaración: regímenes complejos de padrones automatizados quedan excluidos salvo cotización Add-on).</p>
+
+<h3>B6. Conformidad de Prueba</h3>
+<p>Las partes declaran que se han realizado pruebas de conectividad y emisión de comprobantes en el ambiente de Homologación (Staging) de AFIP con resultado exitoso, autorizando el pase a Producción para el Go-Live.</p>
+<div class="firma">
+<div>Firma LOCATARIO: [________]</div>
+<div>Firma LOCADOR: [________]</div>
+</div>
+<p>Firma Contador (Opcional pero recomendada): [________]</p>
+
+</body>
+</html>

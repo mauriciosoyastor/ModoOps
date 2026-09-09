@@ -11,7 +11,7 @@ interface Props {
 const { href, variant = 'primary', class: className, onclick, 'data-cta': dataCta, 'data-source': dataSource } = Astro.props;
 
 const base =
-  'inline-flex items-center justify-center rounded-[var(--radius-button)] px-6 py-4 text-base font-medium transition-all hover:opacity-90';
+  'btn inline-flex items-center justify-center rounded-[var(--radius-button)] px-6 py-4 text-base font-medium hover:opacity-90';
 
 const variants = {
   primary: 'bg-star-warm text-star-white hover:bg-star-glow',
@@ -23,3 +23,14 @@ const variants = {
 <a href={href} class:list={[base, variants[variant], className]} onclick={onclick} data-cta={dataCta} data-source={dataSource}>
   <slot />
 </a>
+
+<style>
+  /* S1 lote 0: propiedades explícitas, nunca transition-all (prototipo guidelines-hero) */
+  .btn {
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      opacity 0.15s ease;
+  }
+</style>

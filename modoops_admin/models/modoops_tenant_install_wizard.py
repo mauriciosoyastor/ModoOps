@@ -1,8 +1,8 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
-from modoops_admin.logic.modules_instalados import ModulesInstalados
-from modoops_admin.logic.tenant_module_service import apply_modules
+from odoo.addons.modoops_admin.logic.modules_instalados import ModulesInstalados
+from odoo.addons.modoops_admin.logic.tenant_module_service import apply_modules
 
 from .modoops_tenant import CATALOGO_MODOOPS, CATALOGO_DICT
 
