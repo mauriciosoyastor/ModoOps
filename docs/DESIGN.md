@@ -19,13 +19,19 @@
 
 ## Tokens — Colors
 
+> Enmienda mapa #112 (D2/D3): el sistema vigente es dark-galaxia; los valores mandan desde el código (`@theme`), los nombres históricos se conservan como alias. El doc se actualiza al código, no al revés.
+
 | Name | Value | Token | Role |
 |------|-------|-------|------|
-| Midnight Void | `#000000` | `--color-midnight-void` | Hero, footer, texto en fondos claros |
-| Canvas White | `#ffffff` | `--color-canvas-white` | Texto en hero, fondo botón primario, cards |
-| Soft Linen | `#f5f5f5` | `--color-soft-linen` | Secciones alternas (problema, camino, etc.) |
-| Ash Gray | `#bababa` | `--color-ash-gray` | Texto secundario, bordes suaves |
-| Trust Slate | `#1a3a52` | `--color-trust-slate` | Acento opcional (links, borde CTA secundario) — **no** gradiente |
+| Midnight Void | `#000000` | `--color-midnight-void` | Base dark, theme-color, texto de CTA primario |
+| Star White (alias Canvas White) | `#f3ecf2` | `--color-canvas-white` | Texto principal sobre dark (18.09:1, AA) |
+| Space Mist (alias Soft Linen) | `#101020` | `--color-soft-linen` | Superficies alternas oscuras |
+| Ash Gray | `#867f7f` | `--color-ash-gray` | Solo secundario sobre dark (5.36:1, AA); nunca en CTA |
+| Nebula (alias Trust Slate) | `#496a95` | `--color-trust-slate` | Acento, bordes crisp |
+| Galaxy Deep | `#2a3444` | `--color-galaxy-deep` | Fills glass al 72% |
+| Star Warm | `#c05a42` | `--color-star-warm` | CTA primario, siempre con texto midnight (4.78:1, AA) |
+| Star Glow | `#b65e49` | `--color-star-glow` | Hover CTA, siempre con texto midnight (4.69:1, AA) |
+| Core Cream | `#d4bfb3` | `--color-core-cream` | Headings en cards (7.11:1 sobre Galaxy Deep, AA) |
 
 ---
 
@@ -61,23 +67,25 @@
 
 ## Surfaces (por sección landing)
 
+> Enmienda mapa #112: el producto real es dark en todas las secciones (no solo hero + footer). La tabla anterior linen/white queda reemplazada por esta.
+
 | § | Sección | Fondo |
 |---|---------|-------|
-| 1 | Hero | `midnight-void` |
-| 2 | Problema | `soft-linen` |
-| 3 | Solución | `canvas-white` |
-| 4 | Camino | `soft-linen` |
-| 5 | Descubrimiento | `canvas-white` (bloque destacado con borde) |
-| 6 | Para quién | `soft-linen` |
-| 7 | Cómo trabajamos | `canvas-white` |
-| 8 | Contacto | `midnight-void` |
+| 1 | Hero | `space-void` + scrim funcional (legibilidad, no decorativo) |
+| 2 | Problema | `galaxy-deep` / glass |
+| 3 | Solución | `space-void` |
+| 4 | Camino | `space-mist` |
+| 5 | Descubrimiento | `galaxy-deep` (bloque destacado con borde crisp) |
+| 6 | Para quién | `space-mist` |
+| 7 | Cómo trabajamos | `space-void` |
+| 8 | Contacto | `space-void` |
 
 ---
 
 ## Components
 
 ### Button primary (pill)
-Fondo `canvas-white`, texto `midnight-void`, radius 80px, padding 16px 24px. Uso: “Pedir descubrimiento”.
+Fondo `star-warm`, texto `midnight-void` (4.78:1, AA; en blanco no llegaba — fix S3), radius 80px, padding 16px 24px. Uso: “Pedir descubrimiento”.
 
 ### Button ghost (dark)
 Borde 1px `canvas-white`, texto blanco, transparente. Uso: WhatsApp / secundario en hero.
@@ -103,8 +111,7 @@ Borde 1px `midnight-void`, texto negro, transparente. Uso: enlaces secundarios e
 ## Don't
 
 - Neural Gradient ni paletas neon.
-- Sombras fuertes o glassmorphism.
-- Dark mode completo (solo hero + footer oscuros).
+- Sombras fuertes o glassmorphism decorativo (crisp sutil sí: borde semi-transparente + sombra mínima o nada — D1 mapa #112).
 - Iconografía “AI brain” / neuro.
 
 ---
