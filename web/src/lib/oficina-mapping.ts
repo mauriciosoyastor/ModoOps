@@ -220,6 +220,36 @@ export function construirBorrador(input: BorradorInput): BorradorV1 {
   };
 }
 
+/** WhatsApp comercial (wa.me exige país + móvil, sin `+` ni espacios). */
+export const WHATSAPP_COMERCIAL = 'https://wa.me/5493547532008';
+
+/**
+ * Mensaje legible del borrador (contrato T3): criollo, sin precios de ancla o
+ * add-ons, con cierre no vinculante. El JSON viaja por copiar, no acá.
+ */
+export function mensajeWhatsApp(b: BorradorV1): string {
+  const nombre = b.prospecto.contacto_nombre || b.prospecto.nombre;
+  const contacto = [b.prospecto.telefono, b.prospecto.email].filter(Boolean).join(' · ');
+  const lineas = [
+    `Hola ModoOps, soy ${nombre} de ${b.prospecto.nombre} (${b.prospecto.rubro}${contacto ? `, ${contacto}` : ''}).`,
+    'Armé mi borrador no vinculante en la oficina virtual:',
+  ];
+  for (const k of b.modulos_ancla) {
+    if (!(SIEMPRE_INCLUIDOS as readonly string[]).includes(k)) lineas.push(`- ${labelDe(k)}`);
+  }
+  if (b.modulos_futuros.length) {
+    lineas.push(`Para crecer: ${b.modulos_futuros.map(labelDe).join(', ')}.`);
+  }
+  lineas.push(`Van siempre incluidos: ${SIEMPRE_INCLUIDOS.map(labelDe).join(', ')}.`);
+  lineas.push('Te paso el JSON borrador-v1 por acá mismo para el Descubrimiento. ¡Gracias!');
+  return lineas.join('\n');
+}
+
+/** Enlace wa.me con el texto codificado. */
+export function enlaceWhatsApp(texto: string): string {
+  return `${WHATSAPP_COMERCIAL}?text=${encodeURIComponent(texto)}`;
+}
+
 /** Input del `generar` del Configurador (contrato T3): lo que el consultor importa. */
 export interface GenerarInput {
   vertical: string;

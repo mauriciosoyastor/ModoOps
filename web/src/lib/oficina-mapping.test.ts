@@ -12,6 +12,8 @@ import {
   horasDe,
   validarBorrador,
   traducirBorradorAGenerar,
+  mensajeWhatsApp,
+  enlaceWhatsApp,
   type BorradorInput,
   type CatalogoKey,
   type Objeto3DId,
@@ -144,5 +146,18 @@ describe("oficina-mapping — seam único objeto↔módulo", () => {
     expect(inp.cajas_pos).toBe(2);
     expect(inp.almacenes).toBe(1);
     expect(inp.anexo_fiscal_ref).toBeUndefined();
+  });
+
+  it("arma el mensaje legible sin precios y el enlace wa.me", () => {
+    const texto = mensajeWhatsApp(construirBorrador(fichasBase()));
+    expect(texto).toContain("Pinturería Centro");
+    expect(texto).toContain("no vinculante");
+    expect(texto).toContain("Descubrimiento");
+    expect(texto).not.toContain("$800");
+    expect(texto).not.toContain("$155");
+    expect(texto.toLowerCase()).not.toContain("oferta");
+    const url = enlaceWhatsApp(texto);
+    expect(url.startsWith("https://wa.me/5493547532008?text=")).toBe(true);
+    expect(decodeURIComponent(url.split("?text=")[1])).toBe(texto);
   });
 });
