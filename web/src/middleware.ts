@@ -1,6 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
 import { BFF_COOKIE } from "./lib/bff/config.ts";
 import { sessionStore } from "./lib/bff/session-store.ts";
+import { isValidTenantSlug } from "./lib/bff/tenant-slug.ts";
 
 // Deep module seam único para Guardia Auth (locality: 7 guards → 1)
 // Tapa chica: callers (pages/api) solo conocen locals.odooSessionId, no BffError ni sessionStore.
@@ -22,6 +23,12 @@ function isProtectedPage(pathname: string): boolean {
 export const onRequest = defineMiddleware(async (context, next) => {
   const { request, cookies, locals, redirect, url } = context;
   const pathname = url.pathname;
+
+  // T3 login-tenant (prototipo): la puerta del empleado es pública (el db valida adentro)
+  const tenantLogin = /^\/tenant\/([^/]+)\/login\/?$/.exec(pathname);
+  if (tenantLogin && isValidTenantSlug(tenantLogin[1])) {
+    return next();
+  }
 
   if (!isProtectedPage(pathname)) {
     return next();
@@ -56,6 +63,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   (locals as Record<string, unknown>).bffSid = sid;
   (locals as Record<string, unknown>).odooSessionId = entry.odooSessionId;
   (locals as Record<string, unknown>).session = entry.session;
+  // T3 login-tenant (prototipo): db tenant-bound opcional; ausente = master
+  if (entry.db) (locals as Record<string, unknown>).tenantDb = entry.db;
 
   return next();
 });

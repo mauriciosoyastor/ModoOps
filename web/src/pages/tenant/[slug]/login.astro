@@ -1,0 +1,53 @@
+---
+import { isValidTenantSlug } from "../../../lib/bff/tenant-slug.ts";
+const slug = String(Astro.params.slug || "").trim();
+if (!isValidTenantSlug(slug)) {
+  return new Response("Tenant inválido", { status: 400 });
+}
+---
+
+<main class="mo-login">
+  <div class="mo-login__card">
+    <p class="mo-login__eyebrow">ModoOps · {slug}</p>
+    <h1>Ingresar a tu gestión</h1>
+    <p class="mo-login__hint">Acceso de empleado: solo tu stack, usuario Odoo de <code>modoops_{slug}</code>.</p>
+    <form id="login-form" class="mo-login__form">
+      <label>Usuario <input name="login" autocomplete="username" required /></label>
+      <label>Contraseña <input name="password" type="password" autocomplete="current-password" required /></label>
+      <button type="submit">Entrar</button>
+      <p id="login-error" class="mo-login__error" role="alert" tabindex="-1" hidden></p>
+    </form>
+  </div>
+</main>
+
+<script define:vars={{ slug }}>
+  const form = document.getElementById("login-form");
+  const errEl = document.getElementById("login-error");
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errEl.hidden = true;
+    const fd = new FormData(form);
+    const res = await fetch(`/api/tenant/${slug}/login`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ login: String(fd.get("login") || ""), password: String(fd.get("password") || "") }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      errEl.textContent = data?.error?.message || "Error";
+      errEl.hidden = false;
+      errEl.focus();
+      return;
+    }
+    window.location.assign("/hub/inventory");
+  });
+</script>
+
+<style>
+  .mo-login { display:flex; justify-content:center; padding:4rem 1rem; }
+  .mo-login__card { max-width:28rem; width:100%; border-radius:1rem; padding:2rem; }
+  .mo-login__eyebrow { color:#ea580c; font-size:0.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0 0 .25rem; font-weight:700; }
+  .mo-login__hint { font-size:.85rem; }
+  .mo-login__form { display:grid; gap:1rem; }
+  .mo-login__error { color:#f87171; }
+</style>
