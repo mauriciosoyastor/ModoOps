@@ -274,6 +274,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 <script>
   import {
     OBJETO_A_MODULO,
+    WHATSAPP_COMERCIAL,
     construirBorrador,
     esAncla,
     guardarBorrador,
@@ -297,7 +298,6 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     ia: 'IA ModoOps',
   };
   const SIEMPRE = ['contactos', 'plataforma', 'puente_factura'];
-  const WHATSAPP = 'https://wa.me/5493547532008';
 
   const root = document.querySelector('[data-portal]');
   if (root instanceof HTMLElement) {
@@ -390,7 +390,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       }
       const textoWa = 'Hola ModoOps, te paso mi borrador (no vinculante):\n```json\n' + JSON.stringify(b) + '\n```';
       if (linkWa instanceof HTMLAnchorElement) {
-        linkWa.href = WHATSAPP + '?text=' + encodeURIComponent(textoWa);
+        linkWa.href = WHATSAPP_COMERCIAL + '?text=' + encodeURIComponent(textoWa);
         linkWa.classList.toggle('opacity-40', errores.length > 0);
         linkWa.setAttribute('aria-disabled', errores.length > 0 ? 'true' : 'false');
       }
