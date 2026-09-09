@@ -43,13 +43,13 @@ const { title, description } = Astro.props;
     </script>
     <script is:inline>
       (() => {
-        const el = document.getElementById('descubrimiento');
+        const el = document.getElementById('camino');
         if (!el || typeof IntersectionObserver === 'undefined') return;
         const fired = new Set();
         const fire = (pct) => {
           if (fired.has(pct)) return;
           fired.add(pct);
-          window.plausible && window.plausible('scroll_discovery', {props:{percent:String(pct)}});
+          window.plausible && window.plausible('scroll_camino', {props:{percent:String(pct)}});
           if (fired.size === 2) obs.disconnect();
         };
         const obs = new IntersectionObserver((entries) => {

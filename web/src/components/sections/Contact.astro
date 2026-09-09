@@ -15,7 +15,7 @@ const socialButtonClass =
       <h3 class="text-[length:var(--text-subheading)] font-medium text-core-cream">Escribinos</h3>
       <p class="mt-2 text-sm text-ash-gray">Contanos tu rubro y qué querés ordenar (caja, stock, compras).</p>
       <div class="mt-6 flex flex-wrap gap-3">
-        <a href={`mailto:${contact.email}?subject=Consulta ModoOps — Descubrimiento`} class:list={[socialButtonClass, 'bg-star-warm hover:bg-star-glow']} data-cta="cta_email" data-source="contact">
+        <a href={`mailto:${contact.email}?subject=Consulta ModoOps — Propuesta`} class:list={[socialButtonClass, 'bg-star-warm hover:bg-star-glow']} data-cta="cta_email" data-source="contact">
           {contact.email}
         </a>
         <a
@@ -31,7 +31,7 @@ const socialButtonClass =
           WhatsApp {contact.whatsappLabel}
         </a>
       </div>
-      <p class="mt-6 text-sm text-ash-gray">Respuesta en horario comercial. Soporte post go-live según contrato (no WhatsApp ilimitado).</p>
+      <p class="mt-6 text-sm text-ash-gray">Respuesta en horario comercial. Soporte post puesta en producción según contrato (no WhatsApp ilimitado).</p>
     </div>
 
     <div class="galaxy-card rounded-[var(--radius-card)] p-6 md:p-8">
