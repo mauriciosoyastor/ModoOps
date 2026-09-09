@@ -46,7 +46,7 @@ try {
         <button type="button" data-logout>Cerrar sesión</button>
       </div>
     </header>
-    <p class="mo-admin__note"><span data-video-msg></span></p>
+    <p class="mo-admin__note"><span data-video-msg aria-live="polite"></span></p>
 
     <p class="mo-admin__note">Sin teléfono → descartado visible (regla S4). La baja (opt-out) borra el lead y audita sin PII. Purga: vencidos &gt;90d + opt-out.</p>
 
@@ -64,16 +64,17 @@ try {
         <label class="mo-check"><input type="checkbox" name="sin_telefono" value="1" checked={filters.sinTelefono} /> Sin teléfono</label>
         <label class="mo-check"><input type="checkbox" name="opt_out" value="1" checked={filters.optOut} /> Opt-out</label>
         <button type="submit">Filtrar</button>
-        <span id="purge-msg" class="mo-admin__msg"></span>
+        <span id="purge-msg" class="mo-admin__msg" aria-live="polite"></span>
       </form>
     </section>
 
-    {loadError ? <p class="mo-admin__error">{loadError}</p> : null}
+    {loadError ? <p class="mo-admin__error" role="alert" tabindex="-1" data-load-error>{loadError}</p> : null}
 
     <div class="mo-admin__tablewrap">
       <table class="mo-admin__table">
+        <caption class="mo-admin__caption">Leads según filtros aplicados</caption>
         <thead>
-          <tr><th>Nombre</th><th>Teléfono</th><th>Categoría</th><th>Estado</th><th>Opt-out</th><th>Captura</th><th>Acción</th></tr>
+          <tr><th scope="col">Nombre</th><th scope="col">Teléfono</th><th scope="col">Categoría</th><th scope="col">Estado</th><th scope="col">Opt-out</th><th scope="col">Captura</th><th scope="col">Acción</th></tr>
         </thead>
         <tbody>
           {leads.map((l) => (
@@ -97,6 +98,8 @@ try {
 </BaseLayout>
 
 <script>
+  // S4: si la carga falló, el error (role=alert) recibe el foco al abrir.
+  (document.querySelector("[data-load-error]") as HTMLElement | null)?.focus?.();
   document.querySelector("[data-logout]")?.addEventListener("click", async () => {
     await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login");
   });
@@ -153,6 +156,7 @@ try {
   .mo-admin__msg { font-size:.85rem; color:var(--sg-text-muted-dark); }
   .mo-admin__tablewrap { overflow:auto; border:1px solid var(--sg-glass-border); border-radius:1rem; background:var(--sg-glass-fill); }
   .mo-admin__table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  .mo-admin__caption { text-align:left; font-size:.85rem; color:var(--sg-text-muted-dark); padding-bottom:.5rem; }
   .mo-admin__table th, .mo-admin__table td { padding:.6rem .75rem; border-bottom:1px solid var(--sg-glass-border); text-align:left; }
   .mo-badge { border-radius:999px; padding:.15rem .5rem; font-size:.75rem; font-weight:600; }
   .mo-badge.is-nuevo { background:#16a34a; color:#fff; } .mo-badge.is-contactado { background:#2563eb; color:#fff; } .mo-badge.is-descartado { background:#6b7280; color:#fff; } .mo-badge.is-warn { background:#f59e0b; color:#111; margin-left:.35rem; }
