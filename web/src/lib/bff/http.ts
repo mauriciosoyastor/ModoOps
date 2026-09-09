@@ -11,6 +11,7 @@ export const USER_ERROR_MESSAGES: Record<BffErrorCode, string> = {
   validation_error: "Revisá los datos e intentá de nuevo",
   forbidden: "Sin permiso",
   checkout_failed: "No se pudo registrar la venta",
+  misconfigured: "Error de configuración del servidor",
   action_failed: "No se pudo completar la acción",
 };
 

@@ -27,6 +27,12 @@ class ModoopsLead(models.Model):
         index=True,
     )
     opt_out = fields.Boolean(default=False, help="Baja pedida: purga inmediata")
+    # G1 portal→consultor: borrador JSON v1 tal cual lo armó el Prospecto en
+    # /oficina (origen portal-oficina-3d). El consultor lo traduce con el
+    # runbook (borrador_bridge + configurador); el portal nunca crea Tenants.
+    borrador_json = fields.Text(
+        help="Borrador v1 del portal (JSON). Solo fuente portal-oficina-3d."
+    )
 
     @api.model
     def purge_expired_leads(self):

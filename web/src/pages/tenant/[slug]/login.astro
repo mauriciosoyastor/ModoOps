@@ -4,6 +4,8 @@ const slug = String(Astro.params.slug || "").trim();
 if (!isValidTenantSlug(slug)) {
   return new Response("Tenant inválido", { status: 400 });
 }
+// Fix G3: el middleware redirige acá con ?suspendido=1 cuando el tenant se suspende
+const suspendido = Astro.url.searchParams.get("suspendido") === "1";
 ---
 
 <main class="mo-login">
@@ -11,6 +13,9 @@ if (!isValidTenantSlug(slug)) {
     <p class="mo-login__eyebrow">ModoOps · {slug}</p>
     <h1>Ingresar a tu gestión</h1>
     <p class="mo-login__hint">Acceso de empleado: solo tu stack, usuario Odoo de <code>modoops_{slug}</code>.</p>
+    {suspendido ? (
+      <p class="mo-login__error" role="alert">Cuenta suspendida por mora del abono. Regularizá el pago para reactivar el acceso.</p>
+    ) : null}
     <form id="login-form" class="mo-login__form">
       <label>Usuario <input name="login" autocomplete="username" required /></label>
       <label>Contraseña <input name="password" type="password" autocomplete="current-password" required /></label>

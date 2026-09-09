@@ -155,6 +155,7 @@ export const howWeWork = {
 } as const;
 
 export const nav = [
+  { href: '/oficina', label: 'Recorré tu oficina' },
   { href: '#camino', label: 'Camino' },
   { href: '#contacto', label: 'Contacto' },
 ] as const;

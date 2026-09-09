@@ -166,6 +166,39 @@ export class OdooAdapter implements BackendClient {
     return { id: Number(id) };
   }
 
+  // G1 portal→consultor (prototipo): crea lead de captación con borrador v1
+  // adjunto. Aditivo: no toca callers existentes. El endpoint valida forma.
+  async createLead(odooSessionId: string, vals: {
+    nombre: string;
+    telefono?: string;
+    email?: string;
+    categoria?: string;
+    fuente?: string;
+    borrador_json?: string;
+  }): Promise<{ id: number }> {
+    const nombre = String(vals.nombre || "").trim();
+    if (!nombre) throw new BffError("validation_error", 400, "Nombre requerido");
+    const payload: Record<string, unknown> = {
+      nombre,
+      ...(vals.telefono ? { telefono: vals.telefono } : {}),
+      ...(vals.email ? { email: vals.email } : {}),
+      ...(vals.categoria ? { categoria: vals.categoria } : {}),
+      fuente: vals.fuente || "portal-oficina-3d",
+      ...(vals.borrador_json ? { borrador_json: vals.borrador_json } : {}),
+    };
+    const id = await this.#callKw<number>(odooSessionId, "modoops.lead", "create", [payload]);
+    return { id: Number(id) };
+  }
+
+  // G10 suspender/reactivar desde Control Plane (prototipo): invoca el
+  // object-method con sus guardas (gracia, UserError verbatim). Aditivo.
+  async setTenantStateAction(odooSessionId: string, tenantId: number, method: "action_suspend" | "action_reactivate"): Promise<{ ok: true }> {
+    const id = Number(tenantId);
+    if (!Number.isInteger(id) || id <= 0) throw new BffError("validation_error", 400, "Tenant inválido");
+    await this.#callKw(odooSessionId, "modoops.tenant", method, [[id]]);
+    return { ok: true };
+  }
+
   async installTenantModules(
     odooSessionId: string,
     tenantId: number,

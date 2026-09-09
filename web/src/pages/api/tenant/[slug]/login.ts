@@ -1,9 +1,8 @@
 import type { APIRoute } from "astro";
-import { OdooAdapter } from "../../../../lib/bff/odoo-adapter.ts";
 import { getTenantBackend } from "../../../../lib/bff/get-backend.ts";
 import { bffErrorResponse, json, setBffCookie } from "../../../../lib/bff/http.ts";
 import { sessionStore } from "../../../../lib/bff/session-store.ts";
-import { resolveTenantGate } from "../../../../lib/bff/tenant-gate.ts";
+import { auditGateBlock, getFreshGate } from "../../../../lib/bff/tenant-status.ts";
 import { isValidTenantSlug } from "../../../../lib/bff/tenant-slug.ts";
 import { BFF_COOKIE } from "../../../../lib/bff/config.ts";
 
@@ -35,35 +34,24 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
     const tenantBackend = getTenantBackend(slug);
     const { sessionId, session } = await tenantBackend.login(login, password);
 
-    // 2) estado en master (Odoo-backed, no env): requiere sesión master de servicio
-    const baseUrl = (import.meta.env.ODOO_URL as string) || (process.env.ODOO_URL as string) || "http://localhost:8070";
-    const masterLogin = (import.meta.env.ODOO_ADMIN_LOGIN as string) || (process.env.ODOO_ADMIN_LOGIN as string) || "admin";
-    const masterPassword = (import.meta.env.ODOO_ADMIN_PASSWORD as string) || (process.env.ODOO_ADMIN_PASSWORD as string) || "admin";
-    const master = new OdooAdapter({ baseUrl, db: "modoops_master" });
-    let masterSid = "";
+    // 2) estado en master, gate estricto (G4: sin default admin/admin; las
+    // credenciales de servicio salen de ODOO_ADMIN_* o 503 ruidoso)
+    let gate: Awaited<ReturnType<typeof getFreshGate>>;
     try {
-      masterSid = (await master.login(masterLogin, masterPassword)).sessionId;
-    } catch {
+      gate = await getFreshGate(slug);
+    } catch (err) {
       await tenantBackend.logout(sessionId).catch(() => {});
-      return json({ error: { code: "odoo_unavailable", message: "No se pudo verificar el estado del tenant" } }, { status: 503 });
+      throw err;
     }
-    try {
-      const tenant = await master.getTenantBySlug(masterSid, slug);
-      const gate = resolveTenantGate(
-        tenant ? { state: tenant.state, abono_due_date: tenant.abono_due_date } : null
-      );
-      if (gate.http !== 200) {
-        if (gate.http === 403) {
-          await master.auditTenantLog(masterSid, tenant!.id, "login_bloqueado", `${tenant!.state} — ${login}`).catch(() => {});
-        }
-        await tenantBackend.logout(sessionId).catch(() => {});
-        if (gate.http === 401) {
-          return json({ error: { code: "unauthorized", message: "Usuario o contraseña incorrectos" } }, { status: 401 });
-        }
-        return json({ error: { code: gate.code, message: gate.message } }, { status: 403 });
+    if (gate.http !== 200) {
+      if (gate.http === 403) {
+        await auditGateBlock(slug, login);
       }
-    } finally {
-      await master.logout(masterSid).catch(() => {});
+      await tenantBackend.logout(sessionId).catch(() => {});
+      if (gate.http === 401) {
+        return json({ error: { code: "unauthorized", message: "Usuario o contraseña incorrectos" } }, { status: 401 });
+      }
+      return json({ error: { code: gate.code, message: gate.message } }, { status: 403 });
     }
 
     // 3) reemplazo T1: una sesión por browser — invalida la anterior y sobrescribe la cookie
