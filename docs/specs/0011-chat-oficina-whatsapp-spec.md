@@ -72,6 +72,6 @@ Un **chat configurador** al lado de la oficina: el Prospecto responde ~10 pregun
 
 ## Further Notes
 
-- Abierto que refina sin invalidar: verificación en browser del prototipo (reinstalar dependencias web primero) y re-corrida del ejemplo con Python funcional antes del build real.
+- Abierto que refina sin invalidar: verificación interactiva en browser del prototipo y la página (compilación verificada 2026-09-09: `/oficina`, `/oficina-chat` y `/prototype/oficina-chat` devuelven 200 con `npm install` completo; falta el clic real con `three` en pantalla) y re-corrida del ejemplo con Python funcional antes del build real.
 - Research previo en rama `research/oficina-chat-livebuild`; prototipo descartable en ruta `/prototype/oficina-chat` con densidades por URL.
 - Publicación pendiente: crear el issue GitHub con este contenido y aplicar label `ready-for-agent` al tener `gh auth login`.
