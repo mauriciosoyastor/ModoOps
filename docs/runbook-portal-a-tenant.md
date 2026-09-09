@@ -73,7 +73,23 @@ lista `mostrador, deposito, ventas, compras, fiscal_ar, contactos, migracion_exc
 precio ancla $800, anticipo neto $322.5, addons `[migracion_excel]`;
 warning: `Total horas 105 supera techo 92h → oferta Fase 2 días×52`.
 
-## 5. Aprovisionar el Tenant (staging — pendiente Docker en esta sesión)
+## 5. Aprovisionar el Tenant (verificado en staging 2026-09-09)
+
+Staging: stack `compose.yml` (Postgres 16 en 5434, Odoo 19 en 8070).
+Ejecutado tal cual contra `modoops_pintureria_centro`:
+
+```bash
+docker exec modoops-db-1 createdb -U odoo -T template0 modoops_pintureria_centro
+docker exec modoops-odoo-1 odoo -d modoops_pintureria_centro -i modoops_core --stop-after-init --without-demo=all
+docker exec modoops-odoo-1 odoo -d modoops_pintureria_centro -i account,contacts,l10n_ar,point_of_sale,pos_discount,purchase,sale_management,stock --stop-after-init --without-demo=all
+```
+
+Verificación (`ir_module_module.state = installed` en los 9:
+`modoops_core, account, contacts, l10n_ar, point_of_sale, pos_discount,
+purchase, sale_management, stock`) + fila actualizada en `modoops_master.modoops_tenant`
+(`state='activo'`, lista cerrada completa en `modules_installed`).
+
+Equivalente bare-metal (VPS, sin Docker):
 
 Derivar los módulos del anexo técnico (únicos, ordenados):
 
@@ -96,8 +112,7 @@ python tools/modoops_provision/provision_tenant.py --list
 ```
 
 Detalle de backup/RPO y registro en `modoops_master`: `tools/modoops_provision/README.md`.
-**Pendiente:** ejecutar este paso en staging con Docker (sin Docker en la sesión
-que escribió este runbook — no dar por verificado hasta correrlo ahí).
+Todo el paso 5 corre con humano y contrato de por medio: el portal nunca lo dispara solo.
 
 ## Qué falla en cerrado y qué decide el consultor
 
