@@ -16,11 +16,17 @@ const COLORES: Record<Objeto3DId, number> = {
   'puerta-crecer-3d': 0x6a4a8a,
 };
 
+export interface OficinaHandle {
+  (): void;
+  /** Marca el objeto en la escena (null = limpia). Aditivo: el dispose sigue siendo llamable. */
+  resaltar: (id: Objeto3DId | null) => void;
+}
+
 export function mountOficinaScene(
   canvas: HTMLCanvasElement,
   onPick: SeleccionCb,
   etiquetas?: HTMLElement,
-): () => void {
+): OficinaHandle {
   const container = canvas.parentElement ?? canvas;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -312,7 +318,7 @@ export function mountOficinaScene(
   else programa();
   canvas.dataset.mounted = 'true';
 
-  return () => {
+  function dispose() {
     vigia.disconnect();
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
@@ -331,5 +337,6 @@ export function mountOficinaScene(
     });
     renderer.dispose();
     delete canvas.dataset.mounted;
-  };
+  }
+  return Object.assign(dispose, { resaltar });
 }
