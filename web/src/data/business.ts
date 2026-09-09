@@ -8,7 +8,7 @@ export const brand = {
 export const contact = {
   email: 'mauriciomatasini27@gmail.com',
   whatsapp: 'https://wa.me/5493547532008',
-  whatsappLabel: '+54 9 354 753-2008',
+  whatsappLabel: '+54 9 354 753-2008',
 } as const;
 
 const ALLOWED_UTM_KEYS = [
