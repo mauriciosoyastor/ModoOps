@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_modoops_avisos_mora" model="ir.cron">
+        <field name="name">ModoOps: avisos mora día 1 y 5</field>
+        <field name="model_id" ref="model_modoops_tenant"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_avisos_mora()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

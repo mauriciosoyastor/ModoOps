@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Acta Hito 2 go-live + cobro 50% saldo. Usa web.external_layout (logo = logo compañía) sin depender de modoops_core. -->
+  <template id="report_modoops_acta_hito2_document">
+    <t t-call="web.html_container">
+      <t t-foreach="docs" t-as="o">
+        <t t-set="layout_document_title">
+          <span>Acta Hito 2 — Go-live</span>
+          <span> &#183; </span>
+          <span t-esc="o.name"/>
+        </t>
+        <t t-call="web.external_layout">
+          <h3 style="font-size:14px; margin:16px 0 8px;">Acta de aceptación — Go-live + cobro 50% saldo</h3>
+          <p style="font-size:12px;">ModoOps — Sistema de Gestión Modular. Con esta firma el cliente acepta producción e inicia hipercare (10 días hábiles, solo bugs). Sin firma ni observaciones en 5 días hábiles vale como aceptado.</p>
+          <table style="width:100%; font-size:12px; border-collapse:collapse;">
+            <tr>
+              <td style="padding:4px 8px 4px 0; width:30%; color:#666;">Contrato</td>
+              <td style="padding:4px 0;"><span t-esc="o.name"/> — <span t-esc="dict(o._fields['tipo'].selection).get(o.tipo)"/></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px 4px 0; color:#666;">Cliente / Tenant</td>
+              <td style="padding:4px 0;"><span t-esc="o.tenant_id.name"/> (<span t-esc="o.tenant_id.db_name"/>)</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px 4px 0; color:#666;">Go-live</td>
+              <td style="padding:4px 0;"><span t-field="o.go_live_date"/> — Hipercare hasta <span t-field="o.hipercare_hasta"/></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px 4px 0; color:#666;">Total / Saldo 50%</td>
+              <td style="padding:4px 0;"><span t-esc="o.monto_total_usd"/> / <span t-esc="o.saldo_usd"/> <span t-esc="o.moneda"/></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px 4px 0; color:#666;">Hitos</td>
+              <td style="padding:4px 0;">Hito 1 staging: <span t-esc="'OK' if o.hito1_ok else '—'"/> — Hito 2 go-live: <span t-esc="'OK' if o.hito2_ok else '—'"/> — Saldo cobrado: <span t-esc="'SI' if o.saldo_cobrado else 'NO'"/></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px 4px 0; color:#666;">Anexo B fiscal</td>
+              <td style="padding:4px 0;"><span t-esc="'CERRADO — habilita emisión real' if o.anexo_fiscal_ok else 'PENDIENTE — bloquear emisión real hasta cierre con contador'"/></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px 4px 0; color:#666;">Horas</td>
+              <td style="padding:4px 0;">Ajustes <span t-esc="o.ajustes_horas_consumidas"/> / <span t-esc="o.ajustes_horas_pactadas"/> h — Capacitación <span t-esc="o.capacitacion_horas_dadas"/> / <span t-esc="o.capacitacion_horas_pactadas"/> h</td>
+            </tr>
+          </table>
+
+          <h3 style="font-size:14px; margin:16px 0 8px;">Checklist Hito 2</h3>
+          <ul style="font-size:12px;">
+            <li>Go-live en ambiente del cliente (una puesta incluida)</li>
+            <li>POS operativo en cada caja acordada + compras/stock en producción</li>
+            <li>Capacitación 6 h dictada o plan remanente firmado</li>
+            <li>Infra revisada (backup, SSL, accesos) — sin SLA del consultor</li>
+            <li>Pendientes fuera de alcance no frenan pago, se cotizan como Cambio/Add-on</li>
+          </ul>
+          <div style="font-size:12px; margin-bottom:10px;">
+            <div style="color:#666; margin-bottom:2px;">Notas / pendientes</div>
+            <div style="white-space:pre-wrap;" t-esc="o.notes or 'ninguno'"/>
+          </div>
+
+          <table style="width:100%; font-size:12px; margin-top:32px; border-collapse:collapse;">
+            <tr>
+              <td style="width:50%; padding-right:16px;">
+                <div style="border-top:1px solid #333; padding-top:6px;">Firma cliente<br/>Aclaración / DNI / Fecha</div>
+              </td>
+              <td style="width:50%; padding-left:16px;">
+                <div style="border-top:1px solid #333; padding-top:6px;">Prestador: Matasini Mauricio Nahuel<br/>DNI 36.119.160 — CUIT 23-36119160-9 — Monotributista ARCA</div>
+              </td>
+            </tr>
+          </table>
+        </t>
+      </t>
+    </t>
+  </template>
+
+  <record id="report_modoops_acta_hito2" model="ir.actions.report">
+    <field name="name">Acta Hito 2 — Go-live</field>
+    <field name="model">modoops.tenant.contrato</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">modoops_admin.report_modoops_acta_hito2_document</field>
+    <field name="report_file">modoops_admin.report_modoops_acta_hito2_document</field>
+    <field name="paperformat_id" ref="base.paperformat_euro"/>
+    <field name="print_report_name">(object.name or 'Acta-Hito2').replace('/', '-')</field>
+    <field name="binding_model_id" ref="model_modoops_tenant_contrato"/>
+    <field name="binding_type">report</field>
+  </record>
+
+  <!-- Reporte situación de todos los tenants: semáforo cobro + mora + fiscal. -->
+  <template id="report_modoops_tenant_situacion_document">
+    <t t-call="web.html_container">
+      <t t-set="layout_document_title"><span>Situación tenants ModoOps</span></t>
+      <t t-call="web.external_layout">
+        <h3 style="font-size:14px; margin:16px 0 8px;">Situación por tenant — contratos, cobros y mora</h3>
+        <table style="width:100%; font-size:11px; border-collapse:collapse;" border="1">
+          <thead>
+            <tr style="background:#f0f0f0;">
+              <th style="padding:4px;">Tenant</th>
+              <th style="padding:4px;">Estado</th>
+              <th style="padding:4px;">Situación</th>
+              <th style="padding:4px;">Contratos #</th>
+              <th style="padding:4px;">Saldo USD</th>
+              <th style="padding:4px;">Vto abono</th>
+              <th style="padding:4px;">Gracia hasta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <t t-foreach="docs" t-as="o">
+              <tr>
+                <td style="padding:4px;"><span t-esc="o.name"/><br/><small t-esc="o.db_name"/></td>
+                <td style="padding:4px;"><span t-esc="dict(o._fields['state'].selection).get(o.state)"/></td>
+                <td style="padding:4px;"><span t-esc="o.situacion or '-'"/></td>
+                <td style="padding:4px;"><span t-esc="o.contrato_count"/></td>
+                <td style="padding:4px;"><span t-esc="o.saldo_pendiente_usd"/></td>
+                <td style="padding:4px;"><span t-field="o.abono_due_date"/></td>
+                <td style="padding:4px;"><span t-field="o.suspend_grace_until"/></td>
+              </tr>
+            </t>
+          </tbody>
+        </table>
+        <p style="font-size:11px; color:#666;">Abono del 1 al 10, aviso día 1 y 5, suspensión día 8 (solo lectura), baja día 15 tras backup. Sin anticipo 50% no inicia Fase 1.</p>
+      </t>
+    </t>
+  </template>
+
+  <record id="report_modoops_tenant_situacion" model="ir.actions.report">
+    <field name="name">Situación tenants</field>
+    <field name="model">modoops.tenant</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">modoops_admin.report_modoops_tenant_situacion_document</field>
+    <field name="report_file">modoops_admin.report_modoops_tenant_situacion_document</field>
+    <field name="paperformat_id" ref="base.paperformat_euro"/>
+    <field name="print_report_name">'Situacion-tenants-ModoOps'</field>
+    <field name="binding_model_id" ref="model_modoops_tenant"/>
+    <field name="binding_type">report</field>
+  </record>
+</odoo>

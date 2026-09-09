@@ -4,7 +4,7 @@ import base64
 
 from odoo import api, fields, models
 
-from modoops_admin.logic.tenant_log import csv_row as _csv_row_pure
+from odoo.addons.modoops_admin.logic.tenant_log import csv_row as _csv_row_pure
 
 
 class ModoopsTenantLog(models.Model):

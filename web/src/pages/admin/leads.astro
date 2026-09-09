@@ -41,10 +41,12 @@ try {
       </div>
       <div class="mo-admin__actions">
         <a href="/admin/tenants">← Tenants</a>
+        <button type="button" data-video title="Generador de videos comerciales">🎬 Video IA</button>
         <button type="button" data-purge>Purgar vencidos</button>
         <button type="button" data-logout>Cerrar sesión</button>
       </div>
     </header>
+    <p class="mo-admin__note"><span data-video-msg></span></p>
 
     <p class="mo-admin__note">Sin teléfono → descartado visible (regla S4). La baja (opt-out) borra el lead y audita sin PII. Purga: vencidos &gt;90d + opt-out.</p>
 
@@ -97,6 +99,21 @@ try {
 <script>
   document.querySelector("[data-logout]")?.addEventListener("click", async () => {
     await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login");
+  });
+  // Ingreso al generador de videos comerciales (Video-IA S1): muestra el estado.
+  document.querySelectorAll("[data-video]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const res = await fetch("/api/admin/tenants/video-access");
+      const data = await res.json().catch(()=>({})) as { url?: string; target?: string; error?: { code?: string; message?: string } };
+      const stateEl = document.querySelector("[data-video-msg]");
+      if (res.ok && data.url) {
+        if (stateEl) stateEl.textContent = `video:200 link-externo → ${data.url}`;
+        window.open(data.url, data.target || "_blank");
+        return;
+      }
+      const label = `video:${res.status} ${data?.error?.code || "error"} — ${data?.error?.message || "sin acceso"}`;
+      if (stateEl) stateEl.textContent = label; else alert(label);
+    });
   });
   document.querySelector("[data-purge]")?.addEventListener("click", async () => {
     if (!confirm("¿Purgar leads vencidos (>90d) + opt-out? Se audita en tenant.log.")) return;
