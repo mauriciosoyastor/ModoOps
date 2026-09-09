@@ -27,44 +27,44 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
   description="Respondé 10 preguntas en criollo, mirá cómo se arma tu oficina y enviá tu borrador no vinculante por WhatsApp."
 >
   <main class="mx-auto w-full max-w-6xl px-4 py-8 md:px-8" data-chat>
-    <p class="rounded-full border border-dashed px-3 py-1 text-xs text-neutral-500">
+    <p class="rounded-full border border-dashed px-3 py-1 text-xs text-zinc-400">
       Borrador no vinculante · lo valida el consultor en el Descubrimiento · nada de acá crea tu sistema
     </p>
     <h1 class="mt-2 text-3xl font-semibold">Contanos tu negocio, mirá tu oficina</h1>
-    <p class="mt-1 text-sm text-neutral-500" data-progreso aria-live="polite">Paso 1 de 7 · Tu negocio</p>
+    <p class="mt-1 text-sm text-zinc-400" data-progreso aria-live="polite">Paso 1 de 7 · Tu negocio</p>
 
     <div class="mt-4 grid gap-4" data-layout-wrap>
       <section aria-label="Chat configurador">
         <div class="grid gap-3" data-hilo aria-live="polite"></div>
 
-        <form data-negocio class="mt-3 rounded-2xl border bg-white p-4 text-sm" id="preg-negocio">
+        <form data-negocio class="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm" id="preg-negocio">
           <h2 class="font-semibold">Tu negocio</h2>
           <div class="mt-2 grid gap-2">
             <label>Nombre del negocio *
-              <input data-prospecto="nombre" required autocomplete="organization" class="mt-1 w-full rounded border p-2" placeholder="Ej: Pinturería Centro" /></label>
+              <input data-prospecto="nombre" required autocomplete="organization" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Pinturería Centro" /></label>
             <div class="grid gap-2 md:grid-cols-2">
               <label>Tu nombre
-                <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border p-2" placeholder="Ej: Ana" /></label>
+                <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Ana" /></label>
               <label>Teléfono *
-                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border p-2" placeholder="Ej: 3547 000000" /></label>
+                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: 3547 000000" /></label>
             </div>
             <div class="grid gap-2 md:grid-cols-2">
               <label>Email
-                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border p-2" placeholder="Ej: ana@negocio.com" /></label>
+                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: ana@negocio.com" /></label>
               <label>Rubro
-                <select data-prospecto="rubro" class="mt-1 w-full rounded border p-2">
+                <select data-prospecto="rubro" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500">
                   <option value="retail">Retail mostrador</option>
                   <option value="distribucion">Distribución chica</option>
                   <option value="servicios">Servicios</option>
                 </select></label>
             </div>
             <div class="grid grid-cols-3 gap-2">
-              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
-              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border p-2" /></label>
-              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="mt-1 w-full rounded border p-2" /></label>
+              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
+              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
+              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
             </div>
             <div class="grid gap-2 md:grid-cols-2">
-              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="mt-1 w-full rounded border p-2" /></label>
+              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
               <label class="flex items-center gap-2">¿Llevás stock en Excel hoy?
                 <input data-dato="tiene_excel" type="checkbox" class="h-4 w-4" /></label>
             </div>
@@ -72,51 +72,51 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         </form>
 
         {GUION_CHAT.map((g) => (
-          <div class="mt-3 rounded-2xl border bg-white p-4 text-sm" data-card={g.id}>
+          <div class="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm" data-card={g.id}>
             <h2 class="font-semibold">{g.bloque} — {labelDe(g.keys[0])}</h2>
             <p class="mt-1">{g.texto}</p>
             <div class="mt-2 flex flex-wrap gap-1">
-              <button type="button" data-si={g.id} aria-pressed="false" class="rounded-full border px-3 py-1">Sí</button>
-              <button type="button" data-no={g.id} class="rounded-full border px-3 py-1">No / saltear</button>
+              <button type="button" data-si={g.id} aria-pressed="false" class="rounded-full border border-white/10 px-3 py-1">Sí</button>
+              <button type="button" data-no={g.id} class="rounded-full border border-white/10 px-3 py-1">No / saltear</button>
             </div>
             {g.id === 'mostrador' && (
               <div class="mt-2 grid grid-cols-2 gap-2" data-extra={g.id} hidden>
-                <label>Cajas <input data-p="mostrador" data-c="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border p-2" /></label>
+                <label>Cajas <input data-p="mostrador" data-c="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
                 <label class="flex items-center gap-2">¿Descuento? <input data-p="mostrador" data-c="descuento" type="checkbox" class="h-4 w-4" /></label>
               </div>
             )}
             {g.id === 'deposito' && (
               <div class="mt-2 grid grid-cols-2 gap-2" data-extra={g.id} hidden>
-                <label>Almacenes <input data-p="deposito" data-c="almacenes" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
+                <label>Almacenes <input data-p="deposito" data-c="almacenes" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
                 <label class="flex items-center gap-2">¿Ubicaciones? <input data-p="deposito" data-c="ubicaciones" type="checkbox" class="h-4 w-4" /></label>
               </div>
             )}
             {g.id === 'ventas' && (
               <div class="mt-2" data-extra={g.id} hidden>
-                <label>Listas de precio <input data-p="ventas" data-c="listas" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
+                <label>Listas de precio <input data-p="ventas" data-c="listas" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
               </div>
             )}
             {g.id === 'compras' && (
               <div class="mt-2 grid grid-cols-2 gap-2" data-extra={g.id} hidden>
-                <label>Proveedores <input data-p="compras" data-c="proveedores" type="number" min="0" value="0" class="mt-1 w-full rounded border p-2" /></label>
+                <label>Proveedores <input data-p="compras" data-c="proveedores" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
                 <label class="flex items-center gap-2">¿Orden de compra? <input data-p="compras" data-c="oc" type="checkbox" class="h-4 w-4" /></label>
               </div>
             )}
             {g.id === 'fiscal' && (
               <div class="mt-2" data-extra={g.id} hidden>
-                <fieldset class="rounded border p-2">
-                  <legend class="px-1 text-xs text-neutral-500">Tildá lo que creas que usás</legend>
+                <fieldset class="rounded border border-white/10 p-2">
+                  <legend class="px-1 text-xs text-zinc-400">Tildá lo que creas que usás</legend>
                   {g.multi?.map((op) => (
                     <label class="mr-3 inline-flex items-center gap-1"><input data-p="fiscal" data-c="comprobantes" value={op} type="checkbox" class="h-4 w-4" />{op}</label>
                   ))}
                 </fieldset>
-                <label class="mt-2 block">Tu contador <input data-p="fiscal" data-c="contador" class="mt-1 w-full rounded border p-2" placeholder="Ej: Estudio López" /></label>
+                <label class="mt-2 block">Tu contador <input data-p="fiscal" data-c="contador" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Estudio López" /></label>
               </div>
             )}
             {g.id === 'crecer' && (
               <div class="mt-2" data-extra={g.id} hidden>
-                <fieldset class="rounded border p-2">
-                  <legend class="px-1 text-xs text-neutral-500">Tildá todo lo que te sirva</legend>
+                <fieldset class="rounded border border-white/10 p-2">
+                  <legend class="px-1 text-xs text-zinc-400">Tildá todo lo que te sirva</legend>
                   {g.keys.map((k) => (
                     <label class="mr-3 inline-flex items-center gap-1"><input data-p="crecer" data-c="futuros" value={k} type="checkbox" class="h-4 w-4" />{labelDe(k)}</label>
                   ))}
@@ -128,7 +128,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
 
         <ul class="mt-2 text-sm text-red-700" data-errores aria-live="assertive"></ul>
 
-        <details class="mt-3 rounded-2xl border bg-white p-4 text-sm">
+        <details class="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm">
           <summary class="cursor-pointer font-semibold">Borrador vivo (lo que ya tildaste)</summary>
           <ul class="mt-2 flex flex-wrap gap-1" data-chips></ul>
           <pre class="mt-2 overflow-auto text-xs" data-json>{}</pre>
@@ -139,9 +139,9 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
           <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-center text-sm font-semibold text-green-700">Enviar por WhatsApp</a>
           <button data-enviar class="rounded-full border px-4 py-2 text-sm font-semibold">Enviar al consultor</button>
           <p class="text-sm text-green-700" data-enviado role="status" hidden></p>
-          <p class="text-xs text-neutral-500" data-copiado hidden>JSON copiado: pegalo en el chat de WhatsApp junto al mensaje.</p>
+          <p class="text-xs text-zinc-400" data-copiado hidden>JSON copiado: pegalo en el chat de WhatsApp junto al mensaje.</p>
         </div>
-        <p class="mt-2 text-xs text-neutral-500">Siempre incluidos, sin pedirlos: {SIEMPRE_INCLUIDOS.map(labelDe).join(' · ')}</p>
+        <p class="mt-2 text-xs text-zinc-400">Siempre incluidos, sin pedirlos: {SIEMPRE_INCLUIDOS.map(labelDe).join(' · ')}</p>
       </section>
 
       <section aria-label="Oficina en vivo">
@@ -152,20 +152,20 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
             style="aspect-ratio: 16/10;"
             aria-label="Tu oficina armándose: tocá un mueble para volver a su pregunta"
           ></canvas>
-          <p class="px-1 py-1 text-xs text-neutral-500" data-estado aria-live="polite">Activando escena…</p>
-          <div data-fallback hidden class="rounded-xl border bg-neutral-50 p-3">
+          <p class="px-1 py-1 text-xs text-zinc-400" data-estado aria-live="polite">Activando escena…</p>
+          <div data-fallback hidden class="rounded-xl border border-white/10 bg-white/[0.04] p-3">
             <p class="text-sm font-semibold">Sectores (sin 3D)</p>
             <div class="mt-2 flex flex-wrap gap-1">
               {objetos.map((id) => (
-                <button data-fb={id} class="rounded-full border bg-white px-2 py-1 text-xs">{OBJETO_LABEL[id]}</button>
+                <button data-fb={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">{OBJETO_LABEL[id]}</button>
               ))}
             </div>
           </div>
-          <details class="mt-2 rounded-xl border bg-neutral-50 p-3">
+          <details class="mt-2 rounded-xl border border-white/10 bg-white/[0.04] p-3">
             <summary class="cursor-pointer text-sm font-semibold">Elegir sector sin 3D (teclado)</summary>
             <div class="mt-2 flex flex-wrap gap-1">
               {objetos.map((id) => (
-                <button data-fb={id} class="rounded-full border bg-white px-2 py-1 text-xs">{OBJETO_LABEL[id]}</button>
+                <button data-fb={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">{OBJETO_LABEL[id]}</button>
               ))}
             </div>
           </details>
@@ -243,7 +243,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
     function decir(textoMsg) {
       if (!(hilo instanceof HTMLElement)) return;
       const p = document.createElement('p');
-      p.className = 'rounded-xl border bg-white p-2 text-sm';
+      p.className = 'rounded-xl border border-white/10 bg-white/[0.04] p-2 text-sm';
       p.textContent = textoMsg;
       hilo.appendChild(p);
     }
