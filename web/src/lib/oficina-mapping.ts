@@ -54,6 +54,71 @@ export const PUERTA_FUTURO: readonly CatalogoKey[] = [
   'ia',
 ];
 
+/** Módulos que van siempre, no se preguntan: se informan al final del chat. */
+export const SIEMPRE_INCLUIDOS: readonly CatalogoKey[] = [
+  'contactos',
+  'plataforma',
+  'puente_factura',
+];
+
+/** Una pregunta del chat: texto comerciante + a qué módulos y objeto construye. */
+export interface PreguntaChat {
+  id: string;
+  bloque: 'Tu ancla' | 'Para crecer';
+  texto: string;
+  objeto: Objeto3DId;
+  keys: CatalogoKey[];
+  multi?: string[];
+}
+
+/** Guion T1: rama única con ejemplos por vertical; el "sí" construye el objeto. */
+export const GUION_CHAT: readonly PreguntaChat[] = [
+  {
+    id: 'mostrador',
+    bloque: 'Tu ancla',
+    texto: '¿Cobrás en caja o mostrador? (ej: pinturería, repuestos, taller con mostrador)',
+    objeto: 'mostrador-3d',
+    keys: ['mostrador'],
+  },
+  {
+    id: 'deposito',
+    bloque: 'Tu ancla',
+    texto: '¿Tenés depósito o estantería con stock?',
+    objeto: 'estanteria-3d',
+    keys: ['deposito'],
+  },
+  {
+    id: 'ventas',
+    bloque: 'Tu ancla',
+    texto: '¿Vendés con listas de precio?',
+    objeto: 'gondola-3d',
+    keys: ['ventas'],
+  },
+  {
+    id: 'compras',
+    bloque: 'Tu ancla',
+    texto: '¿Comprás a proveedores?',
+    objeto: 'computadora-3d',
+    keys: ['compras'],
+  },
+  {
+    id: 'fiscal',
+    bloque: 'Tu ancla',
+    texto: '¿Facturás? Tildá lo que creas que usás (borrador, lo cierra tu contador).',
+    objeto: 'pizarron-fiscal-3d',
+    keys: ['fiscal_ar'],
+    multi: ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo'],
+  },
+  {
+    id: 'crecer',
+    bloque: 'Para crecer',
+    texto: '¿Para dónde querés crecer? Tildá todo lo que te sirva.',
+    objeto: 'puerta-crecer-3d',
+    keys: ['taller', 'migracion_excel', 'b2b_basico', 'ia'],
+    multi: ['Taller', 'Pasar mi Excel', 'Vender a comercios', 'Usar IA'],
+  },
+];
+
 export function moduloDe(objeto: Objeto3DId): CatalogoKey {
   return OBJETO_A_MODULO[objeto];
 }
@@ -155,6 +220,69 @@ export function construirBorrador(input: BorradorInput): BorradorV1 {
   };
 }
 
+/** WhatsApp comercial (wa.me exige país + móvil, sin `+` ni espacios). */
+export const WHATSAPP_COMERCIAL = 'https://wa.me/5493547532008';
+
+/**
+ * Mensaje legible del borrador (contrato T3): criollo, sin precios de ancla o
+ * add-ons, con cierre no vinculante. El JSON viaja por copiar, no acá.
+ */
+export function mensajeWhatsApp(b: BorradorV1): string {
+  const nombre = b.prospecto.contacto_nombre || b.prospecto.nombre;
+  const contacto = [b.prospecto.telefono, b.prospecto.email].filter(Boolean).join(' · ');
+  const lineas = [
+    `Hola ModoOps, soy ${nombre} de ${b.prospecto.nombre} (${b.prospecto.rubro}${contacto ? `, ${contacto}` : ''}).`,
+    'Armé mi borrador no vinculante en la oficina virtual:',
+  ];
+  for (const k of b.modulos_ancla) {
+    if (!(SIEMPRE_INCLUIDOS as readonly string[]).includes(k)) lineas.push(`- ${labelDe(k)}`);
+  }
+  if (b.modulos_futuros.length) {
+    lineas.push(`Para crecer: ${b.modulos_futuros.map(labelDe).join(', ')}.`);
+  }
+  lineas.push(`Van siempre incluidos: ${SIEMPRE_INCLUIDOS.map(labelDe).join(', ')}.`);
+  lineas.push('Te paso el JSON borrador-v1 por acá mismo para el Descubrimiento. ¡Gracias!');
+  return lineas.join('\n');
+}
+
+/** Enlace wa.me con el texto codificado. */
+export function enlaceWhatsApp(texto: string): string {
+  return `${WHATSAPP_COMERCIAL}?text=${encodeURIComponent(texto)}`;
+}
+
+/** Input del `generar` del Configurador (contrato T3): lo que el consultor importa. */
+export interface GenerarInput {
+  vertical: string;
+  sucursales: number;
+  almacenes: number;
+  cajas_pos: number;
+  usuarios: number;
+  lista_precios: number;
+  modulos_tildados: CatalogoKey[];
+  sku_count: number;
+  anexo_fiscal_ref?: string;
+}
+
+/**
+ * Traduce el borrador al input de `generar`: síes + siempre-incluidos a
+ * tildados, rubro a vertical, conteos a sus campos. Sin anexo fiscal: el
+ * portal nunca trae anexo firmado, el gate lo cierra el consultor.
+ */
+export function traducirBorradorAGenerar(b: BorradorV1): GenerarInput {
+  const tildados = new Set<CatalogoKey>([...b.modulos_ancla, ...b.modulos_futuros]);
+  for (const k of SIEMPRE_INCLUIDOS) tildados.add(k);
+  return {
+    vertical: b.prospecto.rubro,
+    sucursales: b.prospecto.sucursales,
+    almacenes: b.objetos['estanteria-3d'].almacenes,
+    cajas_pos: b.objetos['mostrador-3d'].cajas,
+    usuarios: b.prospecto.usuarios,
+    lista_precios: b.objetos['gondola-3d'].listas_precio,
+    modulos_tildados: [...tildados].sort(),
+    sku_count: b.datos.productos_aprox,
+  };
+}
+
 /**
  * Valida lo único requerido del borrador: nombre del negocio y un contacto
  * (teléfono o email). Todo lo demás es opcional; las validaciones duras
@@ -213,3 +341,4 @@ export function cargarBorrador(
 }
 
 export { CATALOGO_KEYS };
+export type { CatalogoKey };

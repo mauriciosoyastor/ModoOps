@@ -1,15 +1,21 @@
 import { describe, it, expect } from "vitest";
 import {
   CATALOGO_KEYS,
+  GUION_CHAT,
   OBJETO_A_MODULO,
   PUERTA_FUTURO,
+  SIEMPRE_INCLUIDOS,
   cargarBorrador,
   construirBorrador,
   esAncla,
   guardarBorrador,
   horasDe,
   validarBorrador,
+  traducirBorradorAGenerar,
+  mensajeWhatsApp,
+  enlaceWhatsApp,
   type BorradorInput,
+  type CatalogoKey,
   type Objeto3DId,
 } from "./oficina-mapping.ts";
 
@@ -108,5 +114,50 @@ describe("oficina-mapping — seam único objeto↔módulo", () => {
   it("sin almacenamiento no rompe (SSR)", () => {
     expect(guardarBorrador(construirBorrador(fichasBase()), null)).toBe(false);
     expect(cargarBorrador(null)).toBeNull();
+  });
+
+  it("el guion cubre ancla y futuros con mapping a objetos y catálogo", () => {
+    const keys = new Set(GUION_CHAT.flatMap((p) => p.keys));
+    const ancla: CatalogoKey[] = ["mostrador", "deposito", "ventas", "compras", "fiscal_ar"];
+    for (const k of ancla) {
+      expect(keys.has(k)).toBe(true);
+    }
+    for (const k of PUERTA_FUTURO) {
+      expect(keys.has(k)).toBe(true);
+    }
+    for (const p of GUION_CHAT) {
+      expect(Object.keys(OBJETO_A_MODULO)).toContain(p.objeto);
+      for (const k of p.keys) {
+        expect(CATALOGO_KEYS.has(k)).toBe(true);
+      }
+    }
+    for (const k of SIEMPRE_INCLUIDOS) {
+      expect(esAncla(k)).toBe(true);
+    }
+  });
+
+  it("traduce el borrador al input de generar con gate fiscal esperado", () => {
+    const inp = traducirBorradorAGenerar(construirBorrador(fichasBase()));
+    expect(inp.vertical).toBe("retail");
+    expect(inp.modulos_tildados).toEqual(
+      expect.arrayContaining(["mostrador", "fiscal_ar", "contactos", "migracion_excel"]),
+    );
+    expect(inp.sku_count).toBe(350);
+    expect(inp.cajas_pos).toBe(2);
+    expect(inp.almacenes).toBe(1);
+    expect(inp.anexo_fiscal_ref).toBeUndefined();
+  });
+
+  it("arma el mensaje legible sin precios y el enlace wa.me", () => {
+    const texto = mensajeWhatsApp(construirBorrador(fichasBase()));
+    expect(texto).toContain("Pinturería Centro");
+    expect(texto).toContain("no vinculante");
+    expect(texto).toContain("Descubrimiento");
+    expect(texto).not.toContain("$800");
+    expect(texto).not.toContain("$155");
+    expect(texto.toLowerCase()).not.toContain("oferta");
+    const url = enlaceWhatsApp(texto);
+    expect(url.startsWith("https://wa.me/5493547532008?text=")).toBe(true);
+    expect(decodeURIComponent(url.split("?text=")[1])).toBe(texto);
   });
 });

@@ -35,16 +35,16 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   description="Recorré la oficina ModoOps, cargá los datos de tu negocio por objeto y enviá tu borrador no vinculante al consultor."
 >
   <main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-8" data-portal>
-    <p class="rounded-full border border-dashed px-3 py-1 text-xs text-neutral-500">
+    <p class="rounded-full border border-dashed px-3 py-1 text-xs text-zinc-400">
       Borrador no vinculante · lo valida el consultor en el Descubrimiento · nada de acá crea tu sistema
     </p>
     <h1 class="mt-2 text-3xl font-semibold">Tu oficina, tu borrador</h1>
-    <p class="mt-1 text-sm text-neutral-500">
+    <p class="mt-1 text-sm text-zinc-400">
       Tres pasos: tu negocio, lo que necesitás hoy (ancla) y para dónde querés crecer.
     </p>
 
     <div class="mt-4 grid gap-4 md:grid-cols-[1fr_320px]">
-      <div class="rounded-2xl border bg-white p-4">
+      <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
         <ol class="flex flex-wrap gap-2 text-xs" data-pasos>
           <li><button data-paso="0" class="rounded-full border px-3 py-1 font-semibold">1 · Tu negocio</button></li>
           <li><button data-paso="1" class="rounded-full border px-3 py-1">2 · Tu ancla</button></li>
@@ -61,25 +61,25 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
               aria-describedby="hero-ayuda"
             ></canvas>
             <div data-hero-etiquetas class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"></div>
-            <div data-hero-fallback hidden class="rounded-xl border bg-neutral-50 p-3">
+            <div data-hero-fallback hidden class="rounded-xl border border-white/10 bg-white/[0.04] p-3">
               <p class="text-sm font-semibold">Plano del local (sin 3D)</p>
-              <p class="text-xs text-neutral-500">Tocá un sector para ir a su ficha.</p>
+              <p class="text-xs text-zinc-400">Tocá un sector para ir a su ficha.</p>
               <div class="mt-2 flex flex-wrap gap-1">
                 {objetos.map((id) => (
-                  <button data-hero-fallback-btn={id} class="rounded-full border bg-white px-2 py-1 text-xs">
+                  <button data-hero-fallback-btn={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">
                     {OBJETO_LABEL[id]}
                   </button>
                 ))}
               </div>
             </div>
-            <p class="px-1 py-1 text-xs text-neutral-500" data-hero-estado id="hero-ayuda">
+            <p class="px-1 py-1 text-xs text-zinc-400" data-hero-estado id="hero-ayuda">
               Arrastrá para girar · click en un mueble para ir a su ficha.
             </p>
-            <details class="mt-2 rounded-xl border bg-neutral-50 p-3">
+            <details class="mt-2 rounded-xl border border-white/10 bg-white/[0.04] p-3">
               <summary class="cursor-pointer text-sm font-semibold">Elegir objeto sin 3D (teclado)</summary>
               <div class="mt-2 flex flex-wrap gap-1">
                 {objetos.map((id) => (
-                  <button data-hero-fallback-btn={id} class="rounded-full border bg-white px-2 py-1 text-xs">
+                  <button data-hero-fallback-btn={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">
                     {OBJETO_LABEL[id]}
                   </button>
                 ))}
@@ -89,55 +89,55 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 
           <div class="mt-3 grid gap-2 text-sm">
             <label>Nombre del negocio *
-              <input data-prospecto="nombre" autocomplete="organization" class="mt-1 w-full rounded border p-2" placeholder="Ej: Pinturería Centro" /></label>
+              <input data-prospecto="nombre" autocomplete="organization" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Pinturería Centro" /></label>
             <div class="grid gap-2 md:grid-cols-2">
               <label>Tu nombre
-                <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border p-2" placeholder="Ej: Ana" /></label>
+                <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Ana" /></label>
               <label>Teléfono *
-                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border p-2" placeholder="Ej: 3547 000000" /></label>
+                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: 3547 000000" /></label>
             </div>
             <div class="grid gap-2 md:grid-cols-2">
               <label>Email
-                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border p-2" placeholder="Ej: ana@negocio.com" /></label>
+                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: ana@negocio.com" /></label>
               <label>Rubro
-                <select data-prospecto="rubro" class="mt-1 w-full rounded border p-2">
+                <select data-prospecto="rubro" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500">
                   <option value="retail">Retail mostrador</option>
                   <option value="distribucion">Distribución chica</option>
                   <option value="servicios">Servicios</option>
                 </select></label>
             </div>
             <div class="grid grid-cols-3 gap-2">
-              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
-              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border p-2" /></label>
-              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="mt-1 w-full rounded border p-2" /></label>
+              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
+              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
+              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
             </div>
             <div class="grid gap-2 md:grid-cols-2">
-              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="mt-1 w-full rounded border p-2" /></label>
+              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
               <label class="flex items-center gap-2">¿Llevás stock en Excel hoy?
                 <input data-dato="tiene_excel" type="checkbox" class="h-4 w-4" /></label>
             </div>
             <fieldset class="rounded border p-2">
-              <legend class="px-1 text-xs text-neutral-500">Tu infraestructura (solo sí/no)</legend>
+              <legend class="px-1 text-xs text-zinc-400">Tu infraestructura (solo sí/no)</legend>
               <div class="flex flex-wrap gap-3">
                 <label class="flex items-center gap-2">¿Hosting propio? <input data-infra="hosting_propio" type="checkbox" class="h-4 w-4" /></label>
                 <label class="flex items-center gap-2">¿Dominio con SSL? <input data-infra="dominio_ssl" type="checkbox" class="h-4 w-4" /></label>
                 <label class="flex items-center gap-2">¿Backups? <input data-infra="backups" type="checkbox" class="h-4 w-4" /></label>
               </div>
             </fieldset>
-            <p class="text-xs text-neutral-500">* Solo nombre y un contacto (teléfono o email) son obligatorios. Todo lo demás ayuda al consultor pero es opcional.</p>
+            <p class="text-xs text-zinc-400">* Solo nombre y un contacto (teléfono o email) son obligatorios. Todo lo demás ayuda al consultor pero es opcional.</p>
           </div>
         </section>
 
         <section data-panel="1" class="mt-4" hidden>
           <h2 class="text-lg font-semibold">Paso 2 — Tu ancla (combo cerrado)</h2>
-          <p class="text-sm text-neutral-500">Tildá lo que necesitás hoy. Siempre incluidos: {SIEMPRE.map((k) => NOMBRES[k]).join(' · ')}.</p>
+          <p class="text-sm text-zinc-400">Tildá lo que necesitás hoy. Siempre incluidos: {SIEMPRE.map((k) => NOMBRES[k]).join(' · ')}.</p>
 
           <div class="mt-3 grid gap-3" data-fichas>
             <article data-ficha="mostrador-3d" class="rounded-xl border p-3">
               <label class="flex items-center gap-2 font-semibold">
                 <input data-incluir="mostrador-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['mostrador-3d']} → {NOMBRES.mostrador}</label>
               <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
-                <label>¿Cuántas cajas? <input data-obj="mostrador-3d" data-campo="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border p-2" /></label>
+                <label>¿Cuántas cajas? <input data-obj="mostrador-3d" data-campo="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
                 <label class="flex items-center gap-2">¿Hacés descuento en caja? <input data-obj="mostrador-3d" data-campo="descuento" type="checkbox" class="h-4 w-4" /></label>
               </div>
             </article>
@@ -146,7 +146,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
               <label class="flex items-center gap-2 font-semibold">
                 <input data-incluir="estanteria-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['estanteria-3d']} → {NOMBRES.deposito}</label>
               <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
-                <label>¿Cuántos depósitos? <input data-obj="estanteria-3d" data-campo="almacenes" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
+                <label>¿Cuántos depósitos? <input data-obj="estanteria-3d" data-campo="almacenes" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
                 <label class="flex items-center gap-2">¿Ubicaciones por estante? <input data-obj="estanteria-3d" data-campo="ubicaciones" type="checkbox" class="h-4 w-4" /></label>
               </div>
             </article>
@@ -155,7 +155,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
               <label class="flex items-center gap-2 font-semibold">
                 <input data-incluir="gondola-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['gondola-3d']} → {NOMBRES.ventas}</label>
               <div class="mt-2 text-sm">
-                <label>¿Cuántas listas de precio? <input data-obj="gondola-3d" data-campo="listas_precio" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
+                <label>¿Cuántas listas de precio? <input data-obj="gondola-3d" data-campo="listas_precio" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
               </div>
             </article>
 
@@ -163,7 +163,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
               <label class="flex items-center gap-2 font-semibold">
                 <input data-incluir="computadora-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['computadora-3d']} → {NOMBRES.compras}</label>
               <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
-                <label>¿Cuántos proveedores? <input data-obj="computadora-3d" data-campo="proveedores" type="number" min="0" value="0" class="mt-1 w-full rounded border p-2" /></label>
+                <label>¿Cuántos proveedores? <input data-obj="computadora-3d" data-campo="proveedores" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
                 <label class="flex items-center gap-2">¿Usás orden de compra? <input data-obj="computadora-3d" data-campo="orden_compra" type="checkbox" class="h-4 w-4" /></label>
               </div>
             </article>
@@ -171,9 +171,9 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <article data-ficha="pizarron-fiscal-3d" class="rounded-xl border p-3">
               <label class="flex items-center gap-2 font-semibold">
                 <input data-incluir="pizarron-fiscal-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['pizarron-fiscal-3d']} → {NOMBRES.fiscal_ar}</label>
-              <p class="mt-1 text-xs text-neutral-500">Borrador sin validez: el cierre real lo hacés con tu contador antes de salir en vivo.</p>
+              <p class="mt-1 text-xs text-zinc-400">Borrador sin validez: el cierre real lo hacés con tu contador antes de salir en vivo.</p>
               <fieldset class="mt-2 text-sm">
-                <legend class="text-xs text-neutral-500">¿Qué comprobantes creés que usás?</legend>
+                <legend class="text-xs text-zinc-400">¿Qué comprobantes creés que usás?</legend>
                 <div class="flex flex-wrap gap-2">
                   {COMPROBANTES.map((c) => (
                     <label class="flex items-center gap-1 rounded border px-2 py-1 text-xs">
@@ -182,14 +182,14 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
                   ))}
                 </div>
               </fieldset>
-              <label class="mt-2 block text-sm">Tu contador <input data-obj="pizarron-fiscal-3d" data-campo="contador" class="mt-1 w-full rounded border p-2" placeholder="Ej: Estudio López" /></label>
+              <label class="mt-2 block text-sm">Tu contador <input data-obj="pizarron-fiscal-3d" data-campo="contador" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Estudio López" /></label>
             </article>
           </div>
         </section>
 
         <section data-panel="2" class="mt-4" hidden>
           <h2 class="text-lg font-semibold">Paso 3 — Para crecer (futuro, no ancla)</h2>
-          <p class="text-sm text-neutral-500">Lo que hoy no entra, pero querés dejar anotado.</p>
+          <p class="text-sm text-zinc-400">Lo que hoy no entra, pero querés dejar anotado.</p>
           <article data-ficha="puerta-crecer-3d" class="mt-3 rounded-xl border border-dashed p-3">
             <p class="font-semibold">{OBJETO_LABEL['puerta-crecer-3d']}</p>
             <div class="mt-2 grid gap-2 text-sm">
@@ -201,7 +201,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             </div>
           </article>
 
-          <div class="mt-4 rounded-xl bg-neutral-50 p-3">
+          <div class="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-3">
             <h3 class="font-semibold">Enviá tu borrador al consultor</h3>
             <ul class="mt-1 text-sm text-red-700" data-errores aria-live="polite"></ul>
             <div class="mt-2 flex flex-wrap gap-2">
@@ -209,7 +209,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
               <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-sm text-green-700">Enviar por WhatsApp</a>
               <button data-enviar class="rounded-full bg-orange-600 px-4 py-2 text-sm text-white">Enviar a ModoOps</button>
             </div>
-            <p class="mt-1 text-xs text-neutral-500" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
+            <p class="mt-1 text-xs text-zinc-400" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
             <p class="mt-1 text-xs" data-enviado role="status" hidden></p>
           </div>
         </section>
@@ -220,14 +220,14 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         </div>
       </div>
 
-      <aside class="rounded-2xl border bg-white p-4" aria-live="polite">
+      <aside class="rounded-2xl border border-white/10 bg-white/[0.04] p-4" aria-live="polite">
         <h2 class="text-lg font-semibold">Borrador vivo</h2>
-        <p class="text-xs text-neutral-500">Se guarda solo en tu navegador.</p>
+        <p class="text-xs text-zinc-400">Se guarda solo en tu navegador.</p>
         <ul class="mt-2 flex flex-wrap gap-1" data-seleccion></ul>
         <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-neutral-950 p-2 text-xs text-green-200" data-json>{}</pre>
         <div class="mt-3 rounded-xl border p-3" data-cotizacion-panel>
           <h3 class="font-semibold">Validación del servidor</h3>
-          <p class="text-xs text-neutral-500">Cotizá tu selección contra el catálogo vivo de Odoo (sin guardar nada).</p>
+          <p class="text-xs text-zinc-400">Cotizá tu selección contra el catálogo vivo de Odoo (sin guardar nada).</p>
           <button data-cotizar class="mt-2 rounded-full bg-black px-4 py-2 text-sm text-white">Cotizar en servidor</button>
           <div class="mt-2 text-sm" data-cotizacion aria-live="polite"></div>
         </div>
@@ -274,6 +274,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 <script>
   import {
     OBJETO_A_MODULO,
+    WHATSAPP_COMERCIAL,
     construirBorrador,
     esAncla,
     guardarBorrador,
@@ -297,7 +298,6 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     ia: 'IA ModoOps',
   };
   const SIEMPRE = ['contactos', 'plataforma', 'puente_factura'];
-  const WHATSAPP = 'https://wa.me/5493547532008';
 
   const root = document.querySelector('[data-portal]');
   if (root instanceof HTMLElement) {
@@ -374,7 +374,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         chips.innerHTML = '';
         for (const k of [...b.modulos_ancla, ...b.modulos_futuros]) {
           const li = document.createElement('li');
-          li.className = 'rounded-full border px-2 py-0.5 text-xs' + (esAncla(k) ? ' bg-black text-white' : ' bg-amber-100');
+          li.className = 'rounded-full border px-2 py-0.5 text-xs' + (esAncla(k) ? ' bg-black text-white' : ' bg-amber-100 text-black');
           li.textContent = (NOMBRES[k] ?? k) + ' · ' + horasDe(k) + ' h';
           chips.appendChild(li);
         }
@@ -390,7 +390,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       }
       const textoWa = 'Hola ModoOps, te paso mi borrador (no vinculante):\n```json\n' + JSON.stringify(b) + '\n```';
       if (linkWa instanceof HTMLAnchorElement) {
-        linkWa.href = WHATSAPP + '?text=' + encodeURIComponent(textoWa);
+        linkWa.href = WHATSAPP_COMERCIAL + '?text=' + encodeURIComponent(textoWa);
         linkWa.classList.toggle('opacity-40', errores.length > 0);
         linkWa.setAttribute('aria-disabled', errores.length > 0 ? 'true' : 'false');
       }
