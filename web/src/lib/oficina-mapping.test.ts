@@ -234,4 +234,14 @@ describe("oficina-mapping — guion v2 (3 preguntas por módulo)", () => {
     e = responderGuion(e, "compras", 0, "no");
     expect([...seleccionDeGuion(e)].sort()).toEqual(["ventas"]);
   });
+
+  it("crecer ofrece candidatos a desarrollar, a cotizar", () => {
+    const crecer = GUION_CHAT.find((p) => p.id === "crecer")!;
+    expect(crecer.bloque).toBe("Para crecer");
+    expect([...crecer.keys].sort()).toEqual(["crm", "ecommerce", "logistica", "otro", "web"]);
+    for (const k of crecer.keys) {
+      expect(CATALOGO_KEYS.has(k)).toBe(true);
+      expect(esAncla(k)).toBe(false);
+    }
+  });
 });

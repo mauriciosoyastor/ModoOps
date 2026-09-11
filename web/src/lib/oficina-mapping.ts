@@ -46,12 +46,13 @@ const ANCLA: ReadonlySet<CatalogoKey> = new Set([
   'puente_factura',
 ]);
 
-/** Módulos futuros que cuelgan de la puerta "crecer" (add-ons, no ancla). */
+/** Módulos futuros que cuelgan de la puerta "crecer": candidatos a desarrollar (ticket 02). */
 export const PUERTA_FUTURO: readonly CatalogoKey[] = [
-  'taller',
-  'migracion_excel',
-  'b2b_basico',
-  'ia',
+  'logistica',
+  'ecommerce',
+  'web',
+  'crm',
+  'otro',
 ];
 
 /** Módulos que van siempre, no se preguntan: se informan al final del chat. */
@@ -156,10 +157,10 @@ export const GUION_CHAT: readonly PreguntaChat[] = [
   {
     id: 'crecer',
     bloque: 'Para crecer',
-    texto: '¿Para dónde querés crecer? Tildá todo lo que te sirva.',
+    texto: '¿Para dónde querés crecer? Tildá todo lo que te sirva (a desarrollar, a cotizar).',
     objeto: 'puerta-crecer-3d',
-    keys: ['taller', 'migracion_excel', 'b2b_basico', 'ia'],
-    multi: ['Taller', 'Pasar mi Excel', 'Vender a comercios', 'Usar IA'],
+    keys: ['logistica', 'ecommerce', 'web', 'crm', 'otro'],
+    multi: ['Logística / reparto', 'Ecommerce', 'Página web', 'Seguimiento de clientes (CRM)', 'Otro (contanos)'],
   },
 ];
 
