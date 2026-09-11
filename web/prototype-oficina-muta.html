@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<!-- PROTOTYPE throwaway — NO es producción. Pregunta: ¿cómo muta la oficina 3D con cada respuesta del panel-chat? Ticket #142. Rama: prototype/oficina-muta. -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>PROTOTIPO — Oficina que muta (#142)</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; color: #111; }
+  .proto { background: #fff3cd; border: 2px dashed #b58900; padding: .75rem 1rem; font-weight: bold; }
+  .panel { border: 1px solid #999; padding: 1rem; margin: 1rem 0; }
+  .obj { display: inline-block; border: 1px solid #555; padding: .4rem .7rem; margin: .25rem; min-width: 11rem; }
+  .apagado { background: #eee; color: #555; }
+  .fantasma { background: #e3e9ff; color: #334; border-style: dashed; }
+  .encendido { background: #d4edda; color: #123; border-width: 2px; }
+  .changed { outline: 3px solid #ff8c00; }
+  button { margin: .15rem; padding: .35rem .7rem; font-size: 1rem; }
+  .tabs button[aria-selected="true"] { font-weight: bold; text-decoration: underline; }
+  .step { display: block; margin: .3rem 0; text-align: left; width: 100%; }
+  .done { text-decoration: line-through; opacity: .6; }
+  h2 { margin-top: 2rem; }
+</style>
+</head>
+<body>
+<div class="proto">PROTOTIPO descartable — ticket #142. Doble clic para abrir, sin instalar nada. No va a producción.</div>
+
+<h1>¿Cómo muta la oficina con cada respuesta?</h1>
+<p>Este demo modela la <strong>regla de mutación</strong> del panel-chat único: cada respuesta Sí/No mueve un objeto 3D entre tres estados —
+<strong>apagado</strong> (aún no preguntado), <strong>fantasma</strong> (respondido No / salteado) y <strong>encendido</strong> (respondido Sí) —
+y acumula el <strong>borrador no vinculante</strong>. Probalo y fijate si algún caso se siente mal.</p>
+
+<h2>Estado actual de la oficina</h2>
+<div class="panel" id="oficina" aria-live="polite"></div>
+
+<h2>Borrador no vinculante</h2>
+<div class="panel" id="borrador" aria-live="polite"></div>
+
+<h2>Juego libre</h2>
+<div class="panel" id="freeplay"></div>
+
+<h2>Recorridos guiados</h2>
+<div class="tabs panel" id="walkthroughs" role="tablist"></div>
+<div class="panel" id="walk"></div>
+
+<script>
+"use strict";
+/* ---- Módulo puro: la regla de mutación (levantable al código real) ----
+   Estados por objeto: 'apagado' | 'fantasma' | 'encendido'.
+   Horas copiadas de modoops_catalogo/catalogo.json solo para el prototipo. */
+const HORAS = { mostrador: 25, deposito: 20, ventas: 15, compras: 15, fiscal_ar: 15,
+  taller: 20, migracion_excel: 10, b2b_basico: 20, ia: 15, crm: 15, delivery: 15 };
+const PREGUNTAS = [
+  { id: "mostrador", texto: "¿Cobrás en caja o mostrador?", objeto: "Mostrador / caja", keys: ["mostrador"] },
+  { id: "deposito", texto: "¿Tenés depósito o estantería con stock?", objeto: "Estantería / depósito", keys: ["deposito"] },
+  { id: "ventas", texto: "¿Vendés con listas de precio?", objeto: "Góndola / ventas", keys: ["ventas"] },
+  { id: "compras", texto: "¿Comprás a proveedores?", objeto: "Computadora / compras", keys: ["compras"] },
+  { id: "fiscal", texto: "¿Facturás? (borrador, lo cierra tu contador)", objeto: "Pizarrón fiscal", keys: ["fiscal_ar"] },
+];
+const CRECER = [
+  { key: "taller", label: "Taller" }, { key: "migracion_excel", label: "Pasar mi Excel" },
+  { key: "b2b_basico", label: "Vender a comercios" }, { key: "ia", label: "Usar IA" },
+  { key: "crm", label: "Seguimiento de clientes" }, { key: "delivery", label: "Reparto / delivery" },
+];
+const ANCLA = new Set(["mostrador", "deposito", "ventas", "compras", "fiscal_ar"]);
+
+function estadoInicial() {
+  return { respuestas: { mostrador: null, deposito: null, ventas: null, compras: null, fiscal: null }, crecer: new Set() };
+}
+/* Reducer puro: (estado, acción) => estado nuevo. Sin DOM acá adentro. */
+function reducir(estado, accion) {
+  const e = { respuestas: { ...estado.respuestas }, crecer: new Set(estado.crecer) };
+  if (accion.tipo === "responder") e.respuestas[accion.pregunta] = accion.valor; // 'si' | 'no' | null
+  if (accion.tipo === "crecer") {
+    if (e.crecer.has(accion.key)) e.crecer.delete(accion.key); else e.crecer.add(accion.key);
+  }
+  if (accion.tipo === "reiniciar") return estadoInicial();
+  return e;
+}
+function estadoObjeto(estado, preguntaId) {
+  const r = estado.respuestas[preguntaId];
+  if (r === "si") return "encendido";
+  if (r === "no") return "fantasma";
+  return "apagado";
+}
+function borrador(estado) {
+  const ancla = [], futuros = [];
+  for (const p of PREGUNTAS) {
+    if (estado.respuestas[p.id] !== "si") continue;
+    for (const k of p.keys) (ANCLA.has(k) ? ancla : futuros).push(k);
+  }
+  for (const k of estado.crecer) futuros.push(k);
+  const horas = [...ancla, ...futuros].reduce((a, k) => a + (HORAS[k] || 0), 0);
+  return { ancla: ancla.sort(), futuros: futuros.sort(), horas };
+}
+
+/* ---- Cáscara descartable: página fina sobre el módulo puro ---- */
+let estado = estadoInicial();
+let ultimoCambio = null;
+
+function accionar(accion) {
+  estado = reducir(estado, accion);
+  ultimoCambio = accion.tipo === "responder" ? accion.pregunta : (accion.tipo === "crecer" ? "crecer" : null);
+  render();
+  if (walkActivo) avanzarPaso();
+}
+function etiquetaEstado(s) { return s === "encendido" ? "encendido" : s === "fantasma" ? "fantasma" : "apagado"; }
+function render() {
+  const of = document.getElementById("oficina");
+  of.innerHTML = "";
+  for (const p of PREGUNTAS) {
+    const s = estadoObjeto(estado, p.id);
+    const d = document.createElement("span");
+    d.className = "obj " + s + (ultimoCambio === p.id ? " changed" : "");
+    d.textContent = p.objeto + ": " + etiquetaEstado(s);
+    of.appendChild(d);
+  }
+  const puerta = document.createElement("span");
+  const nFut = estado.crecer.size;
+  puerta.className = "obj " + (nFut ? "encendido" : "apagado") + (ultimoCambio === "crecer" ? " changed" : "");
+  puerta.textContent = 'Puerta "crecer": ' + (nFut ? "encendida (" + nFut + ")" : "apagada");
+  of.appendChild(puerta);
+
+  const b = borrador(estado);
+  document.getElementById("borrador").innerHTML =
+    "<div><strong>Ancla:</strong> " + (b.ancla.join(", ") || "—") + "</div>" +
+    "<div><strong>Para crecer:</strong> " + (b.futuros.join(", ") || "—") + "</div>" +
+    "<div><strong>Horas estimadas (internas, nunca se muestran al prospecto):</strong> " + b.horas + "</div>" +
+    (b.ancla.length === 0 && b.futuros.length === 0 ? "<div><strong>Ojo:</strong> borrador vacío — ¿vale o el chat debería exigir al menos un Sí?</div>" : "") +
+    (b.ancla.length === 0 && b.futuros.length > 0 ? "<div><strong>Ojo:</strong> borrador sin ancla, solo futuro — ¿se acepta o se pide al menos un módulo ancla?</div>" : "");
+
+  const fp = document.getElementById("freeplay");
+  fp.innerHTML = "";
+  for (const p of PREGUNTAS) {
+    const wrap = document.createElement("div");
+    wrap.innerHTML = "<strong>" + p.texto + "</strong> ";
+    for (const [v, label] of [["si", "Sí"], ["no", "No"], [null, "Limpiar"]]) {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      btn.onclick = () => accionar({ tipo: "responder", pregunta: p.id, valor: v });
+      wrap.appendChild(btn);
+    }
+    fp.appendChild(wrap);
+  }
+  const cw = document.createElement("div");
+  cw.innerHTML = "<strong>Crecer (multi-tilde):</strong> ";
+  for (const c of CRECER) {
+    const btn = document.createElement("button");
+    btn.textContent = (estado.crecer.has(c.key) ? "[x] " : "[ ] ") + c.label;
+    btn.onclick = () => accionar({ tipo: "crecer", key: c.key });
+    cw.appendChild(btn);
+  }
+  fp.appendChild(cw);
+  const rb = document.createElement("button");
+  rb.textContent = "Reiniciar todo";
+  rb.onclick = () => { walkActivo = null; accionar({ tipo: "reiniciar" }); renderWalk(); };
+  fp.appendChild(rb);
+}
+
+/* Recorridos: cada paso es un botón real que ejecuta la acción. */
+const RECORRIDOS = [
+  { id: "feliz", titulo: "Kiosco con todo", desc: "Caso feliz: responde Sí a todo y tilda 2 futuros. Mirá cómo se enciende la oficina completa y qué borrador sale.",
+    pasos: [["mostrador", "si"], ["deposito", "si"], ["ventas", "si"], ["compras", "si"], ["fiscal", "si"], ["crecer:ia"], ["crecer:delivery"]] },
+  { id: "negador", titulo: "Todo No", desc: "Caso borde: dice No a todo. La oficina queda toda fantasma y el borrador vacío. ¿Eso vale como borrador o el chat debería frenarlo?",
+    pasos: [["mostrador", "no"], ["deposito", "no"], ["ventas", "no"], ["compras", "no"], ["fiscal", "no"]] },
+  { id: "cambio", titulo: "Cambio de idea", desc: "Dice Sí al mostrador, después se arrepiente y pone No. El objeto tiene que volver a fantasma y las horas bajar. ¿Se siente reversible?",
+    pasos: [["mostrador", "si"], ["deposito", "si"], ["mostrador", "no"]] },
+  { id: "soloFuturo", titulo: "Solo futuro, sin ancla", desc: "Saltea el ancla y solo tilda IA y delivery en crecer. Borrador sin ancla: ¿lo aceptamos o pedimos al menos un módulo ancla?",
+    pasos: [["mostrador", "no"], ["deposito", "no"], ["ventas", "no"], ["compras", "no"], ["fiscal", "no"], ["crecer:ia"], ["crecer:delivery"]] },
+];
+let walkActivo = null, walkPaso = 0;
+function renderWalkTabs() {
+  const t = document.getElementById("walkthroughs");
+  t.innerHTML = "<strong>Escenarios:</strong> ";
+  for (const r of RECORRIDOS) {
+    const b = document.createElement("button");
+    b.textContent = r.titulo;
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", walkActivo === r.id ? "true" : "false");
+    b.onclick = () => { walkActivo = r.id; walkPaso = 0; estado = estadoInicial(); ultimoCambio = null; render(); renderWalk(); };
+    t.appendChild(b);
+  }
+}
+function renderWalk() {
+  renderWalkTabs();
+  const w = document.getElementById("walk");
+  w.innerHTML = "";
+  if (!walkActivo) { w.textContent = "Elegí un escenario para empezar (reinicia el estado)."; return; }
+  const r = RECORRIDOS.find(x => x.id === walkActivo);
+  const p = document.createElement("p");
+  p.textContent = r.desc;
+  w.appendChild(p);
+  r.pasos.forEach((paso, i) => {
+    const b = document.createElement("button");
+    b.className = "step" + (i < walkPaso ? " done" : "");
+    b.textContent = (i + 1) + ". " + (paso[0].startsWith("crecer:")
+      ? "Tildar " + CRECER.find(c => c.key === paso[0].split(":")[1]).label
+      : "Responder " + (paso[1] === "si" ? "Sí" : "No") + " a " + PREGUNTAS.find(q => q.id === paso[0]).texto);
+    b.disabled = i !== walkPaso;
+    b.onclick = () => {
+      if (paso[0].startsWith("crecer:")) accionar({ tipo: "crecer", key: paso[0].split(":")[1] });
+      else accionar({ tipo: "responder", pregunta: paso[0], valor: paso[1] });
+    };
+    w.appendChild(b);
+  });
+  if (walkPaso >= r.pasos.length) {
+    const fin = document.createElement("p");
+    fin.innerHTML = "<strong>Recorrido completo.</strong> ¿Algo se sintió mal? Anotalo para la decisión del ticket #142.";
+    w.appendChild(fin);
+  }
+}
+function avanzarPaso() {
+  if (!walkActivo) return;
+  const r = RECORRIDOS.find(x => x.id === walkActivo);
+  if (walkPaso < r.pasos.length) walkPaso++;
+  renderWalk();
+}
+render();
+renderWalk();
+</script>
+</body>
+</html>
