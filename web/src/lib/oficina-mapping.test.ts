@@ -8,8 +8,13 @@ import {
   cargarBorrador,
   construirBorrador,
   esAncla,
+  estadoInicialGuion,
+  estadoObjetoGuion,
+  flagsGuion,
   guardarBorrador,
   horasDe,
+  responderGuion,
+  seleccionDeGuion,
   validarBorrador,
   traducirBorradorAGenerar,
   mensajeWhatsApp,
@@ -159,5 +164,74 @@ describe("oficina-mapping — seam único objeto↔módulo", () => {
     const url = enlaceWhatsApp(texto);
     expect(url.startsWith("https://wa.me/5493547532008?text=")).toBe(true);
     expect(decodeURIComponent(url.split("?text=")[1])).toBe(texto);
+  });
+});
+
+describe("oficina-mapping — guion v2 (3 preguntas por módulo)", () => {
+  it("cada módulo ancla expone P1/P2/P3 en voseo y texto === P1", () => {
+    const ancla = GUION_CHAT.filter((p) => p.bloque === "Tu ancla");
+    expect(ancla).toHaveLength(5);
+    for (const p of ancla) {
+      expect(p.preguntas).toHaveLength(3);
+      expect(p.texto).toBe(p.preguntas[0]);
+      for (const t of p.preguntas) {
+        expect(t.endsWith("?")).toBe(true);
+      }
+    }
+  });
+
+  it("Mostrador parte atención y cobro", () => {
+    const m = GUION_CHAT.find((p) => p.id === "mostrador")!;
+    expect(m.preguntas[0]).toMatch(/mostrador|en persona/);
+    expect(m.preguntas[1]).toMatch(/caja/);
+  });
+
+  it("No en P1 bloquea y limpia hijas", () => {
+    let e = estadoInicialGuion();
+    e = responderGuion(e, "mostrador", 0, "si");
+    e = responderGuion(e, "mostrador", 1, "si");
+    e = responderGuion(e, "mostrador", 0, "no");
+    expect(e["mostrador"]).toEqual(["no", null, null]);
+    expect(estadoObjetoGuion(e, "mostrador")).toBe("fantasma");
+  });
+
+  it("hijas ignoradas sin Sí en P1", () => {
+    const e0 = estadoInicialGuion();
+    const e1 = responderGuion(e0, "ventas", 1, "si");
+    expect(e1["ventas"]).toEqual([null, null, null]);
+    expect(estadoObjetoGuion(e1, "ventas")).toBe("apagado");
+  });
+
+  it("estado del objeto: apagado, fantasma y encendido", () => {
+    let e = estadoInicialGuion();
+    expect(estadoObjetoGuion(e, "deposito")).toBe("apagado");
+    e = responderGuion(e, "deposito", 0, "no");
+    expect(estadoObjetoGuion(e, "deposito")).toBe("fantasma");
+    e = responderGuion(e, "deposito", 0, "si");
+    expect(estadoObjetoGuion(e, "deposito")).toBe("encendido");
+  });
+
+  it("flags fuera de estándar van a Descubrimiento", () => {
+    let e = estadoInicialGuion();
+    e = responderGuion(e, "mostrador", 0, "si");
+    e = responderGuion(e, "mostrador", 1, "si");
+    e = responderGuion(e, "mostrador", 2, "si");
+    e = responderGuion(e, "deposito", 0, "si");
+    e = responderGuion(e, "deposito", 1, "no");
+    e = responderGuion(e, "fiscal", 0, "si");
+    e = responderGuion(e, "fiscal", 1, "si");
+    e = responderGuion(e, "fiscal", 2, "no");
+    const f = flagsGuion(e);
+    expect(f.some((t) => t.includes("2 bocas"))).toBe(true);
+    expect(f.some((t) => t.includes("Multi-almacén"))).toBe(true);
+    expect(f.some((t) => t.includes("contador"))).toBe(true);
+    expect(f).toHaveLength(3);
+  });
+
+  it("la selección junta keys con algún Sí", () => {
+    let e = estadoInicialGuion();
+    e = responderGuion(e, "ventas", 0, "si");
+    e = responderGuion(e, "compras", 0, "no");
+    expect([...seleccionDeGuion(e)].sort()).toEqual(["ventas"]);
   });
 });
