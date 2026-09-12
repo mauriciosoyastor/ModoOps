@@ -1,9 +1,11 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Button from "../../../components/ui/Button.astro";
 import { BffError } from "../../../lib/bff/errors.ts";
 import { invalidateBffSession } from "../../../lib/bff/http.ts";
 import { loadTenantLauncher } from "../../../lib/bff/launcher.ts";
 import { withMasterSession } from "../../../lib/bff/tenant-status.ts";
+import { resumenHome } from "../../../lib/bff/home.ts";
 
 
 export const prerender = false;
@@ -73,10 +75,17 @@ function accentVar(key: string): string {
 }
 
 const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
+
+// Home operativa (spec home-hub, slice 3): tabs por URL (?tab=), estática.
+// resumenHome({}) nunca falla (ancla por defecto); los números vivos llegan en el slice 4.
+const homeTabParam = Astro.url.searchParams.get("tab") || "";
+const homeRes = resumenHome({ tab: homeTabParam });
+const homeTabs = homeRes.ok ? homeRes.home.tabs : [];
+const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes.home.tab)?.label ?? "" : "";
 ---
 
 <BaseLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Tenant ${slug} — ModoOps`}>
-  <main class="mo-tenant">
+  <main class:list={["mo-tenant", tenant && !tenantError && "with-nav"]}>
     <header class="mo-tenant__topbar">
       <div>
         <p class="mo-tenant__eyebrow">ModoOps · Control Plane → Tenant</p>
@@ -99,6 +108,20 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
 
     {tenant && !tenantError ? (
       <>
+        <section class="mo-home" aria-label="Home operativa">
+          <p class="mo-home__saludo">Hola, <strong>{tenant.name}</strong> · así viene tu día</p>
+          <div role="tablist" aria-label="Módulos" class="mo-tabs">
+            {homeTabs.map((t) => (
+              <a role="tab" aria-selected={t.active ? "true" : "false"} href={`/tenant/${slug}/app?tab=${t.id}`} class:list={["mo-tab", t.active && "is-active"]}>{t.label}</a>
+            ))}
+          </div>
+          <p class="mo-home__tab" data-home-tab aria-live="polite">Viendo: {homeTabLabel} — los números llegan en el próximo paso.</p>
+          <div class="mo-home__acciones">
+            <Button href="/oficina" variant="primary">Armar borrador</Button>
+            <Button href="/admin/leads" variant="ghost-dark">Ver leads</Button>
+            <Button href="#launcher" variant="ghost-dark">Mis módulos</Button>
+          </div>
+        </section>
         <section class="mo-tenant__panel">
           <h2>Armar sistema — Módulos ModoOps del Catálogo</h2>
           <p class="mo-tenant__hint">Instalá/quita módulos para <code>{tenant.db_name}</code>. IA es un módulo más del Catálogo (q4). Preview <code>odoo-bin -d {tenant.db_name} -i/-u &lt;mod&gt;</code> auditado en <code>modoops.tenant.log</code>.</p>
@@ -138,7 +161,7 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
           ) : null}
         </section>
 
-        <section>
+        <section id="launcher">
           <h2 class="mo-tenant__h2">Launcher — {tenant.name} (tiles {tiles.length})</h2>
           {launcherError ? <p class="mo-tenant__error">{launcherError}</p> : tiles.length === 0 ? <p class="mo-tenant__empty">Sin tiles visibles para este usuario en este tenant.</p> : (
             <div class="mo-app__grid">
@@ -153,6 +176,14 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
             </div>
           )}
         </section>
+
+        <nav aria-label="Principal" class="mo-bottomnav">
+          <a href={`/tenant/${slug}/app`} aria-current="page"><span aria-hidden="true">◉</span><span>Cuenta</span></a>
+          <a href="#launcher"><span aria-hidden="true">▦</span><span>Módulos</span></a>
+          <a href="/oficina" aria-label="Oficina: armar borrador"><span class="mo-qr" aria-hidden="true">⌂</span></a>
+          <a href="/admin/leads"><span aria-hidden="true">✉</span><span>Leads</span></a>
+          <a href="/admin/tenants"><span aria-hidden="true">⋯</span><span>Más</span></a>
+        </nav>
       </>
     ) : null}
   </main>
@@ -287,6 +318,19 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
 
 <style>
   .mo-tenant { max-width:78rem; margin:0 auto; padding:2rem 1rem 3rem; }
+  .with-nav { padding-bottom:6rem; }
+  .mo-home { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1.1rem; background:var(--sg-glass-fill); margin-bottom:1.25rem; }
+  .mo-home__saludo { margin:0 0 .6rem; color:var(--sg-text-muted-dark); font-size:.9rem; }
+  .mo-home__saludo strong { color:var(--color-core-cream); }
+  .mo-tabs { display:flex; gap:.4rem; flex-wrap:wrap; }
+  .mo-tab { display:inline-flex; align-items:center; min-height:44px; padding:.5rem 1rem; border-radius:999px; font-size:.85rem; color:var(--sg-text-muted-dark); text-decoration:none; transition:color .15s ease, background-color .15s ease; }
+  .mo-tab.is-active { background:var(--color-brand-accent); color:var(--color-space-void); font-weight:600; }
+  .mo-home__tab { font-size:.85rem; color:var(--sg-text-muted-dark); margin:.6rem 0 0; }
+  .mo-home__acciones { display:flex; gap:.6rem; flex-wrap:wrap; margin-top:.9rem; }
+  .mo-bottomnav { position:fixed; bottom:0; left:0; right:0; z-index:40; display:grid; grid-template-columns:repeat(5,1fr); background:rgb(0 0 0/.92); border-top:1px solid var(--sg-glass-border); padding-bottom:env(safe-area-inset-bottom); }
+  .mo-bottomnav a { display:flex; flex-direction:column; align-items:center; gap:2px; padding:.6rem .25rem; font-size:.7rem; color:var(--sg-text-muted-dark); text-decoration:none; min-height:44px; }
+  .mo-bottomnav a[aria-current="page"] { color:var(--color-brand-accent); font-weight:600; }
+  .mo-qr { width:2.6rem; height:2.6rem; margin-top:-1.2rem; border-radius:50%; background:var(--color-brand-accent); color:#000; display:flex; align-items:center; justify-content:center; font-size:1.2rem; border:4px solid #000; }
   .mo-tenant__topbar { display:flex; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap; }
   .mo-tenant__eyebrow { color:var(--sg-flame-orange); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0; font-weight:700; }
   .mo-tenant__db { font-size:.75rem; color:var(--sg-text-muted-dark); }
