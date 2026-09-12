@@ -46,9 +46,9 @@ export function mountEmpresaScene(
   // proyecta (shadow maps = 1 render extra, no 1 por luz), suavizado PCF y
   // tone mapping fílmico para no quemar blancos.
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMappingExposure = 1.0;
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x171310);
@@ -58,6 +58,9 @@ export function mountEmpresaScene(
   {
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    // IBL + luces viejas quemaban (captura 1): el environment manda a media
+    // fuerza y las direccionales bajan para compensar.
+    scene.environmentIntensity = 0.5;
     pmrem.dispose();
   }
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
@@ -65,9 +68,9 @@ export function mountEmpresaScene(
   camera.lookAt(0, 0.6, 0);
 
   // Luz cálida de local: hemisferio suave + una sola direccional con sombra
-  // (manual shadows: 1 luz con sombra = 1 render extra) + relleno frío sin sombra.
-  scene.add(new THREE.HemisphereLight(0xfff2e0, 0x2a2018, 0.55));
-  const sol = new THREE.DirectionalLight(0xffedd5, 1.6);
+  // + relleno frío sin sombra. Intensidades retuneadas para IBL (antes quemaba).
+  scene.add(new THREE.HemisphereLight(0xfff2e0, 0x2a2018, 0.25));
+  const sol = new THREE.DirectionalLight(0xffedd5, 0.9);
   sol.position.set(5, 8, 4);
   sol.castShadow = true;
   sol.shadow.mapSize.set(2048, 2048);
@@ -78,7 +81,7 @@ export function mountEmpresaScene(
   sol.shadow.camera.near = 1;
   sol.shadow.camera.far = 25;
   scene.add(sol);
-  const relleno = new THREE.DirectionalLight(0x9db8ff, 0.3);
+  const relleno = new THREE.DirectionalLight(0x9db8ff, 0.15);
   relleno.position.set(-6, 4, 6);
   scene.add(relleno);
 
