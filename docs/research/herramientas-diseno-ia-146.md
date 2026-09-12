@@ -16,15 +16,20 @@
 
 | Repo | ★ | Último push | Licencia | Estado |
 |------|---|-------------|----------|--------|
-| `penpot/penpot` | 59.912 | 2026-09-11 | MPL-2.0 | ✅ vivo |
-| `vercel-labs/agent-skills` (skill `web-design-guidelines`) | 31.123 | 2026-08-28 | MIT (según README; API devuelve `license: null`) | ✅ vivo |
-| `tailwindlabs/tailwindcss` (v4 `@theme`) | 97.518 | 2026-09-08 | MIT | ✅ vivo |
-| `shadcn-ui/ui` | 123.632 | 2026-09-12 | MIT | ✅ vivo |
+| `penpot/penpot` | 59.913 | 2026-09-11 | MPL-2.0 | ✅ vivo |
+| `vercel-labs/agent-skills` (skill `web-design-guidelines`) | 31.124 | 2026-08-28 | MIT (confirmado en README §License; API devuelve `license: null`) | ✅ vivo |
+| `tailwindlabs/tailwindcss` (v4 `@theme`) | 97.520 | 2026-09-08 | MIT | ✅ vivo |
+| `shadcn-ui/ui` | 123.634 | 2026-09-12 | MIT | ✅ vivo |
 | `adobe/leonardo` | 2.143 | 2026-07-08 | Apache-2.0 | ✅ vivo |
 | `vercel/geist-font` | 3.620 | 2026-07-14 | OFL-1.1 | ✅ vivo |
 | `Nutlope/logocreator` | 8.637 | 2026-08-03 | **sin licencia declarada** (`license: null` en API) | ⚠️ vivo pero sin licencia + requiere API key |
 | `manicinc/logomaker` | 14 | 2025-06-11 | MIT | ⚠️ chico, sin IA |
 | `FlowindAI/colormagic` | 3 | 2024-10-22 | sin licencia declarada | ❌ stale (~2 años), no usar |
+| `mxvsh/svglogo` | 61 | 2026-06-01 | **sin licencia declarada** (`license: null`) | ⚠️ chico, sin IA (ensamblador icono→logo) |
+| `ozgrozer/colors` | 36 | 2024-07-01 | GPL-3.0 | ❌ stale (>2 años), sin IA |
+| `DhanushNehru/claude-skills` (skill `color-palette-generator.md`) | 15 | 2026-05-01 | MIT | ⚠️ chico pero útil como prompt auditable |
+
+> Cifras reverificadas por segunda pasada el 2026-09-12 ~18:30 UTC contra `api.github.com/repos/...` (stars/push/licencia). Ver §6 para los 3 candidatos extra.
 
 Notas honestas:
 
@@ -58,3 +63,13 @@ Notas honestas:
 - **Marca v1 (T-marca): `adobe/leonardo` + wordmark Inter en Penpot.** Determinista, gratis, auditable por contraste, sin riesgo de licencia.
 - **Prototipo (T-prototipo): skill `web-design-guidelines` + `shadcn-ui/ui` sobre Tailwind v4 `@theme`.** Es exactamente el stack que `web/AGENTS.md` ya presupone (decisiones #112, spec #114).
 - **Qué no hacer:** adoptar paletas de micro-repos abandonados, usar PNG de FLUX como logo final, ni cambiar Inter→Geist sin ticket propio.
+
+## 6. Segunda pasada — 3 candidatos extra verificados (2026-09-12 ~18:30 UTC, `api.github.com`)
+
+| Herramienta | Repo | Costo real | Qué hace la IA | Qué NO hace | Output usable en Astro | Recomendada |
+|---|---|---|---|---|---|---|
+| svglogo (ensamblador icono→logo) | `mxvsh/svglogo` (61★, push 2026-06-01, **sin licencia**) | Gratis, 100% en browser | Nada (sin IA: parte de un icono Lucide/Tabler/Iconify y aplica fondo/radio) | No propone identidad; sin licencia declarada → no usar su código, solo la idea o el SVG que exportes vos | SVG/PNG/ICO directos para isotipo draft de `web/src/assets` | **Sí menor** — isotipo v1 rápido, con la reserva de licencia |
+| ozgrozer/colors | `ozgrozer/colors` (36★, push 2024-07-01, GPL-3.0) | Gratis | Nada (generador algorítmico, demo `ozgrozer.github.io/colors`) | Stale >2 años, sin IA, GPL-3.0 contamina si se copia código | Solo referencia visual | **No** |
+| color-palette-generator (skill) | `DhanushNehru/claude-skills` (15★, push 2026-05-01, MIT) | Gratis (usa tu LLM) | System prompt (~350 tokens) que convierte a Claude en generador de paletas: armonías + chequeo WCAG AA/AAA + roles (primary/bg/surface/text/accent/success/error) + CSS custom properties light/dark | Repo chico, mantenimiento incierto; no emite `@theme` directo (hay que traducir `--color-*` a tokens Tailwind) | Alto: pegar la salida como `--color-*` en `global.css:4-39` y pedirle la variante dark-galaxia | **Sí menor** — complemento del flujo Leonardo para T-marca |
+
+Conclusión sin cambios: la recomendación del §5 se mantiene. La segunda pasada solo agrega `svglogo` como vía rápida al isotipo v1 y la skill `color-palette-generator` como asistente LLM auditable para paleta.
