@@ -48,44 +48,44 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
           <div class="mt-2 grid gap-2" data-ia-hilo aria-live="polite"></div>
           <form data-ia-form class="mt-2 flex gap-2">
             <label class="sr-only" for="ia-msg">Preguntale a la IA</label>
-            <input id="ia-msg" data-ia-msg autocomplete="off" class="w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: ¿qué incluye el sistema?" />
+            <input id="ia-msg" data-ia-msg autocomplete="off" class="w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-400" placeholder="Ej: ¿qué incluye el sistema?" />
             <button type="submit" class="shrink-0 rounded-full border px-4 py-2 text-sm font-semibold">Preguntar</button>
           </form>
-          <p class="mt-1 text-xs text-zinc-500">Responde lo informativo al instante; si se cae, seguís por reglas sin perder tu borrador.</p>
+          <p class="mt-1 text-xs text-zinc-400">Responde lo informativo al instante; si se cae, seguís por reglas sin perder tu borrador.</p>
         </div>
+
+        <ul class="mt-2 text-sm text-red-300" data-errores aria-live="assertive"></ul>
+
+        <details class="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm">
+          <summary class="cursor-pointer font-semibold">Borrador vivo (lo que ya tildaste)</summary>
+          <ul class="mt-2 flex flex-wrap gap-1" data-chips></ul>
+          <pre class="mt-2 overflow-auto text-xs" data-json>{}</pre>
+        </details>
 
         <details class="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm" open>
           <summary class="cursor-pointer font-semibold">Tus datos</summary>
           <div class="mt-2 grid gap-2">
             <label>Nombre del negocio *
-              <input data-prospecto="nombre" required autocomplete="organization" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Pinturería Centro" /></label>
-            <p class="text-sm text-red-700" data-error="nombre" aria-live="assertive" hidden></p>
+              <input data-prospecto="nombre" required autocomplete="organization" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-400" placeholder="Ej: Pinturería Centro" /></label>
+            <p class="text-sm text-red-300" data-error="nombre" aria-live="assertive" hidden></p>
             <div class="grid gap-2 md:grid-cols-2">
               <label>Tu nombre
-                <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Ana" /></label>
+                <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-400" placeholder="Ej: Ana" /></label>
               <label>Teléfono *
-                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: 3547 000000" /></label>
+                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-400" placeholder="Ej: 3547 000000" /></label>
             </div>
-            <p class="text-sm text-red-700" data-error="contacto" aria-live="assertive" hidden></p>
+            <p class="text-sm text-red-300" data-error="contacto" aria-live="assertive" hidden></p>
             <div class="grid gap-2 md:grid-cols-2">
               <label>Email
-                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: ana@negocio.com" /></label>
+                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-400" placeholder="Ej: ana@negocio.com" /></label>
               <label>Rubro
-                <select data-prospecto="rubro" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500">
+                <select data-prospecto="rubro" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-400">
                   <option value="retail">Retail mostrador</option>
                   <option value="distribucion">Distribución chica</option>
                   <option value="servicios">Servicios</option>
                 </select></label>
             </div>
           </div>
-        </details>
-
-        <ul class="mt-2 text-sm text-red-700" data-errores aria-live="assertive"></ul>
-
-        <details class="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm">
-          <summary class="cursor-pointer font-semibold">Borrador vivo (lo que ya tildaste)</summary>
-          <ul class="mt-2 flex flex-wrap gap-1" data-chips></ul>
-          <pre class="mt-2 overflow-auto text-xs" data-json>{}</pre>
         </details>
 
         <div class="mt-3 grid gap-2">
@@ -255,7 +255,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       if (!habilitada) {
         fila.querySelectorAll('button').forEach((b) => { b.disabled = true; });
         const nota = document.createElement('span');
-        nota.className = 'text-xs text-zinc-500';
+        nota.className = 'text-xs text-zinc-400';
         nota.textContent = '(se saltea: sin Sí en P1)';
         fila.appendChild(nota);
       }
@@ -341,7 +341,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         panel.appendChild(filaPregunta(g, 1, arr[1], arr[0] === 'si'));
         panel.appendChild(filaPregunta(g, 2, arr[2], arr[0] === 'si'));
         const ayuda = document.createElement('p');
-        ayuda.className = 'mt-2 text-xs text-zinc-500';
+        ayuda.className = 'mt-2 text-xs text-zinc-400';
         ayuda.textContent = 'Teclas: 1 = Sí, 2 = No.';
         panel.appendChild(ayuda);
       }

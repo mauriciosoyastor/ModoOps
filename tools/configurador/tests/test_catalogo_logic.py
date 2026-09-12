@@ -37,6 +37,7 @@ class CatalogoTests(unittest.TestCase):
             self.assertEqual(mods[key].get("estado"), "candidato")
             self.assertTrue(mods[key].get("a_cotizar"), f"{key} sin a_cotizar")
             self.assertIn("repo", mods[key])
+            self.assertIn("rama", mods[key])
             self.assertIn("version", mods[key])
         # logistica es el N2 de reparto; crm el prioritario CE puro
         self.assertIn("delivery", mods["logistica"]["odoo"])

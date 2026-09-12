@@ -58,6 +58,8 @@ export const POST: APIRoute = async ({ request, clientAddress, locals }) => {
       { status: 429 }
     );
   }
+  // El techo cuenta toda consulta (estática o LLM): sin ramas exentas.
+  await quota.increment(quotaDb);
 
   const intento = intentoDe(entrada.message);
   if (intento === "descubrimiento" || intento === "catalogo") {
@@ -71,7 +73,6 @@ export const POST: APIRoute = async ({ request, clientAddress, locals }) => {
 
   const llm = await callLLM(entrada.message);
   const decision = decideProspecto(llm.tool, llm.input);
-  await quota.increment(quotaDb);
   if (!decision.ok) {
     return json(
       { ok: false, error: decision.fallo.error, code: decision.fallo.code, cta: decision.fallo.cta },

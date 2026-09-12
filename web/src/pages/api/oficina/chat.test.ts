@@ -50,4 +50,21 @@ describe("api/oficina/chat — ruta pública sin tenant", () => {
     const data = (await bloqueada.json()) as { error: { code: string } };
     expect(data.error.code).toBe("rate_limited");
   });
+
+  it("el techo mensual cuenta también la rama estática (sin exentas)", async () => {
+    process.env.MODOOPS_AGENT_QUOTA_DEFAULT = "3";
+    try {
+      const ip = "10.0.0.7";
+      for (let i = 0; i < 3; i++) {
+        const r = await POST(req({ message: "¿qué módulos ofrecen?" }, ip));
+        expect(r.status).toBe(200);
+      }
+      const excedida = await POST(req({ message: "¿qué módulos ofrecen?" }, ip));
+      expect(excedida.status).toBe(429);
+      const data = (await excedida.json()) as { error: { code: string } };
+      expect(data.error.code).toBe("quota_exceeded");
+    } finally {
+      delete process.env.MODOOPS_AGENT_QUOTA_DEFAULT;
+    }
+  });
 });

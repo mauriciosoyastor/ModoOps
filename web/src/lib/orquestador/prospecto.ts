@@ -26,6 +26,7 @@ export function intentoDe(mensaje: string): IntentoProspecto {
 }
 
 const RESPUESTA_DESCUBRIMIENTO = [
+  // Único precio público permitido (política de precios): solo ante intención explícita.
   "El Descubrimiento sale $155 USD: 3 días para relevar tu negocio y entregarte informe de diagnóstico + propuesta comercial.",
   "El precio del ancla y los agregados se definen tras el diagnóstico, a medida. Si querés, pedilo con el botón Quiero el Descubrimiento.",
 ].join(" ");
