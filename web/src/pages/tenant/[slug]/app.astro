@@ -88,7 +88,7 @@ const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes
   <main class:list={["mo-tenant", tenant && !tenantError && "with-nav"]}>
     <header class="mo-tenant__topbar">
       <div>
-        <p class="mo-tenant__eyebrow">ModoOps · Control Plane → Tenant</p>
+        <p class="mo-tenant__eyebrow">ModoOps · Tu operación</p>
         <h1>{tenant?.name ?? slug} <code class="mo-tenant__db">{tenant?.db_name ?? `modoops_${slug}`}</code></h1>
         <p class="mo-tenant__meta">
           {tenant ? `${tenant.vertical} · ` : ""}<span class:list={["mo-badge", `is-${tenant?.state ?? "activo"}`]}>{tenant?.state ?? "—"}</span>
@@ -120,6 +120,7 @@ const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes
             <p class="mo-home__caja-line">
               <span data-home-caja class="mo-home__caja" style="font-variant-numeric: tabular-nums;">—</span>
               <button type="button" data-home-ojito aria-pressed="false" aria-label="Ocultar montos" class="mo-home__ojito">👁</button>
+              <span class="sr-only" aria-live="polite" data-home-ojito-msg></span>
             </p>
             <p class="mo-home__vs" data-home-vs></p>
           </div>
@@ -299,7 +300,8 @@ const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes
     const porCobrarEl = document.querySelector("[data-home-porcobrar]");
     const stockEl = document.querySelector("[data-home-stock]");
     const vsEl = document.querySelector("[data-home-vs]");
-    const ojoBtn = document.querySelector("[data-home-ojito]");
+      const ojoBtn = document.querySelector("[data-home-ojito]");
+      const ojoMsg = document.querySelector("[data-home-ojito-msg]");
     if (estadoEl && cajaEl && ojoBtn instanceof HTMLButtonElement) {
       const slugM = window.location.pathname.match(/^\/tenant\/([^/]+)\/app/);
       const homeSlug = slugM ? slugM[1] : "";
@@ -322,6 +324,7 @@ const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes
         oculto = !oculto;
         ojoBtn.setAttribute("aria-pressed", String(oculto));
         ojoBtn.setAttribute("aria-label", oculto ? "Mostrar montos" : "Ocultar montos");
+        if (ojoMsg) ojoMsg.textContent = oculto ? "Montos ocultos." : "Montos visibles.";
         pinta();
       });
       (async () => {

@@ -207,7 +207,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <div class="mt-2 flex flex-wrap gap-2">
               <button data-copiar class="rounded-full border border-white/20 px-4 py-2 text-sm text-white">Copiar JSON</button>
               <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-sm text-green-300">Enviar por WhatsApp</a>
-              <button data-enviar class="rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-black">Enviar a ModoOps</button>
+              <button data-enviar class="rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-space-void">Enviar a ModoOps</button>
             </div>
             <p class="mt-1 text-xs text-zinc-400" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
             <p class="mt-1 text-xs" data-enviado role="status" hidden></p>
@@ -216,7 +216,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 
         <div class="mt-4 flex justify-between">
           <button data-atras class="rounded-full border border-white/20 px-4 py-2 text-sm text-white">← Atrás</button>
-          <button data-adelante class="rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-black">Seguir →</button>
+          <button data-adelante class="rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-space-void">Seguir →</button>
         </div>
       </div>
 
@@ -228,7 +228,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         <div class="mt-3 rounded-xl border p-3" data-cotizacion-panel>
           <h3 class="font-semibold">Validación del servidor</h3>
           <p class="text-xs text-zinc-400">Cotizá tu selección contra el catálogo vivo de Odoo (sin guardar nada).</p>
-          <button data-cotizar class="mt-2 rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-black">Cotizar en servidor</button>
+          <button data-cotizar class="mt-2 rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-space-void">Cotizar en servidor</button>
           <div class="mt-2 text-sm" data-cotizacion aria-live="polite"></div>
         </div>
       </aside>
