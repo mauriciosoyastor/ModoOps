@@ -18,6 +18,7 @@ const objetos: Objeto3DId[] = [
   'computadora-3d',
   'pizarron-fiscal-3d',
   'puerta-crecer-3d',
+  'zona-logistica-3d',
 ];
 const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.id]));
 ---
@@ -31,7 +32,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       Borrador no vinculante · lo valida el consultor en el Descubrimiento · nada de acá crea tu sistema
     </p>
     <h1 class="mt-2 text-3xl font-semibold">Contanos tu negocio, mirá tu oficina</h1>
-    <p class="mt-1 text-sm text-zinc-400" data-progreso aria-live="polite">Pregunta 1 de 16 · Tu negocio</p>
+    <p class="mt-1 text-sm text-zinc-400" data-progreso aria-live="polite">Pregunta 1 de 19 · Tu negocio</p>
 
     <div class="mt-4 grid gap-4" data-layout-wrap>
       <section aria-label="Chat configurador">
@@ -160,8 +161,9 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
   import { agregarTurno, type Turno } from '../lib/orquestador/prospecto.ts';
 
   const objetoAPregunta = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.id]));
+  const preguntaAObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.id, g.objeto]));
   const entradaDe = (id) => GUION_CHAT.find((g) => g.id === id);
-  const TOTAL_PASOS = 16; // 15 sub-preguntas ancla + crecer
+  const TOTAL_PASOS = 19; // 18 sub-preguntas (ancla + logística) + crecer
 
   const root = document.querySelector('[data-chat]');
   if (root instanceof HTMLElement) {
@@ -185,6 +187,9 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
     let foco = 'mostrador';
     let escena = null;
     let borradorActual = null;
+    // Ficha logística (opcional, lenguaje comerciante): vive fuera del guion
+    // sí/no; viaja en objetos['zona-logistica-3d'] del borrador.
+    let fichaLog = { envios_dia: 0, flota_propia: false, zonas: '' };
 
     const completo = (id) => {
       const arr = estado[id];
@@ -261,6 +266,63 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       }
       wrapQ.appendChild(fila);
       return wrapQ;
+    }
+
+    // Ficha logística (opcional): 3 campos en lenguaje comerciante.
+    // Inputs a 16px (sin zoom en iOS); viven en fichaLog, no se pierden al renderizar.
+    function fichaLogistica() {
+      const fs = document.createElement('fieldset');
+      fs.className = 'mt-2 rounded border border-white/10 p-2';
+      const lg = document.createElement('legend');
+      lg.className = 'px-1 text-xs text-zinc-400';
+      lg.textContent = 'Ficha logística (opcional)';
+      fs.appendChild(lg);
+      const lEnv = document.createElement('label');
+      lEnv.className = 'mt-1 block text-sm';
+      lEnv.textContent = 'Envíos por día';
+      const iEnv = document.createElement('input');
+      iEnv.type = 'number';
+      iEnv.min = '0';
+      iEnv.inputMode = 'numeric';
+      iEnv.value = String(fichaLog.envios_dia);
+      iEnv.className = 'mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-base text-white';
+      iEnv.setAttribute('aria-label', 'Envíos por día');
+      iEnv.addEventListener('input', () => {
+        fichaLog.envios_dia = Math.max(0, Math.floor(Number(iEnv.value) || 0));
+        pinta();
+      });
+      lEnv.appendChild(iEnv);
+      fs.appendChild(lEnv);
+      const lFlo = document.createElement('label');
+      lFlo.className = 'mt-2 flex items-center gap-2 text-sm';
+      const iFlo = document.createElement('input');
+      iFlo.type = 'checkbox';
+      iFlo.className = 'h-4 w-4';
+      iFlo.checked = fichaLog.flota_propia;
+      iFlo.addEventListener('change', () => {
+        fichaLog.flota_propia = iFlo.checked;
+        pinta();
+      });
+      lFlo.appendChild(iFlo);
+      lFlo.appendChild(document.createTextNode('Flota propia (si no, correo)'));
+      fs.appendChild(lFlo);
+      const lZon = document.createElement('label');
+      lZon.className = 'mt-2 block text-sm';
+      lZon.textContent = 'Zonas donde repartís';
+      const iZon = document.createElement('input');
+      iZon.type = 'text';
+      iZon.placeholder = 'Ej: Capital y alrededores';
+      iZon.autocomplete = 'off';
+      iZon.value = fichaLog.zonas;
+      iZon.className = 'mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-base text-white placeholder:text-zinc-500';
+      iZon.setAttribute('aria-label', 'Zonas donde repartís');
+      iZon.addEventListener('input', () => {
+        fichaLog.zonas = iZon.value;
+        pinta();
+      });
+      lZon.appendChild(iZon);
+      fs.appendChild(lZon);
+      return fs;
     }
 
     function render() {
@@ -340,6 +402,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         panel.appendChild(filaPregunta(g, 0, arr[0], true));
         panel.appendChild(filaPregunta(g, 1, arr[1], arr[0] === 'si'));
         panel.appendChild(filaPregunta(g, 2, arr[2], arr[0] === 'si'));
+        if (g.id === 'logistica') panel.appendChild(fichaLogistica());
         const ayuda = document.createElement('p');
         ayuda.className = 'mt-2 text-xs text-zinc-400';
         ayuda.textContent = 'Teclas: 1 = Sí, 2 = No.';
@@ -413,7 +476,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
           'computadora-3d': { proveedores: 0, orden_compra: false },
           'pizarron-fiscal-3d': { comprobantes: [], contador: '' },
           'puerta-crecer-3d': { futuros: [...crecer] },
-          'zona-logistica-3d': { envios_dia: 0, flota_propia: false, zonas: '' },
+          'zona-logistica-3d': { ...fichaLog },
         },
         seleccion: [...SIEMPRE_INCLUIDOS, ...seleccionDeGuion(estado), ...crecer],
         datos: { productos_aprox: 0, tiene_excel: false },
@@ -627,6 +690,14 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
           }
           const crecerKeys = new Set(entradaDe('crecer').keys);
           crecer = new Set([...presentes].filter((k) => crecerKeys.has(k)));
+          const fl = previo.objetos?.['zona-logistica-3d'];
+          if (fl && typeof fl === 'object') {
+            fichaLog = {
+              envios_dia: Number(fl.envios_dia) || 0,
+              flota_propia: fl.flota_propia === true,
+              zonas: typeof fl.zonas === 'string' ? fl.zonas : '',
+            };
+          }
         }
       }
     } catch { /* arranca vacío */ }

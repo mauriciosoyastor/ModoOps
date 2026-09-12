@@ -26,6 +26,7 @@ const objetos: Objeto3DId[] = [
   'computadora-3d',
   'pizarron-fiscal-3d',
   'puerta-crecer-3d',
+  'zona-logistica-3d',
 ];
 const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo'];
 ---
@@ -202,6 +203,16 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             </div>
           </article>
 
+          <article data-ficha="zona-logistica-3d" class="mt-3 rounded-xl border border-dashed p-3">
+            <p class="font-semibold">{OBJETO_LABEL['zona-logistica-3d']}</p>
+            <p class="text-xs text-zinc-400">A desarrollar, a cotizar: la tripleta del chat la califica.</p>
+            <div class="mt-2 grid gap-2 text-sm">
+              <label class="block">Envíos por día <input data-obj="zona-logistica-3d" data-campo="envios_dia" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white" /></label>
+              <label class="flex items-center gap-2"><input data-obj="zona-logistica-3d" data-campo="flota_propia" type="checkbox" class="h-4 w-4" /> Flota propia (si no, correo)</label>
+              <label class="block">Zonas donde repartís <input data-obj="zona-logistica-3d" data-campo="zonas" type="text" placeholder="Ej: Capital y alrededores" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
+            </div>
+          </article>
+
           <div class="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-3">
             <h3 class="font-semibold">Enviá tu borrador al consultor</h3>
             <ul class="mt-1 text-sm text-red-700" data-errores aria-live="polite"></ul>
@@ -340,9 +351,9 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
           'computadora-3d': { proveedores: num('[data-obj="computadora-3d"][data-campo="proveedores"]'), orden_compra: bool('[data-obj="computadora-3d"][data-campo="orden_compra"]') },
           'pizarron-fiscal-3d': { comprobantes, contador: texto('[data-obj="pizarron-fiscal-3d"][data-campo="contador"]') },
           'puerta-crecer-3d': { futuros },
-          'zona-logistica-3d': { envios_dia: 0, flota_propia: false, zonas: '' },
+          'zona-logistica-3d': { envios_dia: num('[data-obj="zona-logistica-3d"][data-campo="envios_dia"]'), flota_propia: bool('[data-obj="zona-logistica-3d"][data-campo="flota_propia"]'), zonas: texto('[data-obj="zona-logistica-3d"][data-campo="zonas"]') },
         },
-        seleccion: [...SIEMPRE, ...incluidos, ...futuros],
+        seleccion: [...SIEMPRE, ...incluidos, ...futuros, ...(logiResp[0] === 'si' ? ['logistica'] : [])],
         datos: { productos_aprox: num('[data-dato="productos_aprox"]'), tiene_excel: bool('[data-dato="tiene_excel"]') },
         infra: {
           hosting_propio: bool('[data-infra="hosting_propio"]'),
@@ -564,6 +575,10 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
           if (el instanceof HTMLInputElement) el.checked = comp.has(el.value);
         });
         setT('[data-obj="pizarron-fiscal-3d"][data-campo="contador"]', o['pizarron-fiscal-3d']?.contador);
+        setN('[data-obj="zona-logistica-3d"][data-campo="envios_dia"]', o['zona-logistica-3d']?.envios_dia);
+        setB('[data-obj="zona-logistica-3d"][data-campo="flota_propia"]', o['zona-logistica-3d']?.flota_propia);
+        setT('[data-obj="zona-logistica-3d"][data-campo="zonas"]', o['zona-logistica-3d']?.zonas);
+        if ((previo.modulos_futuros ?? []).includes('logistica')) logiResp = ['si', null, null];
         const fut = new Set([...(previo.modulos_futuros ?? []), ...(o['puerta-crecer-3d']?.futuros ?? [])]);
         root.querySelectorAll('[data-futuro]').forEach((el) => {
           if (el instanceof HTMLInputElement) el.checked = fut.has(el.getAttribute('data-futuro'));
@@ -639,7 +654,6 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       'pizarron-fiscal-3d': 'Fiscal AR',
     };
     const FUT_OPTS = [
-      { etiqueta: 'Logística', valor: 'logistica' },
       { etiqueta: 'Ecommerce', valor: 'ecommerce' },
       { etiqueta: 'Página web', valor: 'web' },
       { etiqueta: 'CRM', valor: 'crm' },
@@ -662,6 +676,26 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     const convSetFuturo = (k, v) => { const el = root.querySelector(`[data-futuro="${k}"]`); if (el instanceof HTMLInputElement) el.checked = !!v; };
     const convNum = (id, pregunta, defecto, get, set) => ({ id, pregunta, tipo: 'numero', defecto, get, set });
     const convSiNo = (id, pregunta, get, set, luegoSi) => ({ id, pregunta, tipo: 'sino', get, set, luegoSi });
+    // Tripleta logística (zona propia, a cotizar): P1 abre, P2/P3 solo con Sí
+    // (misma regla de salteo del seam); alimenta seleccion + ficha del Paso 3.
+    let logiResp = [null, null, null];
+    function armarLogistica() {
+      const P = [
+        '¿Hacés reparto o envíos a tus clientes?',
+        '¿Repartís con flota propia?',
+        '¿Hacés más de 20 envíos por día?',
+      ];
+      const setQ = (q) => (v) => {
+        logiResp[q] = v;
+        if (q === 0 && v !== 'si') { logiResp[1] = null; logiResp[2] = null; }
+      };
+      const getQ = (q) => () => logiResp[q] ?? '';
+      const hijas = [
+        convSiNo('l-p2', P[1], getQ(1), setQ(1)),
+        convSiNo('l-p3', P[2], getQ(2), setQ(2)),
+      ];
+      return [convSiNo('l-p1', P[0], getQ(0), setQ(0), hijas)];
+    }
     function armarAncla() {
       const det = {
         'mostrador-3d': [
@@ -711,11 +745,12 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     function convAseguraCola() {
       if (convAnclaLista) return;
       convAnclaLista = true;
-      cola.push(...armarAncla(), ...armarCrecer());
+      cola.push(...armarAncla(), ...armarLogistica(), ...armarCrecer());
     }
     function convReiniciar() {
       cola.length = 0;
-      cola.push(...PASOS_CONV, ...armarAncla(), ...armarCrecer());
+      logiResp = [null, null, null];
+      cola.push(...PASOS_CONV, ...armarAncla(), ...armarLogistica(), ...armarCrecer());
       convAnclaLista = true;
       convAnclaIntro = false;
       convPaso = 0;
