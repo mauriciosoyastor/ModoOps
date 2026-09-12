@@ -1,0 +1,212 @@
+---
+// PROTOTYPE throwaway — empresa por zonas que muta con el chat (mapa #155, ticket #159).
+// Rama prototype/empresa-zonas. No enlazar desde prod. Estado en memoria, sin backend.
+// Fija: 7 zonas con logística propia, tripleta logística sin flags, IBL RoomEnvironment,
+// cascada GLTF→procedural, borrador vivo (núcleo: selección + ficha logística).
+// Run: dev-server de web/ → /prototype/empresa
+import '../../styles/global.css';
+import {
+  GUION_CHAT,
+  OBJETO_LABEL,
+  ORDEN_GUION,
+  borradorV1,
+  estadoInicialGuion,
+  type Objeto3DId,
+} from '../../lib/oficina-mapping';
+
+const zonas = GUION_CHAT.filter((p) => p.id !== 'crecer');
+const crecer = GUION_CHAT.find((p) => p.id === 'crecer')!;
+const logistica = GUION_CHAT.find((p) => p.id === 'logistica')!;
+const ancla = zonas.filter((p) => p.id !== 'logistica');
+---
+
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="PROTOTYPE descartable: empresa 3D por zonas con logística viva." />
+    <meta name="theme-color" content="#000000" />
+    <title>PROTOTYPE — Empresa por zonas (logística viva)</title>
+    <style>
+      html { color-scheme: dark; background: #000; }
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+      :focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+      :global(.oficina-cartel) {
+        position: absolute; left: 0; top: 0; border-radius: 9999px;
+        background: rgb(255 255 255 / 0.92); color: #111;
+        border: 1px solid rgb(0 0 0 / 0.15); padding: 0.1rem 0.5rem;
+        font-size: 0.7rem; font-weight: 600; white-space: nowrap;
+        box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
+      }
+      :global(.oficina-cartel--activo) { background: #111; color: #fff; }
+      .zona-btn[aria-pressed='true'] { background: #fff; color: #111; }
+    </style>
+  </head>
+  <body class="mx-auto max-w-6xl p-4 text-zinc-100">
+    <p class="inline-block rounded-full bg-amber-300 px-3 py-1 text-xs font-bold text-black">
+      PROTOTYPE descartable — rama prototype/empresa-zonas
+    </p>
+    <h1 class="mt-2 text-2xl font-bold">Tu empresa, en modo: 7 zonas</h1>
+    <p class="text-sm text-zinc-400">
+      Respondé por zona y mirá cómo la escena muta en vivo. La logística ya es zona propia,
+      no puerta. Borrador no vinculante abajo.
+    </p>
+
+    <div class="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      <section aria-label="Escena 3D de la empresa" class="relative overflow-hidden rounded-xl border border-white/10">
+        <canvas id="escena" class="block h-[400px] w-full" aria-label="Empresa 3D navegable"></canvas>
+        <div id="etiquetas" class="pointer-events-none absolute inset-0" aria-hidden="true"></div>
+      </section>
+
+      <section aria-label="Cuestionario por zona" class="rounded-xl border border-white/10 p-3">
+        <h2 class="font-semibold">Zona logística (tripleta)</h2>
+        <div id="tripleta" class="mt-2 space-y-2">
+          {logistica.preguntas!.map((t, q) => (
+            <div class="rounded-lg border border-white/10 p-2" data-pregunta={`logistica:${q}`}>
+              <p class="text-sm">{t}</p>
+              <div class="mt-1 flex gap-2">
+                <button type="button" class="zona-btn rounded-full border border-white/20 px-3 py-1 text-sm" data-r="si" aria-pressed="false">Sí</button>
+                <button type="button" class="zona-btn rounded-full border border-white/20 px-3 py-1 text-sm" data-r="no" aria-pressed="false">No</button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <h2 class="mt-4 font-semibold">Resto de zonas (P1)</h2>
+        <div class="mt-2 space-y-2">
+          {ancla.map((p) => (
+            <div class="flex items-center justify-between gap-2 rounded-lg border border-white/10 p-2" data-pregunta={`${p.id}:0`}>
+              <p class="text-sm">{p.texto}</p>
+              <div class="flex gap-2">
+                <button type="button" class="zona-btn rounded-full border border-white/20 px-3 py-1 text-sm" data-r="si" aria-pressed="false">Sí</button>
+                <button type="button" class="zona-btn rounded-full border border-white/20 px-3 py-1 text-sm" data-r="no" aria-pressed="false">No</button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <h2 class="mt-4 font-semibold">Puerta crecer (sin logística)</h2>
+        <div class="mt-2 flex flex-wrap gap-2" id="crecer">
+          {crecer.multi!.map((m, i) => (
+            <label class="flex items-center gap-1 rounded-full border border-dashed border-white/20 px-3 py-1 text-sm">
+              <input type="checkbox" value={crecer.keys[i]} class="h-4 w-4" /> {m}
+            </label>
+          ))}
+        </div>
+
+        <h2 class="mt-4 font-semibold">Ficha logística (opcional)</h2>
+        <div class="mt-2 grid gap-2 text-sm">
+          <label>Envíos por día
+            <input id="f-envios" type="number" min="0" inputmode="numeric" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-base text-white" />
+          </label>
+          <label class="flex items-center gap-2">
+            <input id="f-flota" type="checkbox" class="h-4 w-4" /> Flota propia (si no, correo)
+          </label>
+          <label>Zonas donde repartís
+            <input id="f-zonas" type="text" placeholder="Ej: Capital y alrededores" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-base text-white" />
+          </label>
+        </div>
+      </section>
+    </div>
+
+    <section aria-label="Borrador vivo" class="mt-4 rounded-xl border border-white/10 p-3">
+      <h2 class="font-semibold">Borrador vivo (núcleo, no vinculante)</h2>
+      <pre id="borrador" class="mt-2 overflow-auto rounded bg-black/50 p-2 text-xs" aria-live="polite">{}</pre>
+    </section>
+
+    <script>
+      import {
+        GUION_CHAT,
+        OBJETO_A_MODULO,
+        ORDEN_GUION,
+        borradorV1,
+        estadoInicialGuion,
+        estadoObjetoGuion,
+        responderGuion,
+        seleccionDeGuion,
+        type Objeto3DId,
+        type RespuestaGuion,
+      } from '../../lib/oficina-mapping';
+
+      let estado = estadoInicialGuion();
+      const crecerSel = new Set<string>();
+      let escena: { resaltar: (id: Objeto3DId | null) => void; marcar: (id: Objeto3DId, e: 'apagado' | 'fantasma' | 'encendido') => void } | null = null;
+
+      const canvas = document.getElementById('escena') as HTMLCanvasElement;
+      const etiquetas = document.getElementById('etiquetas') as HTMLElement;
+      const pre = document.getElementById('borrador') as HTMLElement;
+      const porId = Object.fromEntries(GUION_CHAT.map((p) => [p.id, p]));
+
+      function idDeObjeto(id: string): Objeto3DId {
+        return porId[id].objeto as Objeto3DId;
+      }
+
+      function pinta() {
+        for (const id of ORDEN_GUION) {
+          const est = estadoObjetoGuion(estado, id);
+          escena?.marcar(idDeObjeto(id), est);
+          document.querySelectorAll(`[data-pregunta^="${id}:"]`).forEach((box) => {
+            const q = Number((box as HTMLElement).dataset.pregunta!.split(':')[1]);
+            box.querySelectorAll('button[data-r]').forEach((b) => {
+              const v = (b as HTMLElement).dataset.r as RespuestaGuion;
+              b.setAttribute('aria-pressed', String(estado[id]?.[q] === v));
+            });
+          });
+        }
+        escena?.marcar('puerta-crecer-3d', crecerSel.size > 0 ? 'encendido' : 'apagado');
+        const sel = [...seleccionDeGuion(estado), ...crecerSel].sort();
+        const ficha = {
+          envios_dia: Number((document.getElementById('f-envios') as HTMLInputElement).value || 0),
+          flota_propia: (document.getElementById('f-flota') as HTMLInputElement).checked,
+          zonas: (document.getElementById('f-zonas') as HTMLInputElement).value,
+        };
+        pre.textContent = JSON.stringify({ ...borradorV1(sel), ficha_logistica: ficha }, null, 1);
+      }
+
+      document.querySelectorAll('[data-pregunta]').forEach((box) => {
+        const [id, qs] = (box as HTMLElement).dataset.pregunta!.split(':');
+        box.querySelectorAll('button[data-r]').forEach((b) => {
+          b.addEventListener('click', () => {
+            const v = (b as HTMLElement).dataset.r as RespuestaGuion;
+            const actual = estado[id]?.[Number(qs)];
+            estado = responderGuion(estado, id, Number(qs) as 0 | 1 | 2, actual === v ? null : v);
+            escena?.resaltar(idDeObjeto(id));
+            pinta();
+          });
+        });
+      });
+      document.querySelectorAll('#crecer input[type="checkbox"]').forEach((c) => {
+        c.addEventListener('change', () => {
+          const v = (c as HTMLInputElement).value;
+          if ((c as HTMLInputElement).checked) crecerSel.add(v);
+          else crecerSel.delete(v);
+          escena?.resaltar('puerta-crecer-3d');
+          pinta();
+        });
+      });
+      ['f-envios', 'f-flota', 'f-zonas'].forEach((fid) => {
+        document.getElementById(fid)?.addEventListener('input', pinta);
+        document.getElementById(fid)?.addEventListener('change', pinta);
+      });
+
+      const vio = new IntersectionObserver(
+        async (entries) => {
+          if (!entries.some((e) => e.isIntersecting)) return;
+          vio.disconnect();
+          try {
+            const { mountEmpresaScene } = await import('../../scripts/empresa-scene');
+            escena = mountEmpresaScene(canvas, () => {}, etiquetas) as unknown as typeof escena;
+            pinta();
+          } catch {
+            pre.textContent = 'Sin WebGL: completá el cuestionario igual, el borrador sigue vivo abajo.';
+            pinta();
+          }
+        },
+        { threshold: 0 },
+      );
+      vio.observe(canvas);
+      pinta();
+    </script>
+  </body>
+</html>
