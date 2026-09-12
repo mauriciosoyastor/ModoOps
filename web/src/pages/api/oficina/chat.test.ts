@@ -67,4 +67,44 @@ describe("api/oficina/chat — ruta pública sin tenant", () => {
       delete process.env.MODOOPS_AGENT_QUOTA_DEFAULT;
     }
   });
+
+  it("expone latency_ms en rama estática (observabilidad portal)", async () => {
+    const res = await POST(req({ message: "¿cuánto sale el descubrimiento?" }, "10.0.0.11"));
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { ok: boolean; source: string; latency_ms: unknown };
+    expect(data.ok).toBe(true);
+    expect(data.source).toBe("estatica");
+    expect(typeof data.latency_ms).toBe("number");
+  });
+
+  it("rama libre expone source y latency_ms sin filtrar tool interna", async () => {
+    const res = await POST(req({ message: "hola, contame algo lindo" }, "10.0.0.12"));
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { ok: boolean; tool: string; source: string; latency_ms: unknown };
+    expect(data.ok).toBe(true);
+    expect(data.tool).toBe("echo");
+    expect(["mock", "ollama"]).toContain(data.source);
+    expect(typeof data.latency_ms).toBe("number");
+  });
+
+  it("loguea comanda sin PII (ip_hash + truncado, sin teléfono)", async () => {
+    const seen: string[] = [];
+    const orig = console.log;
+    console.log = (...a: unknown[]) => {
+      seen.push(String(a[0] ?? ""));
+    };
+    try {
+      const res = await POST(req({ message: "hola 3547000000" }, "10.0.0.13"));
+      expect(res.status).toBe(200);
+    } finally {
+      console.log = orig;
+    }
+    const line = seen.find((s) => s.includes("portal-chat"));
+    expect(line).toBeDefined();
+    const logged = JSON.parse(line as string) as Record<string, unknown>;
+    expect(logged.ip_hash).toBeDefined();
+    expect(JSON.stringify(logged)).not.toContain("3547000000");
+    expect(JSON.stringify(logged)).not.toContain("10.0.0.13");
+    expect(String(logged.message_trunc ?? "").length).toBeLessThanOrEqual(200);
+  });
 });
