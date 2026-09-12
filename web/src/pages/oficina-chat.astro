@@ -533,13 +533,17 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
     const iaForm = root.querySelector('[data-ia-form]');
     const iaMsg = root.querySelector('[data-ia-msg]');
 
-    function pintaTurno(rol, textoTurno) {
+    function etiquetaOrigen(source) {
+      return source === 'estatica' || source === 'ollama' || source === 'mock' ? ` · ${source}` : '';
+    }
+
+    function pintaTurno(rol, textoTurno, source) {
       if (!(iaHilo instanceof HTMLElement)) return;
       const p = document.createElement('p');
       p.className = 'rounded-xl border p-2 text-sm ' + (rol === 'user'
         ? 'border-white/20 bg-white/[0.08] text-right'
         : 'border-white/10 bg-white/[0.04]');
-      p.textContent = textoTurno;
+      p.textContent = rol === 'assistant' ? `${textoTurno}${etiquetaOrigen(source)}` : textoTurno;
       iaHilo.appendChild(p);
       iaHilo.scrollIntoView({ behavior: reduc ? 'auto' : 'smooth', block: 'nearest' });
     }
@@ -589,7 +593,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         clearTimeout(timer);
         const data = await res.json();
         if (res.ok && data.ok) {
-          pintaTurno('assistant', String(data.reply));
+          pintaTurno('assistant', String(data.reply), String(data.source ?? ''));
           historial = agregarTurno(historial, { role: 'assistant', text: String(data.reply) });
         } else if (data.code === 'needs_tool') {
           pintaFalla(String(data.error ?? 'Eso no lo puedo hacer desde acá.'), data.cta);
