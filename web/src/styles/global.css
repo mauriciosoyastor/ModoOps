@@ -84,6 +84,10 @@
 
 /* ModoOps Liquid Glass — mapeo flame/ember sobre paleta galaxia */
 :root {
+  /* Marca v1 (mapa diseno MP, T-marca): unico acento = star-warm.
+     Alias semantico sin hex nuevo (cero drift): warm+void 4.78 AA ambos
+     sentidos; prohibidos blanco-sobre-warm (3.78) y warm-sobre-deep (2.86). */
+  --color-brand-accent: var(--color-star-warm);
   --sg-flame-yellow: #ffd600;
   --sg-flame-orange: #f57c00;
   --sg-flame-deep: #e64a19;
