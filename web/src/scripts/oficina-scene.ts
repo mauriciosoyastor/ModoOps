@@ -17,6 +17,8 @@ const COLORES: Record<Objeto3DId, number> = {
   'computadora-3d': 0x4a4a4a,
   'pizarron-fiscal-3d': 0xc96a30,
   'puerta-crecer-3d': 0x7a5599,
+  // TODO(#169): geometría de la dársena; sin grupo la etiqueta flota sola.
+  'zona-logistica-3d': 0x3e8e7e,
 };
 
 export interface OficinaHandle {
@@ -491,6 +493,8 @@ export function mountOficinaScene(
     'computadora-3d': [3.4, 1.8, 1.4],
     'pizarron-fiscal-3d': [-0.4, 3.0, -3.6],
     'puerta-crecer-3d': [3.6, 3.15, -3.6],
+    // TODO(#169): ancla futura dársena; hoy la etiqueta flota sin objeto.
+    'zona-logistica-3d': [5.0, 2.7, -1.8],
   };
   const cartelDe = new Map<Objeto3DId, HTMLDivElement>();
   if (etiquetas) {
