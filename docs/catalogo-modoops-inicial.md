@@ -18,9 +18,15 @@
 | **Migración Excel** (`migracion_excel`) | — | — | ⬜ | 10 | SKU 155 ≤500 prod |
 | **B2B Básico** (`b2b_basico`) | — | — | ⬜ | 20 | SKU 155 post Fase 1 |
 | **IA ModoOps — Agente herramental** (`ia`) | `modoops_ia` | `modoops_core`, `modoops_admin` | ⬜ | 15 | incluido en Abono con Techo IA |
-## Módulos candidatos (requieren Descubrimiento + validación antes de entrar al Catálogo)
+## Módulos candidatos a desarrollar (puerta crecer: a cotizar, requieren Descubrimiento + validación)
 
-> Candidatos ya incluidos como módulos con `ancla_retail: false` (Taller, B2B Básico, Migración Excel, IA). Para añadir un candidato, agregarlo a `modoops_catalogo/catalogo.json` y regenerar.
+| Módulo ModoOps | Módulo Odoo / técnico | Depends | Ancla Retail | Horas est. | Notas |
+|----------------|------------------------|---------|--------------|------------|-------|
+| **Logística** (`logistica`) | `delivery` | `stock`, `sale` | ⬜ | 15 | Candidato N2: reparto/delivery; multi-almacén solo a evaluar en Descubrimiento |
+| **Ecommerce** (`ecommerce`) | — | `sale`, `stock` | ⬜ | 24 | Candidato: puente ML/TiendaNube, solo Fase 2 (días×52, mín 2 días) |
+| **Página web** (`web`) | `website` | `base` | ⬜ | 25 | Candidato: sitio + SSL/pagos, solo Fase 2 |
+| **CRM** (`crm`) | `crm` | `sale_management` | ⬜ | 15 | Candidato N2 prioritario: CE puro, pipeline + equipo |
+| **Otro** (`otro`) | — | — | ⬜ | 0 | A medida vía Descubrimiento (texto libre del prospecto) |
 
 ## Configurador ModoOps (herramienta interna) — reglas
 

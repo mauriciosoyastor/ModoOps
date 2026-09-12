@@ -46,8 +46,17 @@ const ANCLA: ReadonlySet<CatalogoKey> = new Set([
   'puente_factura',
 ]);
 
-/** Módulos futuros que cuelgan de la puerta "crecer" (add-ons, no ancla). */
+/** Módulos futuros que cuelgan de la puerta "crecer": candidatos a desarrollar (ticket 02). */
 export const PUERTA_FUTURO: readonly CatalogoKey[] = [
+  'logistica',
+  'ecommerce',
+  'web',
+  'crm',
+  'otro',
+];
+
+/** Add-ons ya validados: no se preguntan, se mencionan en el cierre (ticket 04, sin precio). */
+export const ADDONS_VALIDADOS: readonly CatalogoKey[] = [
   'taller',
   'migracion_excel',
   'b2b_basico',
@@ -69,6 +78,17 @@ export interface PreguntaChat {
   objeto: Objeto3DId;
   keys: CatalogoKey[];
   multi?: string[];
+  /** Guion v2 (ticket 01 panel-chat): P1 abre, P2/P3 profundizan; `texto` === P1. */
+  preguntas?: [string, string, string];
+  /** Respuestas fuera del estándar: van a Descubrimiento, no al ancla. */
+  flags?: FlagGuion[];
+}
+
+/** Un disparo fuera de estándar: pregunta hija (1|2), valor que lo prende y texto para el consultor. */
+export interface FlagGuion {
+  q: 1 | 2;
+  cuando: 'si' | 'no';
+  texto: string;
 }
 
 /** Guion T1: rama única con ejemplos por vertical; el "sí" construye el objeto. */
@@ -76,9 +96,15 @@ export const GUION_CHAT: readonly PreguntaChat[] = [
   {
     id: 'mostrador',
     bloque: 'Tu ancla',
-    texto: '¿Cobrás en caja o mostrador? (ej: pinturería, repuestos, taller con mostrador)',
+    texto: '¿Atendés en mostrador o en persona en tu local?',
     objeto: 'mostrador-3d',
     keys: ['mostrador'],
+    preguntas: [
+      '¿Atendés en mostrador o en persona en tu local?',
+      '¿Cobrás ahí mismo, en caja?',
+      '¿Cobrás en más de 2 bocas?',
+    ],
+    flags: [{ q: 2, cuando: 'si', texto: 'Más de 2 bocas: re-cotizar (el ancla cubre máx 2)' }],
   },
   {
     id: 'deposito',
@@ -86,6 +112,12 @@ export const GUION_CHAT: readonly PreguntaChat[] = [
     texto: '¿Tenés depósito o estantería con stock?',
     objeto: 'estanteria-3d',
     keys: ['deposito'],
+    preguntas: [
+      '¿Tenés depósito o estantería con stock?',
+      '¿Todo en un solo almacén?',
+      '¿Separás recepción, depósito y mostrador?',
+    ],
+    flags: [{ q: 1, cuando: 'no', texto: 'Multi-almacén: a evaluar, rompe el ICP de 1 almacén' }],
   },
   {
     id: 'ventas',
@@ -93,6 +125,15 @@ export const GUION_CHAT: readonly PreguntaChat[] = [
     texto: '¿Vendés con listas de precio?',
     objeto: 'gondola-3d',
     keys: ['ventas'],
+    preguntas: [
+      '¿Vendés con listas de precio?',
+      '¿Con una sola lista te alcanza?',
+      '¿Precios distintos por cliente?',
+    ],
+    flags: [
+      { q: 1, cuando: 'no', texto: 'Varias listas: a evaluar en Descubrimiento' },
+      { q: 2, cuando: 'si', texto: 'Precios por cliente complejos: a evaluar (lista científica excluida del ancla)' },
+    ],
   },
   {
     id: 'compras',
@@ -100,22 +141,34 @@ export const GUION_CHAT: readonly PreguntaChat[] = [
     texto: '¿Comprás a proveedores?',
     objeto: 'computadora-3d',
     keys: ['compras'],
+    preguntas: [
+      '¿Comprás a proveedores?',
+      '¿A menos de 10 proveedores?',
+      '¿Trabajás con orden de compra?',
+    ],
+    flags: [{ q: 1, cuando: 'no', texto: 'Muchos proveedores: volumen a evaluar' }],
   },
   {
     id: 'fiscal',
     bloque: 'Tu ancla',
-    texto: '¿Facturás? Tildá lo que creas que usás (borrador, lo cierra tu contador).',
+    texto: '¿Facturás?',
     objeto: 'pizarron-fiscal-3d',
     keys: ['fiscal_ar'],
+    preguntas: [
+      '¿Facturás?',
+      '¿Sabés qué comprobantes usás (A/B/C/Ticket/Recibo)?',
+      '¿Tenés contador que lo cierre?',
+    ],
+    flags: [{ q: 2, cuando: 'no', texto: 'Sin contador: el anexo fiscal queda pendiente, frena el go-live' }],
     multi: ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo'],
   },
   {
     id: 'crecer',
     bloque: 'Para crecer',
-    texto: '¿Para dónde querés crecer? Tildá todo lo que te sirva.',
+    texto: '¿Para dónde querés crecer? Tildá todo lo que te sirva (a desarrollar, a cotizar).',
     objeto: 'puerta-crecer-3d',
-    keys: ['taller', 'migracion_excel', 'b2b_basico', 'ia'],
-    multi: ['Taller', 'Pasar mi Excel', 'Vender a comercios', 'Usar IA'],
+    keys: ['logistica', 'ecommerce', 'web', 'crm', 'otro'],
+    multi: ['Logística / reparto', 'Ecommerce', 'Página web', 'Seguimiento de clientes (CRM)', 'Otro (contanos)'],
   },
 ];
 
@@ -123,8 +176,134 @@ export function moduloDe(objeto: Objeto3DId): CatalogoKey {
   return OBJETO_A_MODULO[objeto];
 }
 
+/** Respuesta a una sub-pregunta del guion v2: sí, no o sin responder. */
+export type RespuestaGuion = 'si' | 'no' | null;
+
+/** Estado del guion v2: por módulo ancla, sus 3 respuestas [P1, P2, P3]. */
+export type EstadoGuion = Record<string, [RespuestaGuion, RespuestaGuion, RespuestaGuion]>;
+
+/** Módulos ancla con tripleta (el crecer multi-tilde no entra al reducer). */
+const IDS_GUION_V2 = ['mostrador', 'deposito', 'ventas', 'compras', 'fiscal'];
+
+/** Estado inicial: todo sin responder (oficina apagada). */
+export function estadoInicialGuion(): EstadoGuion {
+  const e: EstadoGuion = {};
+  for (const id of IDS_GUION_V2) e[id] = [null, null, null];
+  return e;
+}
+
+/**
+ * Responde una sub-pregunta (inmutable). Regla de salteo: las hijas (q 1|2)
+ * se ignoran sin Sí en P1, y el No en P1 las limpia. Levantable al panel (T3).
+ */
+export function responderGuion(
+  estado: EstadoGuion,
+  id: string,
+  q: 0 | 1 | 2,
+  valor: RespuestaGuion,
+): EstadoGuion {
+  const actual = estado[id];
+  if (!actual) return estado;
+  if (q > 0 && actual[0] !== 'si') return estado;
+  const copia: EstadoGuion = { ...estado, [id]: [...actual] as [RespuestaGuion, RespuestaGuion, RespuestaGuion] };
+  copia[id][q] = valor;
+  if (q === 0 && valor !== 'si') {
+    copia[id][1] = null;
+    copia[id][2] = null;
+  }
+  return copia;
+}
+
+/** Estado visual del objeto: apagado, fantasma (No en P1) o encendido (algún Sí). */
+export function estadoObjetoGuion(estado: EstadoGuion, id: string): 'apagado' | 'fantasma' | 'encendido' {
+  const arr = estado[id];
+  if (!arr) return 'apagado';
+  if (arr.some((v) => v === 'si')) return 'encendido';
+  if (arr[0] === 'no') return 'fantasma';
+  return 'apagado';
+}
+
+/** Flags fuera de estándar disparados: van a Descubrimiento, no al ancla. */
+export function flagsGuion(estado: EstadoGuion): string[] {
+  const out: string[] = [];
+  for (const p of GUION_CHAT) {
+    if (!p.preguntas || !p.flags) continue;
+    const arr = estado[p.id];
+    if (!arr) continue;
+    for (const f of p.flags) {
+      if (arr[f.q] === f.cuando) out.push(f.texto);
+    }
+  }
+  return out;
+}
+
+/** Keys del catálogo con algún Sí en el guion (alimenta `borradorV1`). */
+export function seleccionDeGuion(estado: EstadoGuion): CatalogoKey[] {
+  const out: CatalogoKey[] = [];
+  for (const p of GUION_CHAT) {
+    if (!p.preguntas) continue;
+    const arr = estado[p.id];
+    if (arr && arr.some((v) => v === 'si')) out.push(...p.keys);
+  }
+  return [...new Set(out)].sort();
+}
+
+/** Orden fijo del panel: módulos ancla en secuencia, crecer al final. */
+export const ORDEN_GUION: readonly string[] = ['mostrador', 'deposito', 'ventas', 'compras', 'fiscal'];
+
+function codificaRespuesta(v: RespuestaGuion): string {
+  return v === 'si' ? 'S' : v === 'no' ? 'N' : '-';
+}
+
+function decodificaRespuesta(c: string): RespuestaGuion {
+  return c === 'S' ? 'si' : c === 'N' ? 'no' : null;
+}
+
+/**
+ * Estado del guion a query string (para `history.replaceState`): por módulo
+ * `id=SN-` (P1/P2/P3) + `c=` con crecer. Solo refleja, nunca valida.
+ */
+export function guionAParams(estado: EstadoGuion, crecer: Iterable<string>): string {
+  const qs = new URLSearchParams();
+  for (const id of ORDEN_GUION) {
+    const arr = estado[id];
+    if (arr) qs.set(id, arr.map(codificaRespuesta).join(''));
+  }
+  const c = [...crecer].sort().join(',');
+  if (c) qs.set('c', c);
+  return qs.toString();
+}
+
+/**
+ * Query string a estado, re-ejecutando la regla de salteo (hijas sin Sí en P1
+ * se limpian) y filtrando crecer a keys conocidas. Basura externa → nulos.
+ */
+export function guionDesdeParams(search: string): { estado: EstadoGuion; crecer: string[] } {
+  const qs = new URLSearchParams(search.startsWith('?') ? search : `?${search}`);
+  let estado = estadoInicialGuion();
+  for (const id of ORDEN_GUION) {
+    const raw = (qs.get(id) ?? '').padEnd(3, '-').slice(0, 3) as string;
+    const vals = [...raw].map(decodificaRespuesta) as [RespuestaGuion, RespuestaGuion, RespuestaGuion];
+    vals.forEach((v, q) => {
+      estado = responderGuion(estado, id, q as 0 | 1 | 2, v);
+    });
+  }
+  const crecerEntry = GUION_CHAT.find((p) => p.id === 'crecer');
+  const validas = new Set(crecerEntry?.keys ?? []);
+  const crecer = (qs.get('c') ?? '').split(',').filter((k) => validas.has(k as CatalogoKey));
+  return { estado, crecer };
+}
+
 export function labelDe(key: CatalogoKey): string {
   return CATALOGO_LABELS[key];
+}
+
+/**
+ * Etiqueta sin precio para el cierre no vinculante (ticket 04): recorta
+ * anotaciones ` (Add-on …)` / ` ($…)` del catálogo; el resto va intacto.
+ */
+export function etiquetaSinPrecio(key: CatalogoKey): string {
+  return labelDe(key).replace(/\s*\((?:Add-on[^)]*|\$[^)]*)\)/g, '');
 }
 
 export function horasDe(key: CatalogoKey): number {

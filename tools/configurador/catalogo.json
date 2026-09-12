@@ -176,6 +176,92 @@
       "ancla_retail": false,
       "horas": 15,
       "addon": "incluido en Abono con Techo IA"
+    },
+    "logistica": {
+      "modoops": "Logística",
+      "label": "Logística / reparto (a desarrollar)",
+      "odoo": [
+        "delivery"
+      ],
+      "depends": [
+        "stock",
+        "sale"
+      ],
+      "version": "19.0",
+      "repo": "odoo/odoo (+ OCA delivery-carrier a pinnear)",
+      "rama": "19.0",
+      "ancla_retail": false,
+      "horas": 15,
+      "estado": "candidato",
+      "a_cotizar": true,
+      "nota": "Candidato N2: reparto/delivery; multi-almacén solo a evaluar en Descubrimiento"
+    },
+    "ecommerce": {
+      "modoops": "Ecommerce",
+      "label": "Ecommerce (a desarrollar)",
+      "odoo": [],
+      "depends": [
+        "sale",
+        "stock"
+      ],
+      "version": "19.0",
+      "repo": "modoops/modoops_integrations (tentativo)",
+      "rama": "a definir",
+      "ancla_retail": false,
+      "horas": 24,
+      "estado": "candidato",
+      "a_cotizar": true,
+      "nota": "Candidato: puente ML/TiendaNube, solo Fase 2 (días×52, mín 2 días)"
+    },
+    "web": {
+      "modoops": "Página web",
+      "label": "Página web (a desarrollar)",
+      "odoo": [
+        "website"
+      ],
+      "depends": [
+        "base"
+      ],
+      "version": "19.0",
+      "repo": "odoo/odoo",
+      "rama": "19.0",
+      "ancla_retail": false,
+      "horas": 25,
+      "estado": "candidato",
+      "a_cotizar": true,
+      "nota": "Candidato: sitio + SSL/pagos, solo Fase 2"
+    },
+    "crm": {
+      "modoops": "CRM",
+      "label": "Seguimiento de clientes (CRM)",
+      "odoo": [
+        "crm"
+      ],
+      "depends": [
+        "sale_management"
+      ],
+      "version": "19.0",
+      "repo": "odoo/odoo",
+      "rama": "19.0",
+      "ancla_retail": false,
+      "horas": 15,
+      "estado": "candidato",
+      "a_cotizar": true,
+      "nota": "Candidato N2 prioritario: CE puro, pipeline + equipo"
+    },
+    "otro": {
+      "modoops": "Otro",
+      "label": "Otro (contanos)",
+      "odoo": [],
+      "depends": [],
+      "version": "19.0",
+      "repo": "a definir en Descubrimiento",
+      "rama": "a definir",
+      "ancla_retail": false,
+      "horas": 0,
+      "estado": "candidato",
+      "a_cotizar": true,
+      "nota": "A medida vía Descubrimiento (texto libre del prospecto)"
     }
   },
   "pricing": {

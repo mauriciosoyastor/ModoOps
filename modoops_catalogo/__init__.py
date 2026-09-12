@@ -39,16 +39,24 @@ class Catalogo:
     def validate(self, keys: list[str], anexo_fiscal_ref: str | None = None) -> dict[str, Any]:
         errors: list[str] = []
         for k in keys:
-            if k not in self._modules:
+            mod = self._modules.get(k)
+            if mod is None:
                 errors.append(f"Módulo '{k}' no existe en catálogo (universo = Catálogo)")
+            elif mod.get("estado", "validado") == "candidato":
+                errors.append(
+                    f"Módulo '{k}' es candidato: requiere Descubrimiento + validación "
+                    "en proyecto real (no entra directo a lista cerrada)"
+                )
         if "fiscal_ar" in keys and not anexo_fiscal_ref:
             errors.append("Falta anexo_fiscal_ref para Fiscal AR (hard gate)")
         return {"valid": len(errors) == 0, "errors": errors}
 
     def toSelection(self) -> list[tuple[str, str]]:
-        """Para Odoo Selection: [(key, label)]"""
+        """Para Odoo Selection: [(key, label)] — solo validados (candidatos no instalables)."""
         out: list[tuple[str, str]] = []
         for k, v in self._modules.items():
+            if v.get("estado", "validado") == "candidato":
+                continue
             label = v.get("label") or v.get("modoops") or k
             out.append((k, label))
         return out
@@ -72,6 +80,15 @@ class Catalogo:
 
     def techoAjustes(self) -> int:
         return int(self._pricing.get("ancla", {}).get("techo_ajustes", 8))
+
+    def esCandidato(self, key: str) -> bool:
+        """True si la key es un módulo candidato (a desarrollar, a cotizar)."""
+        mod = self._modules.get(key)
+        return bool(mod) and mod.get("estado", "validado") == "candidato"
+
+    def candidatos(self) -> list[str]:
+        """Keys candidatas en orden del catálogo (puerta crecer del portal)."""
+        return [k for k in self._modules if self.esCandidato(k)]
 
 
 # Singleton lazy para consumers que no inyectan

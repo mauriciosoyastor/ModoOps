@@ -24,6 +24,7 @@ FAKE_DATA = {
         "migracion_excel": {"modoops": "Migración Excel", "label": "Migración Excel (≤500 prod)", "horas": 10, "odoo": []},
         "b2b_basico": {"modoops": "B2B Básico", "label": "B2B Básico (Add-on $155)", "horas": 20, "odoo": []},
         "ia": {"modoops": "IA ModoOps — Agente", "label": "IA ModoOps — Agente herramental (Tools + Memoria)", "horas": 15, "odoo": ["modoops_ia"]},
+        "crm": {"modoops": "CRM", "label": "Seguimiento de clientes (CRM)", "horas": 15, "odoo": ["crm"], "estado": "candidato", "a_cotizar": True},
     },
     "pricing": {
         "tarifa_diaria": 52,
@@ -53,7 +54,7 @@ class TestCatalogoInterface(unittest.TestCase):
         self.assertIn("plataforma", keys)
         self.assertIn("puente_factura", keys)
         self.assertIn("ia", keys)
-        self.assertEqual(len(keys), 12)
+        self.assertEqual(len(keys), 13)
 
     def test_validate_ok(self):
         out = self.cat.validate(["mostrador", "deposito"], anexo_fiscal_ref="AF-001")
@@ -81,6 +82,22 @@ class TestCatalogoInterface(unittest.TestCase):
         self.assertEqual(d["ia"], "IA ModoOps — Agente herramental (Tools + Memoria)")
         self.assertEqual(len(sel), 12)
 
+    def test_candidato_rechazado_en_lista_cerrada(self):
+        out = self.cat.validate(["mostrador", "crm"], anexo_fiscal_ref="AF-001")
+        self.assertFalse(out["valid"])
+        self.assertTrue(any("crm" in e and "Descubrimiento" in e for e in out["errors"]))
+
+    def test_candidato_fuera_de_selection(self):
+        d = dict(self.cat.toSelection())
+        self.assertNotIn("crm", d)
+        self.assertIn("mostrador", d)
+
+    def test_helpers_candidatos(self):
+        self.assertTrue(self.cat.esCandidato("crm"))
+        self.assertFalse(self.cat.esCandidato("mostrador"))
+        self.assertFalse(self.cat.esCandidato("inexistente"))
+        self.assertEqual(self.cat.candidatos(), ["crm"])
+
     def test_pricing_returns_800_92_20(self):
         p = self.cat.pricing()
         self.assertEqual(p["ancla"]["amount"], 800)
@@ -106,7 +123,11 @@ class TestCatalogoInterface(unittest.TestCase):
         self.assertEqual(self.cat.techoAjustes(), 8)
 
     def test_load_from_real_file(self):
-        # sanity: real file has 12 keys and pricing 800
+        # sanity: real file has 12 validados + 5 candidatos, pricing 800
         real = Catalogo.load()
-        self.assertEqual(len(real.allKeys()), 12)
+        self.assertEqual(len(real.allKeys()), 17)
+        self.assertEqual(len(real.toSelection()), 12)
+        self.assertEqual(
+            real.candidatos(), ["logistica", "ecommerce", "web", "crm", "otro"]
+        )
         self.assertEqual(real.pricing()["ancla"]["amount"], 800)

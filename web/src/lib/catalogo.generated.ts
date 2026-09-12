@@ -1,9 +1,12 @@
 // AUTO-GENERADO — no editar a mano. Fuente: modoops_catalogo/catalogo.json
 // Generado por: python tools/configurador/sync_catalogo.py --generate
 
-export type CatalogoKey = "mostrador" | "deposito" | "ventas" | "compras" | "fiscal_ar" | "contactos" | "plataforma" | "puente_factura" | "taller" | "migracion_excel" | "b2b_basico" | "ia";
+export type CatalogoKey = "mostrador" | "deposito" | "ventas" | "compras" | "fiscal_ar" | "contactos" | "plataforma" | "puente_factura" | "taller" | "migracion_excel" | "b2b_basico" | "ia" | "logistica" | "ecommerce" | "web" | "crm" | "otro";
 
-export const CATALOGO_KEYS = new Set<CatalogoKey>(["mostrador", "deposito", "ventas", "compras", "fiscal_ar", "contactos", "plataforma", "puente_factura", "taller", "migracion_excel", "b2b_basico", "ia"]);
+export const CATALOGO_KEYS = new Set<CatalogoKey>(["mostrador", "deposito", "ventas", "compras", "fiscal_ar", "contactos", "plataforma", "puente_factura", "taller", "migracion_excel", "b2b_basico", "ia", "logistica", "ecommerce", "web", "crm", "otro"]);
+
+/** Candidatos a desarrollar (puerta crecer): a cotizar, nunca en lista cerrada directa. */
+export const CANDIDATO_KEYS = new Set<CatalogoKey>(["logistica", "ecommerce", "web", "crm", "otro"]);
 
 export const CATALOGO_LABELS: Record<CatalogoKey, string> = {
   "mostrador": "Mostrador (POS 2 cajas)",
@@ -17,7 +20,12 @@ export const CATALOGO_LABELS: Record<CatalogoKey, string> = {
   "taller": "Taller (Add-on $155)",
   "migracion_excel": "Migración Excel (≤500 prod)",
   "b2b_basico": "B2B Básico (Add-on $155)",
-  "ia": "IA ModoOps — Agente herramental (Tools + Memoria)"
+  "ia": "IA ModoOps — Agente herramental (Tools + Memoria)",
+  "logistica": "Logística / reparto (a desarrollar)",
+  "ecommerce": "Ecommerce (a desarrollar)",
+  "web": "Página web (a desarrollar)",
+  "crm": "Seguimiento de clientes (CRM)",
+  "otro": "Otro (contanos)"
 } as const;
 
 export const CATALOGO_HORAS: Record<CatalogoKey, number> = {
@@ -32,7 +40,12 @@ export const CATALOGO_HORAS: Record<CatalogoKey, number> = {
   "taller": 20,
   "migracion_excel": 10,
   "b2b_basico": 20,
-  "ia": 15
+  "ia": 15,
+  "logistica": 15,
+  "ecommerce": 24,
+  "web": 25,
+  "crm": 15,
+  "otro": 0
 } as const;
 
 export const CATALOGO_PRICING = {
