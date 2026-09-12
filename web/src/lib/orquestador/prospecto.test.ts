@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   INFORMATIVAS_PROSPECTO,
+  agregarTurno,
   decideProspecto,
   intentoDe,
   ipAQuotaDb,
@@ -76,5 +77,17 @@ describe("orquestador/prospecto — chat público sin tenant", () => {
     expect(a.startsWith("modoops_prospecto_")).toBe(true);
     expect(a).not.toContain("1.2.3.4");
     expect(ipAQuotaDb("5.6.7.8")).not.toBe(a);
+  });
+
+  it("historial del navegador: suma y capa a 10 sin mutar", () => {
+    const h0: { role: "user" | "assistant"; text: string }[] = [];
+    const h1 = agregarTurno(h0, { role: "user", text: "hola" });
+    expect(h1).toHaveLength(1);
+    expect(h0).toHaveLength(0);
+    let h = h1;
+    for (let i = 0; i < 12; i++) h = agregarTurno(h, { role: "assistant", text: `r${i}` });
+    expect(h).toHaveLength(10);
+    expect(h[0]).toEqual({ role: "assistant", text: "r2" });
+    expect(h[9]).toEqual({ role: "assistant", text: "r11" });
   });
 });

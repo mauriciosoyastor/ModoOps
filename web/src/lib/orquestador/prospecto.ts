@@ -84,6 +84,13 @@ export function decideProspecto(tool: string, input: unknown): DecisionProspecto
 export const MAX_MENSAJE = 2000;
 export const MAX_HISTORIA = 10;
 
+export type Turno = { role: "user" | "assistant"; text: string };
+
+/** Suma un turno al historial del navegador, capado a los últimos 10 (memoria, sin persistir). */
+export function agregarTurno(historial: Turno[], turno: Turno): Turno[] {
+  return [...historial, turno].slice(-MAX_HISTORIA);
+}
+
 export type EntradaChatOk = { ok: true; message: string; history: { role: string; text: string }[] };
 export type EntradaChatError = { ok: false; error: string };
 
