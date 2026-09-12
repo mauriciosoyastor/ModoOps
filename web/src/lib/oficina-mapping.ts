@@ -240,6 +240,52 @@ export function seleccionDeGuion(estado: EstadoGuion): CatalogoKey[] {
   return [...new Set(out)].sort();
 }
 
+/** Orden fijo del panel: módulos ancla en secuencia, crecer al final. */
+export const ORDEN_GUION: readonly string[] = ['mostrador', 'deposito', 'ventas', 'compras', 'fiscal'];
+
+function codificaRespuesta(v: RespuestaGuion): string {
+  return v === 'si' ? 'S' : v === 'no' ? 'N' : '-';
+}
+
+function decodificaRespuesta(c: string): RespuestaGuion {
+  return c === 'S' ? 'si' : c === 'N' ? 'no' : null;
+}
+
+/**
+ * Estado del guion a query string (para `history.replaceState`): por módulo
+ * `id=SN-` (P1/P2/P3) + `c=` con crecer. Solo refleja, nunca valida.
+ */
+export function guionAParams(estado: EstadoGuion, crecer: Iterable<string>): string {
+  const qs = new URLSearchParams();
+  for (const id of ORDEN_GUION) {
+    const arr = estado[id];
+    if (arr) qs.set(id, arr.map(codificaRespuesta).join(''));
+  }
+  const c = [...crecer].sort().join(',');
+  if (c) qs.set('c', c);
+  return qs.toString();
+}
+
+/**
+ * Query string a estado, re-ejecutando la regla de salteo (hijas sin Sí en P1
+ * se limpian) y filtrando crecer a keys conocidas. Basura externa → nulos.
+ */
+export function guionDesdeParams(search: string): { estado: EstadoGuion; crecer: string[] } {
+  const qs = new URLSearchParams(search.startsWith('?') ? search : `?${search}`);
+  let estado = estadoInicialGuion();
+  for (const id of ORDEN_GUION) {
+    const raw = (qs.get(id) ?? '').padEnd(3, '-').slice(0, 3) as string;
+    const vals = [...raw].map(decodificaRespuesta) as [RespuestaGuion, RespuestaGuion, RespuestaGuion];
+    vals.forEach((v, q) => {
+      estado = responderGuion(estado, id, q as 0 | 1 | 2, v);
+    });
+  }
+  const crecerEntry = GUION_CHAT.find((p) => p.id === 'crecer');
+  const validas = new Set(crecerEntry?.keys ?? []);
+  const crecer = (qs.get('c') ?? '').split(',').filter((k) => validas.has(k as CatalogoKey));
+  return { estado, crecer };
+}
+
 export function labelDe(key: CatalogoKey): string {
   return CATALOGO_LABELS[key];
 }

@@ -12,6 +12,8 @@ import {
   estadoObjetoGuion,
   flagsGuion,
   guardarBorrador,
+  guionAParams,
+  guionDesdeParams,
   horasDe,
   responderGuion,
   seleccionDeGuion,
@@ -243,5 +245,25 @@ describe("oficina-mapping — guion v2 (3 preguntas por módulo)", () => {
       expect(CATALOGO_KEYS.has(k)).toBe(true);
       expect(esAncla(k)).toBe(false);
     }
+  });
+
+  it("guion a params y vuelta conserva respuestas y crecer", () => {
+    let e = estadoInicialGuion();
+    e = responderGuion(e, "mostrador", 0, "si");
+    e = responderGuion(e, "mostrador", 1, "no");
+    e = responderGuion(e, "deposito", 0, "no");
+    const qs = guionAParams(e, ["web", "crm"]);
+    const vuelta = guionDesdeParams(qs);
+    expect(vuelta.estado["mostrador"]).toEqual(["si", "no", null]);
+    expect(vuelta.estado["deposito"]).toEqual(["no", null, null]);
+    expect(vuelta.crecer.sort()).toEqual(["crm", "web"]);
+  });
+
+  it("params basura no rompen y el salteo se normaliza", () => {
+    const vuelta = guionDesdeParams("?mostrador=ZXQ&deposito=NSS&inventado=SSS&c=web,no_existe");
+    expect(vuelta.estado["mostrador"]).toEqual([null, null, null]);
+    // hijas sin Sí en P1 se limpian al re-ejecutar la regla
+    expect(vuelta.estado["deposito"]).toEqual(["no", null, null]);
+    expect(vuelta.crecer).toEqual(["web"]);
   });
 });

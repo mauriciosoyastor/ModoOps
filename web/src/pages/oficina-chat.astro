@@ -1,7 +1,7 @@
 ---
-// Ruta REAL del chat configurador (spec 0011, slices 02+03): guion T1 desde el
-// seam (sin duplicar datos), split chat/3D bidireccional, borrador vivo,
-// WhatsApp con mensaje legible + copiar JSON, envío al consultor, auto-confirm.
+ // Panel-chat único (ticket 03): una sola conversación por guion v2 (sin LLM),
+ // la oficina muta por respuesta (apagado/fantasma/encendido), estado en URL,
+// borrador vivo + retomar, cierre sin precio (ticket 04 lo ordena al final).
 import BaseLayout from '../layouts/BaseLayout.astro';
 import {
   GUION_CHAT,
@@ -24,21 +24,27 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
 
 <BaseLayout
   title="Chat — armá tu borrador mirando tu oficina | ModoOps"
-  description="Respondé 10 preguntas en criollo, mirá cómo se arma tu oficina y enviá tu borrador no vinculante por WhatsApp."
+  description="Respondé en criollo, mirá cómo muta tu oficina y enviá tu borrador no vinculante por WhatsApp."
 >
   <main class="mx-auto w-full max-w-6xl px-4 py-8 md:px-8" data-chat>
     <p class="rounded-full border border-dashed px-3 py-1 text-xs text-zinc-400">
       Borrador no vinculante · lo valida el consultor en el Descubrimiento · nada de acá crea tu sistema
     </p>
     <h1 class="mt-2 text-3xl font-semibold">Contanos tu negocio, mirá tu oficina</h1>
-    <p class="mt-1 text-sm text-zinc-400" data-progreso aria-live="polite">Paso 1 de 7 · Tu negocio</p>
+    <p class="mt-1 text-sm text-zinc-400" data-progreso aria-live="polite">Pregunta 1 de 16 · Tu negocio</p>
 
     <div class="mt-4 grid gap-4" data-layout-wrap>
       <section aria-label="Chat configurador">
         <div class="grid gap-3" data-hilo aria-live="polite"></div>
 
-        <form data-negocio class="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm" id="preg-negocio">
-          <h2 class="font-semibold">Tu negocio</h2>
+        <div class="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm" data-panel></div>
+
+        <div class="mt-2 flex flex-wrap gap-1" data-modulos aria-label="Módulos y su estado"></div>
+
+        <ul class="mt-2 grid gap-1 text-sm" data-flags aria-live="polite"></ul>
+
+        <details class="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm" open>
+          <summary class="cursor-pointer font-semibold">Tus datos</summary>
           <div class="mt-2 grid gap-2">
             <label>Nombre del negocio *
               <input data-prospecto="nombre" required autocomplete="organization" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Pinturería Centro" /></label>
@@ -58,73 +64,8 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
                   <option value="servicios">Servicios</option>
                 </select></label>
             </div>
-            <div class="grid grid-cols-3 gap-2">
-              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-            </div>
-            <div class="grid gap-2 md:grid-cols-2">
-              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-              <label class="flex items-center gap-2">¿Llevás stock en Excel hoy?
-                <input data-dato="tiene_excel" type="checkbox" class="h-4 w-4" /></label>
-            </div>
           </div>
-        </form>
-
-        {GUION_CHAT.map((g) => (
-          <div class="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm" data-card={g.id}>
-            <h2 class="font-semibold">{g.bloque} — {labelDe(g.keys[0])}</h2>
-            <p class="mt-1">{g.texto}</p>
-            <div class="mt-2 flex flex-wrap gap-1">
-              <button type="button" data-si={g.id} aria-pressed="false" class="rounded-full border border-white/10 px-3 py-1">Sí</button>
-              <button type="button" data-no={g.id} class="rounded-full border border-white/10 px-3 py-1">No / saltear</button>
-            </div>
-            {g.id === 'mostrador' && (
-              <div class="mt-2 grid grid-cols-2 gap-2" data-extra={g.id} hidden>
-                <label>Cajas <input data-p="mostrador" data-c="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-                <label class="flex items-center gap-2">¿Descuento? <input data-p="mostrador" data-c="descuento" type="checkbox" class="h-4 w-4" /></label>
-              </div>
-            )}
-            {g.id === 'deposito' && (
-              <div class="mt-2 grid grid-cols-2 gap-2" data-extra={g.id} hidden>
-                <label>Almacenes <input data-p="deposito" data-c="almacenes" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-                <label class="flex items-center gap-2">¿Ubicaciones? <input data-p="deposito" data-c="ubicaciones" type="checkbox" class="h-4 w-4" /></label>
-              </div>
-            )}
-            {g.id === 'ventas' && (
-              <div class="mt-2" data-extra={g.id} hidden>
-                <label>Listas de precio <input data-p="ventas" data-c="listas" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-              </div>
-            )}
-            {g.id === 'compras' && (
-              <div class="mt-2 grid grid-cols-2 gap-2" data-extra={g.id} hidden>
-                <label>Proveedores <input data-p="compras" data-c="proveedores" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-                <label class="flex items-center gap-2">¿Orden de compra? <input data-p="compras" data-c="oc" type="checkbox" class="h-4 w-4" /></label>
-              </div>
-            )}
-            {g.id === 'fiscal' && (
-              <div class="mt-2" data-extra={g.id} hidden>
-                <fieldset class="rounded border border-white/10 p-2">
-                  <legend class="px-1 text-xs text-zinc-400">Tildá lo que creas que usás</legend>
-                  {g.multi?.map((op) => (
-                    <label class="mr-3 inline-flex items-center gap-1"><input data-p="fiscal" data-c="comprobantes" value={op} type="checkbox" class="h-4 w-4" />{op}</label>
-                  ))}
-                </fieldset>
-                <label class="mt-2 block">Tu contador <input data-p="fiscal" data-c="contador" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Estudio López" /></label>
-              </div>
-            )}
-            {g.id === 'crecer' && (
-              <div class="mt-2" data-extra={g.id} hidden>
-                <fieldset class="rounded border border-white/10 p-2">
-                  <legend class="px-1 text-xs text-zinc-400">Tildá todo lo que te sirva</legend>
-                  {g.keys.map((k) => (
-                    <label class="mr-3 inline-flex items-center gap-1"><input data-p="crecer" data-c="futuros" value={k} type="checkbox" class="h-4 w-4" />{labelDe(k)}</label>
-                  ))}
-                </fieldset>
-              </div>
-            )}
-          </div>
-        ))}
+        </details>
 
         <ul class="mt-2 text-sm text-red-700" data-errores aria-live="assertive"></ul>
 
@@ -150,7 +91,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
             data-canvas
             class="block w-full rounded-xl"
             style="aspect-ratio: 16/10;"
-            aria-label="Tu oficina armándose: tocá un mueble para volver a su pregunta"
+            aria-label="Tu oficina mutando: tocá un mueble para ir a su pregunta"
           ></canvas>
           <p class="px-1 py-1 text-xs text-zinc-400" data-estado aria-live="polite">Activando escena…</p>
           <div data-fallback hidden class="rounded-xl border border-white/10 bg-white/[0.04] p-3">
@@ -169,7 +110,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
               ))}
             </div>
           </details>
-          <ul class="mt-2 flex flex-wrap gap-1 text-xs" data-construidos aria-label="Objetos construidos"></ul>
+          <ul class="mt-2 flex flex-wrap gap-1 text-xs" data-construidos aria-label="Estado de tu oficina"></ul>
         </div>
       </section>
     </div>
@@ -177,25 +118,33 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
 </BaseLayout>
 
 <style>
-  .flash { outline: 2px solid #f5c518; outline-offset: 2px; }
   .hecho { border-color: #2b7a4b; }
+  .pregunta-actual { outline: 2px solid #f5c518; outline-offset: 2px; }
 </style>
 
 <script>
   import {
     GUION_CHAT,
-    OBJETO_A_MODULO,
+    ORDEN_GUION,
     SIEMPRE_INCLUIDOS,
+    estadoInicialGuion,
+    estadoObjetoGuion,
+    flagsGuion,
+    seleccionDeGuion,
+    guionAParams,
+    guionDesdeParams,
     construirBorrador,
     guardarBorrador,
     cargarBorrador,
     validarBorrador,
     mensajeWhatsApp,
     enlaceWhatsApp,
+    labelDe,
   } from '../lib/oficina-mapping';
 
   const objetoAPregunta = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.id]));
-  const preguntaAObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.id, g.objeto]));
+  const entradaDe = (id) => GUION_CHAT.find((g) => g.id === id);
+  const TOTAL_PASOS = 16; // 15 sub-preguntas ancla + crecer
 
   const root = document.querySelector('[data-chat]');
   if (root instanceof HTMLElement) {
@@ -208,21 +157,33 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
     }
 
     const reduc = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const si = new Set();
-    const num = (sel) => {
-      const el = root.querySelector(sel);
-      const v = el instanceof HTMLInputElement ? Number(el.value) : NaN;
-      return Number.isFinite(v) ? v : 0;
-    };
-    const bool = (sel) => {
-      const el = root.querySelector(sel);
-      return el instanceof HTMLInputElement ? el.checked : false;
-    };
     const texto = (sel) => {
       const el = root.querySelector(sel);
-      return el instanceof HTMLInputElement ? el.value : '';
+      return el instanceof HTMLInputElement || el instanceof HTMLSelectElement ? el.value : '';
     };
 
+    // ---- estado del panel (regla del seam, sin LLM todavía) ----
+    let estado = estadoInicialGuion();
+    let crecer = new Set();
+    let foco = 'mostrador';
+    let escena = null;
+    let borradorActual = null;
+
+    const completo = (id) => {
+      const arr = estado[id];
+      return arr[0] === 'no' || (arr[0] === 'si' && arr[1] !== null && arr[2] !== null);
+    };
+    const primerIncompleto = () => ORDEN_GUION.find((id) => !completo(id)) ?? 'crecer';
+    const respondidas = () => {
+      let n = 0;
+      for (const id of ORDEN_GUION) for (const v of estado[id]) if (v !== null) n += 1;
+      return n;
+    };
+
+    // ---- elementos ----
+    const panel = root.querySelector('[data-panel]');
+    const modulos = root.querySelector('[data-modulos]');
+    const flagsUl = root.querySelector('[data-flags]');
     const hilo = root.querySelector('[data-hilo]');
     const progreso = root.querySelector('[data-progreso]');
     const chips = root.querySelector('[data-chips]');
@@ -237,8 +198,6 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
     const canvas = root.querySelector('[data-canvas]');
     const est = root.querySelector('[data-estado]');
     const fb = root.querySelector('[data-fallback]');
-    let escena = null;
-    let borradorActual = null;
 
     function decir(textoMsg) {
       if (!(hilo instanceof HTMLElement)) return;
@@ -248,29 +207,163 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       hilo.appendChild(p);
     }
 
-    function irAPregunta(id) {
-      const card = root.querySelector(`[data-card="${id}"]`);
-      if (card instanceof HTMLElement) {
-        card.scrollIntoView({ behavior: reduc ? 'auto' : 'smooth', block: 'center' });
-        card.classList.add('flash');
-        setTimeout(() => card.classList.remove('flash'), 1600);
-        const btn = card.querySelector('[data-si]');
-        if (btn instanceof HTMLElement) btn.focus({ preventScroll: true });
+    function botonSiNo(etiqueta, pressed, fn) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = etiqueta;
+      b.className = 'rounded-full border px-3 py-1' + (pressed ? ' hecho font-semibold' : ' border-white/10');
+      b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+      b.addEventListener('click', fn);
+      return b;
+    }
+
+    function filaPregunta(g, q, valorActual, habilitada) {
+      const wrapQ = document.createElement('div');
+      wrapQ.className = 'mt-2';
+      const p = document.createElement('p');
+      p.textContent = `P${q + 1} · ${g.preguntas[q]}`;
+      wrapQ.appendChild(p);
+      const fila = document.createElement('div');
+      fila.className = 'mt-1 flex flex-wrap gap-1';
+      fila.appendChild(botonSiNo('Sí', valorActual === 'si', () => responder(g.id, q, 'si')));
+      fila.appendChild(botonSiNo('No', valorActual === 'no', () => responder(g.id, q, 'no')));
+      if (valorActual !== null) {
+        const limpiar = document.createElement('button');
+        limpiar.type = 'button';
+        limpiar.textContent = 'Limpiar';
+        limpiar.className = 'rounded-full border border-white/10 px-3 py-1 text-xs';
+        limpiar.addEventListener('click', () => responder(g.id, q, null));
+        fila.appendChild(limpiar);
       }
+      if (!habilitada) {
+        fila.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+        const nota = document.createElement('span');
+        nota.className = 'text-xs text-zinc-500';
+        nota.textContent = '(se saltea: sin Sí en P1)';
+        fila.appendChild(nota);
+      }
+      wrapQ.appendChild(fila);
+      return wrapQ;
+    }
+
+    function render() {
+      if (!(panel instanceof HTMLElement)) return;
+      panel.innerHTML = '';
+      const tit = document.createElement('h2');
+      tit.className = 'font-semibold';
+      tit.tabIndex = -1;
+
+      if (foco === 'fin') {
+        const b = borradorActual ?? construirBorrador(leeEstado());
+        tit.textContent = 'Tu borrador está listo';
+        panel.appendChild(tit);
+        const r = document.createElement('p');
+        r.className = 'mt-1';
+        r.textContent = `Ancla: ${b.modulos_ancla.join(', ') || '—'} · Para crecer: ${b.modulos_futuros.join(', ') || '—'}`;
+        panel.appendChild(r);
+        const cta = document.createElement('p');
+        cta.className = 'mt-1 text-zinc-400';
+        cta.textContent = 'Completá tus datos y envialo por WhatsApp o al consultor.';
+        panel.appendChild(cta);
+      } else if (foco === 'crecer') {
+        const g = entradaDe('crecer');
+        tit.textContent = `Para crecer — ${g.texto}`;
+        panel.appendChild(tit);
+        const fs = document.createElement('fieldset');
+        fs.className = 'mt-2 rounded border border-white/10 p-2';
+        const lg = document.createElement('legend');
+        lg.className = 'px-1 text-xs text-zinc-400';
+        lg.textContent = 'Tildá todo lo que te sirva (a desarrollar, a cotizar)';
+        fs.appendChild(lg);
+        for (const k of g.keys) {
+          const lab = document.createElement('label');
+          lab.className = 'mr-3 inline-flex items-center gap-1';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.className = 'h-4 w-4';
+          cb.checked = crecer.has(k);
+          cb.setAttribute('aria-label', labelDe(k));
+          cb.addEventListener('change', () => {
+            if (cb.checked) crecer.add(k);
+            else crecer.delete(k);
+            marcarTodo();
+            pinta();
+            renderModulos();
+          });
+          lab.appendChild(cb);
+          lab.appendChild(document.createTextNode(labelDe(k)));
+          fs.appendChild(lab);
+        }
+        panel.appendChild(fs);
+        const ver = document.createElement('button');
+        ver.type = 'button';
+        ver.textContent = 'Ver mi borrador';
+        ver.className = 'mt-2 rounded-full border px-4 py-2 text-sm font-semibold';
+        ver.addEventListener('click', () => { foco = 'fin'; render(); });
+        panel.appendChild(ver);
+      } else {
+        const g = entradaDe(foco);
+        tit.textContent = `${g.bloque} — ${labelDe(g.keys[0])}`;
+        panel.appendChild(tit);
+        const arr = estado[g.id];
+        panel.appendChild(filaPregunta(g, 0, arr[0], true));
+        panel.appendChild(filaPregunta(g, 1, arr[1], arr[0] === 'si'));
+        panel.appendChild(filaPregunta(g, 2, arr[2], arr[0] === 'si'));
+        const ayuda = document.createElement('p');
+        ayuda.className = 'mt-2 text-xs text-zinc-500';
+        ayuda.textContent = 'Teclas: 1 = Sí, 2 = No.';
+        panel.appendChild(ayuda);
+      }
+      tit.focus({ preventScroll: true });
+      tit.scrollIntoView({ behavior: reduc ? 'auto' : 'smooth', block: 'nearest' });
+    }
+
+    function renderModulos() {
+      if (!(modulos instanceof HTMLElement)) return;
+      modulos.innerHTML = '';
+      for (const id of ORDEN_GUION) {
+        const g = entradaDe(id);
+        const e = estadoObjetoGuion(estado, id);
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'rounded-full border px-2 py-1 text-xs' + (e === 'encendido' ? ' hecho' : e === 'fantasma' ? ' opacity-70' : ' opacity-50 border-white/10');
+        b.textContent = `${e === 'encendido' ? '✓ ' : e === 'fantasma' ? '~ ' : '· '}${labelDe(g.keys[0])} · cambiar`;
+        b.setAttribute('aria-label', `${labelDe(g.keys[0])}: ${e}. Ir a su pregunta.`);
+        b.addEventListener('click', () => { foco = id; render(); });
+        modulos.appendChild(b);
+      }
+      const c = document.createElement('button');
+      c.type = 'button';
+      c.className = 'rounded-full border px-2 py-1 text-xs' + (crecer.size ? ' hecho' : ' opacity-50 border-white/10');
+      c.textContent = `Para crecer (${crecer.size}) · cambiar`;
+      c.addEventListener('click', () => { foco = 'crecer'; render(); });
+      modulos.appendChild(c);
+    }
+
+    function responder(id, q, valor) {
+      const antes = estado[id].join();
+      estado = responderGuion(estado, id, q, valor);
+      if (estado[id].join() === antes) return;
+      const g = entradaDe(id);
+      if (q === 0) {
+        decir(valor === 'si' ? `Anotado: ${labelDe(g.keys[0])}. Mirá tu oficina →` : `${labelDe(g.keys[0])} queda fuera: objeto en fantasma.`);
+      }
+      marcarTodo();
+      pinta();
+      renderModulos();
+      if (completo(id)) foco = primerIncompleto();
+      render();
+    }
+
+    function marcarTodo() {
+      if (!escena || typeof escena.marcar !== 'function') return;
+      for (const id of ORDEN_GUION) {
+        escena.marcar(preguntaAObjeto[id], estadoObjetoGuion(estado, id));
+      }
+      escena.marcar('puerta-crecer-3d', crecer.size > 0 ? 'encendido' : 'apagado');
     }
 
     function leeEstado() {
-      const tildados = [];
-      for (const id of si) {
-        const g = GUION_CHAT.find((x) => x.id === id);
-        if (g) tildados.push(...g.keys);
-      }
-      const futuros = [...root.querySelectorAll('[data-p="crecer"][data-c="futuros"]')]
-        .filter((el) => el instanceof HTMLInputElement && el.checked)
-        .map((el) => el.getAttribute('value'));
-      const comprobantes = [...root.querySelectorAll('[data-p="fiscal"][data-c="comprobantes"]')]
-        .filter((el) => el instanceof HTMLInputElement && el.checked)
-        .map((el) => el.getAttribute('value'));
       return {
         prospecto: {
           nombre: texto('[data-prospecto="nombre"]'),
@@ -278,20 +371,20 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
           telefono: texto('[data-prospecto="telefono"]'),
           email: texto('[data-prospecto="email"]'),
           rubro: texto('[data-prospecto="rubro"]') || 'retail',
-          sucursales: num('[data-prospecto="sucursales"]'),
-          cajas: num('[data-prospecto="cajas"]'),
-          usuarios: num('[data-prospecto="usuarios"]'),
+          sucursales: 1,
+          cajas: 2,
+          usuarios: 5,
         },
         objetos: {
-          'mostrador-3d': { cajas: num('[data-p="mostrador"][data-c="cajas"]'), descuento: bool('[data-p="mostrador"][data-c="descuento"]') },
-          'estanteria-3d': { almacenes: num('[data-p="deposito"][data-c="almacenes"]'), ubicaciones: bool('[data-p="deposito"][data-c="ubicaciones"]') },
-          'gondola-3d': { listas_precio: num('[data-p="ventas"][data-c="listas"]') },
-          'computadora-3d': { proveedores: num('[data-p="compras"][data-c="proveedores"]'), orden_compra: bool('[data-p="compras"][data-c="oc"]') },
-          'pizarron-fiscal-3d': { comprobantes, contador: texto('[data-p="fiscal"][data-c="contador"]') },
-          'puerta-crecer-3d': { futuros },
+          'mostrador-3d': { cajas: 2, descuento: false },
+          'estanteria-3d': { almacenes: 1, ubicaciones: false },
+          'gondola-3d': { listas_precio: 1 },
+          'computadora-3d': { proveedores: 0, orden_compra: false },
+          'pizarron-fiscal-3d': { comprobantes: [], contador: '' },
+          'puerta-crecer-3d': { futuros: [...crecer] },
         },
-        seleccion: [...SIEMPRE_INCLUIDOS, ...tildados, ...futuros],
-        datos: { productos_aprox: num('[data-dato="productos_aprox"]'), tiene_excel: bool('[data-dato="tiene_excel"]') },
+        seleccion: [...SIEMPRE_INCLUIDOS, ...seleccionDeGuion(estado), ...crecer],
+        datos: { productos_aprox: 0, tiene_excel: false },
         infra: { hosting_propio: false, dominio_ssl: false, backups: false },
       };
     }
@@ -306,7 +399,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         for (const k of [...b.modulos_ancla, ...b.modulos_futuros]) {
           const li = document.createElement('li');
           li.className = 'rounded-full border px-2 py-0.5 text-xs';
-          li.textContent = k;
+          li.textContent = labelDe(k);
           chips.appendChild(li);
         }
       }
@@ -319,20 +412,33 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
           listaErrores.appendChild(li);
         }
       }
-      if (construidos instanceof HTMLElement) {
-        construidos.innerHTML = '';
-        for (const g of GUION_CHAT) {
+      if (flagsUl instanceof HTMLElement) {
+        flagsUl.innerHTML = '';
+        for (const f of flagsGuion(estado)) {
           const li = document.createElement('li');
-          li.className = 'rounded-full border px-2 py-1' + (si.has(g.id) ? ' hecho' : ' opacity-50');
-          li.textContent = (si.has(g.id) ? '✓ ' : '') + g.id;
-          construidos.appendChild(li);
+          li.className = 'rounded-xl border border-red-900 bg-red-950/40 p-2';
+          li.textContent = 'Va a Descubrimiento: ' + f;
+          flagsUl.appendChild(li);
         }
       }
-      const n = si.size;
+      if (construidos instanceof HTMLElement) {
+        construidos.innerHTML = '';
+        for (const id of ORDEN_GUION) {
+          const g = entradaDe(id);
+          const e = estadoObjetoGuion(estado, id);
+          const li = document.createElement('li');
+          li.className = 'rounded-full border px-2 py-1' + (e === 'encendido' ? ' hecho' : ' opacity-50');
+          li.textContent = `${e === 'encendido' ? '✓ ' : e === 'fantasma' ? '~ ' : '· '}${labelDe(g.keys[0])}`;
+          construidos.appendChild(li);
+        }
+        const puerta = document.createElement('li');
+        puerta.className = 'rounded-full border px-2 py-1' + (crecer.size ? ' hecho' : ' opacity-50');
+        puerta.textContent = `${crecer.size ? '✓ ' : '· '}Para crecer (${crecer.size})`;
+        construidos.appendChild(puerta);
+      }
+      const hechos = respondidas() + (foco === 'fin' ? 1 : 0);
       if (progreso instanceof HTMLElement) {
-        progreso.textContent = n === 0
-          ? 'Paso 1 de 7 · Tu negocio'
-          : `Paso ${Math.min(n + 1, 7)} de 7 · ${n >= 6 ? 'Para crecer' : 'Tu ancla'} · ${n} síes`;
+        progreso.textContent = `Pregunta ${Math.min(hechos + 1, TOTAL_PASOS)} de ${TOTAL_PASOS} · ${hechos} respuestas`;
       }
       if (linkWa instanceof HTMLAnchorElement) {
         linkWa.href = enlaceWhatsApp(mensajeWhatsApp(b));
@@ -342,34 +448,31 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       }
       try {
         const u = new URL(location.href);
-        u.searchParams.set('layout', layout);
+        const qs = guionAParams(estado, crecer);
+        u.search = qs ? `?${qs}&layout=${layout}` : `?layout=${layout}`;
         history.replaceState(null, '', u);
       } catch { /* sin URL: el chat igual anda */ }
     }
 
-    function marcar(id, vale) {
-      const card = root.querySelector(`[data-card="${id}"]`);
-      const btnSi = root.querySelector(`[data-si="${id}"]`);
-      const extra = root.querySelector(`[data-extra="${id}"]`);
-      if (vale) {
-        si.add(id);
-        decir(`Anotado: ${id}. Mirá tu oficina →`);
-        if (escena) escena.resaltar(preguntaAObjeto[id]);
-      } else {
-        si.delete(id);
-      }
-      if (btnSi instanceof HTMLElement) btnSi.setAttribute('aria-pressed', vale ? 'true' : 'false');
-      if (card instanceof HTMLElement) card.classList.toggle('hecho', vale);
-      if (extra instanceof HTMLElement) extra.hidden = !vale;
-      pinta();
+    function irAModulo(id) {
+      foco = objetoAPregunta[id] ?? id;
+      if (foco !== 'crecer' && foco !== 'fin' && !ORDEN_GUION.includes(foco)) foco = primerIncompleto();
+      render();
     }
 
-    root.querySelectorAll('[data-si]').forEach((b) => {
-      b.addEventListener('click', () => marcar(b.getAttribute('data-si'), true));
+    // Teclado 1/2 fuera de inputs
+    document.addEventListener('keydown', (ev) => {
+      const t = ev.target;
+      if (t instanceof HTMLInputElement || t instanceof HTMLSelectElement || t instanceof HTMLTextAreaElement) return;
+      if (foco === 'crecer' || foco === 'fin') return;
+      const g = entradaDe(foco);
+      const arr = estado[g.id];
+      const q = arr[0] === null ? 0 : arr[0] === 'si' && arr[1] === null ? 1 : arr[0] === 'si' && arr[2] === null ? 2 : -1;
+      if (q < 0) return;
+      if (ev.key === '1') responder(g.id, q, 'si');
+      if (ev.key === '2') responder(g.id, q, 'no');
     });
-    root.querySelectorAll('[data-no]').forEach((b) => {
-      b.addEventListener('click', () => marcar(b.getAttribute('data-no'), false));
-    });
+
     root.querySelectorAll('input, select').forEach((el) => {
       el.addEventListener('input', pinta);
       el.addEventListener('change', pinta);
@@ -377,21 +480,31 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
     root.querySelectorAll('[data-fb]').forEach((b) => {
       b.addEventListener('click', () => {
         const id = b.getAttribute('data-fb');
-        if (typeof id === 'string' && objetoAPregunta[id]) irAPregunta(objetoAPregunta[id]);
+        if (typeof id === 'string') irAModulo(id);
       });
     });
 
-    // Retoma lo guardado: los síes se derivan de los módulos del borrador.
+    // Retomar: URL primero, localStorage después (P1=Sí por keys presentes).
     try {
-      const previo = cargarBorrador();
-      if (previo) {
-        for (const g of GUION_CHAT) {
-          if (g.keys.some((k) => [...previo.modulos_ancla, ...previo.modulos_futuros].includes(k))) {
-            marcar(g.id, true);
+      const tieneParams = ORDEN_GUION.some((id) => params.has(id)) || params.has('c');
+      if (tieneParams) {
+        const v = guionDesdeParams(location.search);
+        estado = v.estado;
+        crecer = new Set(v.crecer);
+      } else {
+        const previo = cargarBorrador();
+        if (previo) {
+          const presentes = new Set([...previo.modulos_ancla, ...previo.modulos_futuros]);
+          for (const id of ORDEN_GUION) {
+            const g = entradaDe(id);
+            if (g.keys.some((k) => presentes.has(k))) estado = responderGuion(estado, id, 0, 'si');
           }
+          const crecerKeys = new Set(entradaDe('crecer').keys);
+          crecer = new Set([...presentes].filter((k) => crecerKeys.has(k)));
         }
       }
     } catch { /* arranca vacío */ }
+    foco = primerIncompleto();
 
     async function copiar() {
       if (!borradorActual) return;
@@ -457,7 +570,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       }
     });
 
-    // Escena: click en mueble vuelve a su pregunta (3D→chat).
+    // Escena: click en mueble va a su pregunta (3D→chat); respuestas la mutan (chat→3D).
     if (canvas instanceof HTMLCanvasElement && !canvas.dataset.mounted) {
       const io = new IntersectionObserver(async (entries) => {
         if (!entries.some((e) => e.isIntersecting)) return;
@@ -465,18 +578,21 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         try {
           const { mountOficinaScene } = await import('../scripts/oficina-scene');
           escena = mountOficinaScene(canvas, (objeto) => {
-            if (objetoAPregunta[objeto]) irAPregunta(objetoAPregunta[objeto]);
+            if (objetoAPregunta[objeto]) irAModulo(objeto);
           });
           window.addEventListener('pagehide', () => escena && escena(), { once: true });
-          if (est instanceof HTMLElement) est.textContent = 'Escena 3D activa: respondé y mirá cómo se arma · click en un mueble para volver a su pregunta.';
+          marcarTodo();
+          if (est instanceof HTMLElement) est.textContent = 'Escena 3D activa: respondé y mirá cómo muta · click en un mueble para ir a su pregunta.';
         } catch {
           canvas.style.display = 'none';
           if (fb instanceof HTMLElement) fb.hidden = false;
-          if (est instanceof HTMLElement) est.textContent = 'Sin WebGL: usá los sectores para volver a cada pregunta.';
+          if (est instanceof HTMLElement) est.textContent = 'Sin WebGL: usá los sectores para ir a cada pregunta.';
         }
       }, { rootMargin: '200px' });
       io.observe(canvas);
     }
     pinta();
+    renderModulos();
+    render();
   }
 </script>

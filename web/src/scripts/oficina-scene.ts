@@ -7,6 +7,9 @@ import { OBJETO_A_MODULO, OBJETO_LABEL, type Objeto3DId } from '../lib/oficina-m
 
 export type SeleccionCb = (objeto: Objeto3DId, modulo: string) => void;
 
+/** Estado visual por respuesta del panel: apagado (sin preguntar), fantasma (No), encendido (Sí). */
+export type EstadoObjeto3D = 'apagado' | 'fantasma' | 'encendido';
+
 const COLORES: Record<Objeto3DId, number> = {
   'mostrador-3d': 0x1a3a52,
   'estanteria-3d': 0x8a5a2b,
@@ -20,6 +23,9 @@ export interface OficinaHandle {
   (): void;
   /** Marca el objeto en la escena (null = limpia). Aditivo: el dispose sigue siendo llamable. */
   resaltar: (id: Objeto3DId | null) => void;
+  /** Estado base del objeto según el panel (ticket 03): encendido restaura color,
+      fantasma lo vuelve translúcido, apagado lo grisalla. No pisa el brillo propio. */
+  marcar: (id: Objeto3DId, estado: EstadoObjeto3D) => void;
 }
 
 export function mountOficinaScene(
@@ -117,6 +123,36 @@ export function mountOficinaScene(
         }
       });
     }
+  }
+
+  function marcar(id: Objeto3DId, estado: EstadoObjeto3D) {
+    const g = raices.find((r) => r.userData.objeto === id);
+    if (!g) return;
+    g.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      if (mesh.userData.color0 === undefined) mesh.userData.color0 = mat.color.getHex();
+      if (estado === 'encendido') {
+        mat.color.setHex(mesh.userData.color0 as number);
+        mat.transparent = false;
+        mat.opacity = 1;
+        mat.depthWrite = true;
+      } else if (estado === 'fantasma') {
+        mat.color.setHex(mesh.userData.color0 as number);
+        mat.transparent = true;
+        mat.opacity = 0.25;
+        mat.depthWrite = false;
+      } else {
+        mat.color.setHex(0x8f8f8f);
+        mat.transparent = false;
+        mat.opacity = 1;
+        mat.depthWrite = true;
+      }
+      if (!mesh.userData.fijo) mat.emissive.setHex(0x000000);
+    });
+    if (reduced) foto();
+    else programa();
   }
 
   // Mostrador (2 cajas) — frente
@@ -338,5 +374,5 @@ export function mountOficinaScene(
     renderer.dispose();
     delete canvas.dataset.mounted;
   }
-  return Object.assign(dispose, { resaltar });
+  return Object.assign(dispose, { resaltar, marcar });
 }
