@@ -115,7 +115,18 @@ const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes
               <a role="tab" aria-selected={t.active ? "true" : "false"} href={`/tenant/${slug}/app?tab=${t.id}`} class:list={["mo-tab", t.active && "is-active"]}>{t.label}</a>
             ))}
           </div>
-          <p class="mo-home__tab" data-home-tab aria-live="polite">Viendo: {homeTabLabel} — los números llegan en el próximo paso.</p>
+          <p class="mo-home__tab" data-home-estado aria-live="polite">Viendo: {homeTabLabel} — cargando números…</p>
+          <div class="mo-home__saldo" data-home-saldo>
+            <p class="mo-home__caja-line">
+              <span data-home-caja class="mo-home__caja" style="font-variant-numeric: tabular-nums;">—</span>
+              <button type="button" data-home-ojito aria-pressed="false" aria-label="Ocultar montos" class="mo-home__ojito">👁</button>
+            </p>
+            <p class="mo-home__vs" data-home-vs></p>
+          </div>
+          <div class="mo-home__cards">
+            <div class="mo-home__card"><h3>Por cobrar</h3><p data-home-porcobrar style="font-variant-numeric: tabular-nums;">—</p></div>
+            <div class="mo-home__card"><h3>Stock valorizado</h3><p data-home-stock style="font-variant-numeric: tabular-nums;">—</p></div>
+          </div>
           <div class="mo-home__acciones">
             <Button href="/oficina" variant="primary">Armar borrador</Button>
             <Button href="/admin/leads" variant="ghost-dark">Ver leads</Button>
@@ -280,6 +291,55 @@ const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes
   cancelBtn?.addEventListener("click", () => { pollActiva = false; dlg?.close(); });
   document.querySelector("[data-logout]")?.addEventListener("click", async()=>{ await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login"); });
 
+  // Home viva (spec home-hub, slice 4): montos desde GET home del tenant,
+  // toggle ocultar en memoria (nunca se persiste el oculto).
+  {
+    const estadoEl = document.querySelector("[data-home-estado]");
+    const cajaEl = document.querySelector("[data-home-caja]");
+    const porCobrarEl = document.querySelector("[data-home-porcobrar]");
+    const stockEl = document.querySelector("[data-home-stock]");
+    const vsEl = document.querySelector("[data-home-vs]");
+    const ojoBtn = document.querySelector("[data-home-ojito]");
+    if (estadoEl && cajaEl && ojoBtn instanceof HTMLButtonElement) {
+      const slugM = window.location.pathname.match(/^\/tenant\/([^/]+)\/app/);
+      const homeSlug = slugM ? slugM[1] : "";
+      const homeTab = new URLSearchParams(window.location.search).get("tab") || "";
+      const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
+      let montos: { cajaHoy: number; porCobrar: number; stockValorizado: number; vsAyerPct: number } | null = null;
+      let oculto = false;
+      const pinta = () => {
+        const txt = (v: number) => (oculto ? "$ ∗∗∗" : fmtARS.format(v));
+        cajaEl.textContent = montos ? txt(montos.cajaHoy) : "—";
+        if (porCobrarEl) porCobrarEl.textContent = montos ? txt(montos.porCobrar) : "—";
+        if (stockEl) stockEl.textContent = montos ? txt(montos.stockValorizado) : "—";
+        if (vsEl instanceof HTMLElement && montos) {
+          const p = montos.vsAyerPct;
+          vsEl.textContent = p === 0 ? "" : `${p > 0 ? "↑" : "↓"} ${Math.abs(p)}% vs ayer en ventas`;
+          vsEl.classList.toggle("is-neg", p < 0);
+        }
+      };
+      ojoBtn.addEventListener("click", () => {
+        oculto = !oculto;
+        ojoBtn.setAttribute("aria-pressed", String(oculto));
+        ojoBtn.setAttribute("aria-label", oculto ? "Mostrar montos" : "Ocultar montos");
+        pinta();
+      });
+      (async () => {
+        try {
+          const res = await fetch(`/api/tenant/${homeSlug}/home?tab=${encodeURIComponent(homeTab)}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = (await res.json()) as { home?: typeof montos };
+          if (!data.home) throw new Error("sin home");
+          montos = data.home;
+          estadoEl.textContent = "Números al día.";
+          pinta();
+        } catch {
+          estadoEl.textContent = "No se pudieron cargar los números.";
+        }
+      })();
+    }
+  }
+
   // Chat IA herramental — hidrata BFF /api/modoops/:db/agent/run con {message, requestId}
   const chatRoot = document.getElementById("ia-chat-root") as HTMLDivElement | null;
   const chatLog = document.getElementById("ia-chat-log") as HTMLDivElement | null;
@@ -326,6 +386,16 @@ const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes
   .mo-tab { display:inline-flex; align-items:center; min-height:44px; padding:.5rem 1rem; border-radius:999px; font-size:.85rem; color:var(--sg-text-muted-dark); text-decoration:none; transition:color .15s ease, background-color .15s ease; }
   .mo-tab.is-active { background:var(--color-brand-accent); color:var(--color-space-void); font-weight:600; }
   .mo-home__tab { font-size:.85rem; color:var(--sg-text-muted-dark); margin:.6rem 0 0; }
+  .mo-home__saldo { margin-top:.8rem; }
+  .mo-home__caja-line { display:flex; align-items:center; gap:.6rem; margin:0; }
+  .mo-home__caja { font-size:2rem; font-weight:700; letter-spacing:-.02em; }
+  .mo-home__ojito { display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; font-size:1.3rem; background:transparent; border:0; cursor:pointer; }
+  .mo-home__vs { margin:.2rem 0 0; font-size:.85rem; font-weight:600; color:#4ade80; }
+  .mo-home__vs.is-neg { color:#f87171; }
+  .mo-home__cards { display:grid; gap:.6rem; grid-template-columns:1fr 1fr; margin-top:.8rem; }
+  .mo-home__card { border:1px solid var(--sg-glass-border); border-radius:.9rem; padding:.8rem; background:rgba(0,0,0,.18); }
+  .mo-home__card h3 { margin:0 0 .3rem; font-size:.8rem; font-weight:500; color:var(--sg-text-muted-dark); }
+  .mo-home__card p { margin:0; font-size:1.25rem; font-weight:700; }
   .mo-home__acciones { display:flex; gap:.6rem; flex-wrap:wrap; margin-top:.9rem; }
   .mo-bottomnav { position:fixed; bottom:0; left:0; right:0; z-index:40; display:grid; grid-template-columns:repeat(5,1fr); background:rgb(0 0 0/.92); border-top:1px solid var(--sg-glass-border); padding-bottom:env(safe-area-inset-bottom); }
   .mo-bottomnav a { display:flex; flex-direction:column; align-items:center; gap:2px; padding:.6rem .25rem; font-size:.7rem; color:var(--sg-text-muted-dark); text-decoration:none; min-height:44px; }
