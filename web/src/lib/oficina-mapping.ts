@@ -15,7 +15,8 @@ export type Objeto3DId =
   | 'gondola-3d'
   | 'computadora-3d'
   | 'pizarron-fiscal-3d'
-  | 'puerta-crecer-3d';
+  | 'puerta-crecer-3d'
+  | 'zona-logistica-3d';
 
 export const OBJETO_A_MODULO = {
   'mostrador-3d': 'mostrador',
@@ -24,6 +25,7 @@ export const OBJETO_A_MODULO = {
   'computadora-3d': 'compras',
   'pizarron-fiscal-3d': 'fiscal_ar',
   'puerta-crecer-3d': 'b2b_basico',
+  'zona-logistica-3d': 'logistica',
 } as const satisfies Record<Objeto3DId, CatalogoKey>;
 
 export const OBJETO_LABEL: Record<Objeto3DId, string> = {
@@ -33,6 +35,7 @@ export const OBJETO_LABEL: Record<Objeto3DId, string> = {
   'computadora-3d': 'Computadora / compras',
   'pizarron-fiscal-3d': 'Pizarrón fiscal',
   'puerta-crecer-3d': 'Puerta "crecer" (futuro)',
+  'zona-logistica-3d': 'Logística / reparto',
 };
 
 const ANCLA: ReadonlySet<CatalogoKey> = new Set([
@@ -46,9 +49,8 @@ const ANCLA: ReadonlySet<CatalogoKey> = new Set([
   'puente_factura',
 ]);
 
-/** Módulos futuros que cuelgan de la puerta "crecer": candidatos a desarrollar (ticket 02). */
+/** Módulos futuros que cuelgan de la puerta "crecer" (sin logística: zona propia). */
 export const PUERTA_FUTURO: readonly CatalogoKey[] = [
-  'logistica',
   'ecommerce',
   'web',
   'crm',
@@ -163,12 +165,24 @@ export const GUION_CHAT: readonly PreguntaChat[] = [
     multi: ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo'],
   },
   {
+    id: 'logistica',
+    bloque: 'Para crecer',
+    texto: '¿Hacés reparto o envíos a tus clientes?',
+    objeto: 'zona-logistica-3d',
+    keys: ['logistica'],
+    preguntas: [
+      '¿Hacés reparto o envíos a tus clientes?',
+      '¿Repartís con flota propia?',
+      '¿Hacés más de 20 envíos por día?',
+    ],
+  },
+  {
     id: 'crecer',
     bloque: 'Para crecer',
     texto: '¿Para dónde querés crecer? Tildá todo lo que te sirva (a desarrollar, a cotizar).',
     objeto: 'puerta-crecer-3d',
-    keys: ['logistica', 'ecommerce', 'web', 'crm', 'otro'],
-    multi: ['Logística / reparto', 'Ecommerce', 'Página web', 'Seguimiento de clientes (CRM)', 'Otro (contanos)'],
+    keys: ['ecommerce', 'web', 'crm', 'otro'],
+    multi: ['Ecommerce', 'Página web', 'Seguimiento de clientes (CRM)', 'Otro (contanos)'],
   },
 ];
 
@@ -182,8 +196,8 @@ export type RespuestaGuion = 'si' | 'no' | null;
 /** Estado del guion v2: por módulo ancla, sus 3 respuestas [P1, P2, P3]. */
 export type EstadoGuion = Record<string, [RespuestaGuion, RespuestaGuion, RespuestaGuion]>;
 
-/** Módulos ancla con tripleta (el crecer multi-tilde no entra al reducer). */
-const IDS_GUION_V2 = ['mostrador', 'deposito', 'ventas', 'compras', 'fiscal'];
+/** Módulos con tripleta (ancla + logística; el crecer multi-tilde no entra al reducer). */
+const IDS_GUION_V2 = ['mostrador', 'deposito', 'ventas', 'compras', 'fiscal', 'logistica'];
 
 /** Estado inicial: todo sin responder (oficina apagada). */
 export function estadoInicialGuion(): EstadoGuion {
@@ -248,8 +262,8 @@ export function seleccionDeGuion(estado: EstadoGuion): CatalogoKey[] {
   return [...new Set(out)].sort();
 }
 
-/** Orden fijo del panel: módulos ancla en secuencia, crecer al final. */
-export const ORDEN_GUION: readonly string[] = ['mostrador', 'deposito', 'ventas', 'compras', 'fiscal'];
+/** Orden fijo del panel: módulos ancla en secuencia, logística y crecer al final. */
+export const ORDEN_GUION: readonly string[] = ['mostrador', 'deposito', 'ventas', 'compras', 'fiscal', 'logistica'];
 
 function codificaRespuesta(v: RespuestaGuion): string {
   return v === 'si' ? 'S' : v === 'no' ? 'N' : '-';
@@ -350,6 +364,7 @@ export interface FichasObjetos {
   'computadora-3d': { proveedores: number; orden_compra: boolean };
   'pizarron-fiscal-3d': { comprobantes: string[]; contador: string };
   'puerta-crecer-3d': { futuros: CatalogoKey[] };
+  'zona-logistica-3d': { envios_dia: number; flota_propia: boolean; zonas: string };
 }
 
 export interface DatosCatalogo {

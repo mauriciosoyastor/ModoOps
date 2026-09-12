@@ -1,0 +1,22 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { ejemplo } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="white" id="ejemplo" embedded={embedded}>
+  <p class="text-sm font-medium uppercase tracking-widest text-nebula-cyan">{ejemplo.eyebrow}</p>
+  <SectionHeading title={ejemplo.title} lead={`${ejemplo.body} (${ejemplo.fictitious}).`} />
+  <ul class="grid max-w-3xl gap-3">
+    {ejemplo.signs.map((sign) => (
+      <li class="galaxy-card rounded-[var(--radius-card)] p-4 text-[length:var(--text-body-lg)]">{sign}</li>
+    ))}
+  </ul>
+  <p class="mt-8 max-w-2xl text-[length:var(--text-body-lg)] text-core-cream">{ejemplo.closing}</p>
+</Section>

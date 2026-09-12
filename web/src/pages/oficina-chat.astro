@@ -413,6 +413,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
           'computadora-3d': { proveedores: 0, orden_compra: false },
           'pizarron-fiscal-3d': { comprobantes: [], contador: '' },
           'puerta-crecer-3d': { futuros: [...crecer] },
+          'zona-logistica-3d': { envios_dia: 0, flota_propia: false, zonas: '' },
         },
         seleccion: [...SIEMPRE_INCLUIDOS, ...seleccionDeGuion(estado), ...crecer],
         datos: { productos_aprox: 0, tiene_excel: false },

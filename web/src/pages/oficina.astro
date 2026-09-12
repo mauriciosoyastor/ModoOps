@@ -340,6 +340,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
           'computadora-3d': { proveedores: num('[data-obj="computadora-3d"][data-campo="proveedores"]'), orden_compra: bool('[data-obj="computadora-3d"][data-campo="orden_compra"]') },
           'pizarron-fiscal-3d': { comprobantes, contador: texto('[data-obj="pizarron-fiscal-3d"][data-campo="contador"]') },
           'puerta-crecer-3d': { futuros },
+          'zona-logistica-3d': { envios_dia: 0, flota_propia: false, zonas: '' },
         },
         seleccion: [...SIEMPRE, ...incluidos, ...futuros],
         datos: { productos_aprox: num('[data-dato="productos_aprox"]'), tiene_excel: bool('[data-dato="tiene_excel"]') },

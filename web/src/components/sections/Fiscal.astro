@@ -1,0 +1,16 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { fiscal } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="dark" id="fiscal" embedded={embedded}>
+  <SectionHeading title={fiscal.title} lead={fiscal.lead} invert />
+  <p class="max-w-2xl text-[length:var(--text-body-lg)] text-ash-gray">{fiscal.detail}</p>
+</Section>

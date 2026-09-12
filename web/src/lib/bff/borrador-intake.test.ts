@@ -29,6 +29,7 @@ function borradorBase(): BorradorV1 {
       "computadora-3d": { proveedores: 3, orden_compra: false },
       "pizarron-fiscal-3d": { comprobantes: [], contador: "" },
       "puerta-crecer-3d": { futuros: [] },
+      "zona-logistica-3d": { envios_dia: 0, flota_propia: false, zonas: "" },
     },
     modulos_ancla: ["mostrador", "ventas"],
     modulos_futuros: [],
@@ -71,7 +72,7 @@ describe("borradorALead", () => {
   });
   it("revienta con JSON gigante", () => {
     const b = borradorBase();
-    (b as Record<string, unknown>).relleno = "x".repeat(100_000);
+    (b as unknown as Record<string, unknown>).relleno = "x".repeat(100_000);
     expect(() => borradorALead(b)).toThrow();
   });
 });

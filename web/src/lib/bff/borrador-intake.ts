@@ -6,6 +6,7 @@
  */
 
 import { validarBorrador, type BorradorV1 } from "../oficina-mapping.ts";
+export type { BorradorV1 } from "../oficina-mapping.ts";
 
 export const FUENTE_PORTAL = "portal-oficina-3d";
 export const MAX_BORRADOR_JSON_BYTES = 64_000;

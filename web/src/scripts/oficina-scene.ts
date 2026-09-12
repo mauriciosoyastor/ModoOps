@@ -1,8 +1,10 @@
-// PROTOTYPE — throwaway (ticket: Oficina Three.js, variante A).
-// Escena del local: habitación (piso + paredes + ventana) + 6 objetos clicables
-// (raycast) + OrbitControls con damping. Copia el cleanup de nebula-scene.
+// Escena de la empresa: habitación (piso + paredes + ventana) + 7 zonas clicables
+// (raycast) + OrbitControls con damping. IBL vía RoomEnvironment+PMREM (0KB red)
+// con intensidades retuneadas para no quemar; path GLTF real con cascada a
+// procedural (ver cargarGLBZona). Copia el cleanup de nebula-scene.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { OBJETO_A_MODULO, OBJETO_LABEL, type Objeto3DId } from '../lib/oficina-mapping';
 
 export type SeleccionCb = (objeto: Objeto3DId, modulo: string) => void;
@@ -17,6 +19,7 @@ const COLORES: Record<Objeto3DId, number> = {
   'computadora-3d': 0x4a4a4a,
   'pizarron-fiscal-3d': 0xc96a30,
   'puerta-crecer-3d': 0x7a5599,
+  'zona-logistica-3d': 0x3e8e7e,
 };
 
 export interface OficinaHandle {
@@ -42,21 +45,29 @@ export function mountOficinaScene(
   // proyecta (shadow maps = 1 render extra, no 1 por luz), suavizado PCF y
   // tone mapping fílmico para no quemar blancos.
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMappingExposure = 1.0;
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x171310);
   scene.fog = new THREE.Fog(0x171310, 20, 42);
+  // IBL gratis (RoomEnvironment+PMREM, 0KB de red): el environment manda a media
+  // fuerza y las direccionales bajan para compensar (sin esto quema los blancos).
+  {
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environmentIntensity = 0.5;
+    pmrem.dispose();
+  }
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
   camera.position.set(6.5, 5.5, 8);
   camera.lookAt(0, 0.6, 0);
 
   // Luz cálida de local: hemisferio suave + una sola direccional con sombra
-  // (manual shadows: 1 luz con sombra = 1 render extra) + relleno frío sin sombra.
-  scene.add(new THREE.HemisphereLight(0xfff2e0, 0x2a2018, 0.55));
-  const sol = new THREE.DirectionalLight(0xffedd5, 1.6);
+  // + relleno frío sin sombra. Intensidades retuneadas para IBL.
+  scene.add(new THREE.HemisphereLight(0xfff2e0, 0x2a2018, 0.25));
+  const sol = new THREE.DirectionalLight(0xffedd5, 0.9);
   sol.position.set(5, 8, 4);
   sol.castShadow = true;
   sol.shadow.mapSize.set(2048, 2048);
@@ -67,7 +78,7 @@ export function mountOficinaScene(
   sol.shadow.camera.near = 1;
   sol.shadow.camera.far = 25;
   scene.add(sol);
-  const relleno = new THREE.DirectionalLight(0x9db8ff, 0.3);
+  const relleno = new THREE.DirectionalLight(0x9db8ff, 0.15);
   relleno.position.set(-6, 4, 6);
   scene.add(relleno);
 
@@ -359,6 +370,21 @@ export function mountOficinaScene(
     else programa();
   }
 
+  // Path GLTF real con cascada a procedural: intenta el GLB del manifest y
+  // cae al procedural si falta (sin manifest versionado siempre es false).
+  async function cargarGLBZona(id: Objeto3DId): Promise<boolean> {
+    try {
+      const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+      const prueba = new GLTFLoader().path;
+      void prueba;
+      const res = await fetch(`/models/${id}/v1.glb`, { method: 'HEAD' });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+  void cargarGLBZona('zona-logistica-3d');
+
   // Mostrador (madera + tapa clara + zócalo + frente con paneles) — frente
   {
     const g = raiz('mostrador-3d');
@@ -446,6 +472,32 @@ export function mountOficinaScene(
     pieza(g, 0.12, 0.12, 0.2, 3.35, 1.2, -3.55, 0xd9c9a8, { emissive: 0x554411, fijo: true }); // picaporte
     pieza(g, 1.6, 0.08, 0.5, 3.8, 0.04, -3.3, 0x241b36, { roughness: 0.9 }); // escalón
   }
+  // Zona logística — dársena derecha (rack con niveles + pallet + furgón).
+  // Procedural hasta que el primer GLB real la reemplace (ver cargarGLBZona).
+  {
+    const g = raiz('zona-logistica-3d');
+    const c = COLORES['zona-logistica-3d'];
+    // Rack: 4 parantes + 3 estantes con cajas
+    for (const [x, z] of [[4.7, -2.2], [5.6, -2.2], [4.7, -0.8], [5.6, -0.8]] as const) {
+      pieza(g, 0.09, 2.2, 0.09, x, 1.1, z, 0x8f8f8f, { roughness: 0.4, metalness: 0.6 });
+    }
+    for (const y of [0.5, 1.3, 2.05]) pieza(g, 1.0, 0.07, 1.5, 5.15, y, -1.5, c, { roughness: 0.55 });
+    pieza(g, 0.55, 0.4, 0.6, 5.0, 0.73, -1.7, 0xd9c9a8, { roughness: 0.8 });
+    pieza(g, 0.55, 0.4, 0.6, 5.35, 0.73, -1.2, 0xb7c4c9, { roughness: 0.8 });
+    pieza(g, 0.55, 0.4, 0.6, 5.15, 1.53, -1.5, 0xc9a8b7, { roughness: 0.8 });
+    tarro(g, 0.13, 0.32, 5.0, 1.5, -1.1, 0xd9c9a8);
+    // Pallet con cajas apiladas
+    pieza(g, 1.0, 0.12, 0.8, 4.1, 0.06, -0.2, 0x6e4a22, { roughness: 0.8 }); // tarima
+    pieza(g, 0.7, 0.5, 0.6, 4.1, 0.37, -0.2, 0xd9c9a8, { roughness: 0.8 });
+    pieza(g, 0.5, 0.35, 0.45, 4.1, 0.8, -0.2, 0xb7c4c9, { roughness: 0.8 });
+    // Furgón: caja + cabina + ruedas
+    pieza(g, 1.5, 0.9, 0.8, 4.3, 0.75, -3.0, 0xe8e4da, { roughness: 0.5 }); // caja
+    pieza(g, 0.5, 0.55, 0.78, 3.35, 0.57, -3.0, 0x2e5a7c, { roughness: 0.5 }); // cabina
+    for (const [x, z] of [[3.9, -2.6], [4.8, -2.6], [3.9, -3.4], [4.8, -3.4]] as const) {
+      pieza(g, 0.22, 0.22, 0.12, x, 0.11, z, 0x1c1c1e, { roughness: 0.9 });
+    }
+    pieza(g, 1.6, 0.06, 0.9, 4.3, 0.03, -3.0, 0x241b36, { roughness: 0.9 }); // sombra dársena
+  }
 
   // Lámpara colgante: foco cálido del local (fuera de raices: no clicable,
   // no la toca marcar/resaltar; sin sombras para no ensuciar el shadow map).
@@ -491,6 +543,7 @@ export function mountOficinaScene(
     'computadora-3d': [3.4, 1.8, 1.4],
     'pizarron-fiscal-3d': [-0.4, 3.0, -3.6],
     'puerta-crecer-3d': [3.6, 3.15, -3.6],
+    'zona-logistica-3d': [5.0, 2.7, -1.8],
   };
   const cartelDe = new Map<Objeto3DId, HTMLDivElement>();
   if (etiquetas) {

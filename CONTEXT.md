@@ -59,6 +59,10 @@ Marca comercial de sistema de gestión modular. En marketing y propuesta comerci
 **Módulo ModoOps**:
 Unidad comercial renombrada que envuelve uno o más módulos Odoo validados (ej: Odoo `point_of_sale` → ModoOps **"Mostrador"**, `stock` → **"Depósito Inteligente"**, `l10n_ar` → **"Fiscal AR"**). Solo los módulos del **Catálogo ModoOps** son ofrecibles sin add-on de evaluación.
 
+**Zona ModoOps**:
+Representación 3D navegable de un **Módulo ModoOps** dentro de la empresa virtual del portal (ej: la zona Logística / reparto representa el módulo **Logística**). El **Prospecto** responde por zona, la escena muta en vivo y cada respuesta alimenta el **borrador JSON v1**. El mapping vive en el seam `oficina-mapping` (`Objeto3DId` es el nombre técnico, no el término comercial).
+_Avoid_: "objeto" genérico sin zona; zona sin módulo asociado; prometer en la zona lo que el catálogo marca a cotizar.
+
 **Catálogo ModoOps**:
 Mapa vivo de **Módulos ModoOps validados** que ModoOps domina y ofrece. Es el universo ofrecible: "todo lo que ofrece Odoo" = **todo lo que está en el Catálogo ModoOps**. Crece solo cuando se valida un módulo en proyecto real. No es "todo OCA" sin filtro. Ver sección *Catálogo canónico* abajo (renombrado).
 

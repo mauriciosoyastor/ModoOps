@@ -6,6 +6,7 @@ import {
   OBJETO_A_MODULO,
   PUERTA_FUTURO,
   SIEMPRE_INCLUIDOS,
+  borradorV1,
   cargarBorrador,
   construirBorrador,
   esAncla,
@@ -46,6 +47,7 @@ const fichasBase = (): BorradorInput => ({
     "computadora-3d": { proveedores: 12, orden_compra: true },
     "pizarron-fiscal-3d": { comprobantes: ["factura-b"], contador: "Estudio López" },
     "puerta-crecer-3d": { futuros: ["migracion_excel"] },
+    "zona-logistica-3d": { envios_dia: 25, flota_propia: true, zonas: "Capital y alrededores" },
   },
   seleccion: ["mostrador", "deposito", "ventas", "compras", "fiscal_ar", "contactos", "migracion_excel"],
   datos: { productos_aprox: 350, tiene_excel: true },
@@ -62,9 +64,9 @@ const memoria = () => {
 };
 
 describe("oficina-mapping — seam único objeto↔módulo", () => {
-  it("mapea los 6 objetos a keys del universo del Catálogo", () => {
+  it("mapea los 7 objetos a keys del universo del Catálogo", () => {
     const objetos = Object.keys(OBJETO_A_MODULO) as Objeto3DId[];
-    expect(objetos).toHaveLength(6);
+    expect(objetos).toHaveLength(7);
     for (const o of objetos) {
       expect(CATALOGO_KEYS.has(OBJETO_A_MODULO[o])).toBe(true);
     }
@@ -88,7 +90,7 @@ describe("oficina-mapping — seam único objeto↔módulo", () => {
     expect(b.modulos_futuros).toEqual(["migracion_excel"]);
     expect(b.horas_estimadas).toBe(
       ["mostrador", "deposito", "ventas", "compras", "fiscal_ar", "contactos", "migracion_excel"]
-        .map(horasDe)
+        .map((k) => horasDe(k as CatalogoKey))
         .reduce((a, h) => a + h, 0),
     );
     expect(b.prospecto.nombre).toBe("Pinturería Centro");
@@ -177,8 +179,8 @@ describe("oficina-mapping — guion v2 (3 preguntas por módulo)", () => {
     expect(ancla).toHaveLength(5);
     for (const p of ancla) {
       expect(p.preguntas).toHaveLength(3);
-      expect(p.texto).toBe(p.preguntas[0]);
-      for (const t of p.preguntas) {
+      expect(p.texto).toBe(p.preguntas![0]);
+      for (const t of p.preguntas!) {
         expect(t.endsWith("?")).toBe(true);
       }
     }
@@ -186,8 +188,8 @@ describe("oficina-mapping — guion v2 (3 preguntas por módulo)", () => {
 
   it("Mostrador parte atención y cobro", () => {
     const m = GUION_CHAT.find((p) => p.id === "mostrador")!;
-    expect(m.preguntas[0]).toMatch(/mostrador|en persona/);
-    expect(m.preguntas[1]).toMatch(/caja/);
+    expect(m.preguntas![0]).toMatch(/mostrador|en persona/);
+    expect(m.preguntas![1]).toMatch(/caja/);
   });
 
   it("No en P1 bloquea y limpia hijas", () => {
@@ -242,11 +244,29 @@ describe("oficina-mapping — guion v2 (3 preguntas por módulo)", () => {
   it("crecer ofrece candidatos a desarrollar, a cotizar", () => {
     const crecer = GUION_CHAT.find((p) => p.id === "crecer")!;
     expect(crecer.bloque).toBe("Para crecer");
-    expect([...crecer.keys].sort()).toEqual(["crm", "ecommerce", "logistica", "otro", "web"]);
+    expect([...crecer.keys].sort()).toEqual(["crm", "ecommerce", "otro", "web"]);
     for (const k of crecer.keys) {
       expect(CATALOGO_KEYS.has(k)).toBe(true);
       expect(esAncla(k)).toBe(false);
     }
+  });
+
+  it("logística tiene zona propia con tripleta sin flags y cae a futuros", () => {
+    const l = GUION_CHAT.find((p) => p.id === "logistica")!;
+    expect(l.bloque).toBe("Para crecer");
+    expect(l.objeto).toBe("zona-logistica-3d");
+    expect(l.keys).toEqual(["logistica"]);
+    expect(l.preguntas).toHaveLength(3);
+    expect(l.texto).toBe(l.preguntas![0]);
+    expect(l.flags).toBeUndefined();
+    expect(esAncla("logistica")).toBe(false);
+    expect(OBJETO_A_MODULO["zona-logistica-3d"]).toBe("logistica");
+    let e = estadoInicialGuion();
+    e = responderGuion(e, "logistica", 0, "si");
+    e = responderGuion(e, "logistica", 1, "si");
+    expect(estadoObjetoGuion(e, "logistica")).toBe("encendido");
+    expect(seleccionDeGuion(e)).toEqual(["logistica"]);
+    expect(borradorV1(seleccionDeGuion(e)).modulos_futuros).toEqual(["logistica"]);
   });
 
   it("guion a params y vuelta conserva respuestas y crecer", () => {
