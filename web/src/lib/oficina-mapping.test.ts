@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  ADDONS_VALIDADOS,
   CATALOGO_KEYS,
   GUION_CHAT,
   OBJETO_A_MODULO,
@@ -14,6 +15,7 @@ import {
   guardarBorrador,
   guionAParams,
   guionDesdeParams,
+  etiquetaSinPrecio,
   horasDe,
   responderGuion,
   seleccionDeGuion,
@@ -265,5 +267,23 @@ describe("oficina-mapping — guion v2 (3 preguntas por módulo)", () => {
     // hijas sin Sí en P1 se limpian al re-ejecutar la regla
     expect(vuelta.estado["deposito"]).toEqual(["no", null, null]);
     expect(vuelta.crecer).toEqual(["web"]);
+  });
+
+  it("etiqueta sin precio para el cierre no vinculante", () => {
+    expect(etiquetaSinPrecio("taller")).toBe("Taller");
+    expect(etiquetaSinPrecio("b2b_basico")).toBe("B2B Básico");
+    expect(etiquetaSinPrecio("migracion_excel")).toBe("Migración Excel (≤500 prod)");
+    expect(etiquetaSinPrecio("mostrador")).toBe("Mostrador (POS 2 cajas)");
+    expect(etiquetaSinPrecio("ia")).toBe("IA ModoOps — Agente herramental (Tools + Memoria)");
+  });
+
+  it("add-ons validados para mencionar en el cierre (sin precio)", () => {
+    expect([...ADDONS_VALIDADOS].sort()).toEqual(["b2b_basico", "ia", "migracion_excel", "taller"]);
+    for (const k of ADDONS_VALIDADOS) {
+      expect(CATALOGO_KEYS.has(k)).toBe(true);
+      expect(esAncla(k)).toBe(false);
+      expect(etiquetaSinPrecio(k)).not.toContain("$");
+      expect(etiquetaSinPrecio(k).toLowerCase()).not.toContain("add-on");
+    }
   });
 });

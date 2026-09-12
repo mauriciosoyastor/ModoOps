@@ -55,6 +55,14 @@ export const PUERTA_FUTURO: readonly CatalogoKey[] = [
   'otro',
 ];
 
+/** Add-ons ya validados: no se preguntan, se mencionan en el cierre (ticket 04, sin precio). */
+export const ADDONS_VALIDADOS: readonly CatalogoKey[] = [
+  'taller',
+  'migracion_excel',
+  'b2b_basico',
+  'ia',
+];
+
 /** Módulos que van siempre, no se preguntan: se informan al final del chat. */
 export const SIEMPRE_INCLUIDOS: readonly CatalogoKey[] = [
   'contactos',
@@ -288,6 +296,14 @@ export function guionDesdeParams(search: string): { estado: EstadoGuion; crecer:
 
 export function labelDe(key: CatalogoKey): string {
   return CATALOGO_LABELS[key];
+}
+
+/**
+ * Etiqueta sin precio para el cierre no vinculante (ticket 04): recorta
+ * anotaciones ` (Add-on …)` / ` ($…)` del catálogo; el resto va intacto.
+ */
+export function etiquetaSinPrecio(key: CatalogoKey): string {
+  return labelDe(key).replace(/\s*\((?:Add-on[^)]*|\$[^)]*)\)/g, '');
 }
 
 export function horasDe(key: CatalogoKey): number {

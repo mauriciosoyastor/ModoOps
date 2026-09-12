@@ -48,12 +48,14 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
           <div class="mt-2 grid gap-2">
             <label>Nombre del negocio *
               <input data-prospecto="nombre" required autocomplete="organization" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Pinturería Centro" /></label>
+            <p class="text-sm text-red-700" data-error="nombre" aria-live="assertive" hidden></p>
             <div class="grid gap-2 md:grid-cols-2">
               <label>Tu nombre
                 <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Ana" /></label>
               <label>Teléfono *
                 <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: 3547 000000" /></label>
             </div>
+            <p class="text-sm text-red-700" data-error="contacto" aria-live="assertive" hidden></p>
             <div class="grid gap-2 md:grid-cols-2">
               <label>Email
                 <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: ana@negocio.com" /></label>
@@ -78,6 +80,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         <div class="mt-3 grid gap-2">
           <button data-copiar class="rounded-full border px-4 py-2 text-sm font-semibold">Copiar JSON del borrador</button>
           <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-center text-sm font-semibold text-green-700">Enviar por WhatsApp</a>
+          <button data-descubrimiento class="rounded-full border px-4 py-2 text-sm font-semibold">Quiero el Descubrimiento</button>
           <button data-enviar class="rounded-full border px-4 py-2 text-sm font-semibold">Enviar al consultor</button>
           <p class="text-sm text-green-700" data-enviado role="status" hidden></p>
           <p class="text-xs text-zinc-400" data-copiado hidden>JSON copiado: pegalo en el chat de WhatsApp junto al mensaje.</p>
@@ -127,8 +130,10 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
     GUION_CHAT,
     ORDEN_GUION,
     SIEMPRE_INCLUIDOS,
+    ADDONS_VALIDADOS,
     estadoInicialGuion,
     estadoObjetoGuion,
+    etiquetaSinPrecio,
     flagsGuion,
     seleccionDeGuion,
     guionAParams,
@@ -257,10 +262,24 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         const b = borradorActual ?? construirBorrador(leeEstado());
         tit.textContent = 'Tu borrador está listo';
         panel.appendChild(tit);
+        const anclaTxt = b.modulos_ancla.filter((k) => !SIEMPRE_INCLUIDOS.includes(k)).map(labelDe).join(', ') || '—';
+        const futTxt = b.modulos_futuros.map(labelDe).join(', ') || '—';
         const r = document.createElement('p');
         r.className = 'mt-1';
-        r.textContent = `Ancla: ${b.modulos_ancla.join(', ') || '—'} · Para crecer: ${b.modulos_futuros.join(', ') || '—'}`;
+        r.textContent = `Ancla: ${anclaTxt}`;
         panel.appendChild(r);
+        const f = document.createElement('p');
+        f.className = 'mt-1';
+        f.textContent = `Para crecer (a desarrollar, a cotizar): ${futTxt}`;
+        panel.appendChild(f);
+        const s = document.createElement('p');
+        s.className = 'mt-1 text-zinc-400';
+        s.textContent = `Van siempre incluidos: ${SIEMPRE_INCLUIDOS.map(labelDe).join(', ')}.`;
+        panel.appendChild(s);
+        const v = document.createElement('p');
+        v.className = 'mt-1 text-zinc-400';
+        v.textContent = `También podemos sumarte (el consultor lo ofrece en el Descubrimiento): ${ADDONS_VALIDADOS.map(etiquetaSinPrecio).join(' · ')}.`;
+        panel.appendChild(v);
         const cta = document.createElement('p');
         cta.className = 'mt-1 text-zinc-400';
         cta.textContent = 'Completá tus datos y envialo por WhatsApp o al consultor.';
@@ -412,6 +431,18 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
           listaErrores.appendChild(li);
         }
       }
+      const errNombre = root.querySelector('[data-error="nombre"]');
+      const errContacto = root.querySelector('[data-error="contacto"]');
+      const msgNombre = errores.find((e) => e.includes('nombre del negocio'));
+      const msgContacto = errores.find((e) => e.includes('contacto'));
+      if (errNombre instanceof HTMLElement) {
+        errNombre.textContent = msgNombre ?? '';
+        errNombre.hidden = !msgNombre;
+      }
+      if (errContacto instanceof HTMLElement) {
+        errContacto.textContent = msgContacto ?? '';
+        errContacto.hidden = !msgContacto;
+      }
       if (flagsUl instanceof HTMLElement) {
         flagsUl.innerHTML = '';
         for (const f of flagsGuion(estado)) {
@@ -506,6 +537,22 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
     } catch { /* arranca vacío */ }
     foco = primerIncompleto();
 
+    // Bloquea el envío si falta contacto: avisa junto al campo y lleva el foco.
+    function bloqueadoPorContacto() {
+      if (!borradorActual) return true;
+      const errores = validarBorrador(borradorActual);
+      if (errores.length === 0) return false;
+      pinta();
+      const aNombre = root.querySelector('[data-prospecto="nombre"]');
+      const aTel = root.querySelector('[data-prospecto="telefono"]');
+      const destino = errores.some((e) => e.includes('nombre del negocio')) ? aNombre : aTel;
+      if (destino instanceof HTMLElement) {
+        destino.scrollIntoView({ behavior: reduc ? 'auto' : 'smooth', block: 'center' });
+        destino.focus({ preventScroll: true });
+      }
+      return true;
+    }
+
     async function copiar() {
       if (!borradorActual) return;
       const t = JSON.stringify(borradorActual, null, 1);
@@ -525,15 +572,14 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       }
     }
     btnCopiar?.addEventListener('click', (e) => {
-      if (borradorActual && validarBorrador(borradorActual).length > 0) {
+      if (bloqueadoPorContacto()) {
         e.preventDefault();
-        root.querySelector('[data-prospecto="nombre"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
       copiar();
     });
     linkWa?.addEventListener('click', (e) => {
-      if (borradorActual && validarBorrador(borradorActual).length > 0) {
+      if (bloqueadoPorContacto()) {
         e.preventDefault();
         return;
       }
@@ -542,11 +588,23 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         avisoEnviado.hidden = false;
       }
     });
-    btnEnviar?.addEventListener('click', async () => {
-      if (!borradorActual || validarBorrador(borradorActual).length > 0) {
-        root.querySelector('[data-prospecto="nombre"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
+    const btnDescubrimiento = root.querySelector('[data-descubrimiento]');
+    btnDescubrimiento?.addEventListener('click', () => {
+      if (bloqueadoPorContacto()) return;
+      const b = borradorActual ?? construirBorrador(leeEstado());
+      const nombre = b.prospecto.contacto_nombre || b.prospecto.nombre || 'prospecto';
+      window.open(
+        enlaceWhatsApp(`Hola ModoOps, soy ${nombre} de ${b.prospecto.nombre || 'mi negocio'}: hice mi borrador y quiero el Descubrimiento.`),
+        '_blank',
+        'noopener',
+      );
+      if (avisoEnviado instanceof HTMLElement) {
+        avisoEnviado.textContent = '¡Gracias! Recibí tu pedido de Descubrimiento, en unos momentos me comunico con vos.';
+        avisoEnviado.hidden = false;
       }
+    });
+    btnEnviar?.addEventListener('click', async () => {
+      if (bloqueadoPorContacto()) return;
       if (!(btnEnviar instanceof HTMLButtonElement)) return;
       btnEnviar.disabled = true;
       try {
