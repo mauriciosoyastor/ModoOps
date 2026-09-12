@@ -28,6 +28,21 @@ class CatalogoTests(unittest.TestCase):
         self.assertTrue(mods["mostrador"]["ancla_retail"])
         self.assertTrue(mods["deposito"]["ancla_retail"])
 
+    def test_candidatos_a_desarrollar(self):
+        data = json.loads(CATALOGO.read_text(encoding="utf-8"))
+        mods = data["modules"]
+        # 5 candidatos N2 según ticket 02 (crecer = a desarrollar, a cotizar)
+        for key in ["logistica", "ecommerce", "web", "crm", "otro"]:
+            self.assertIn(key, mods, f"falta candidato {key}")
+            self.assertEqual(mods[key].get("estado"), "candidato")
+            self.assertTrue(mods[key].get("a_cotizar"), f"{key} sin a_cotizar")
+            self.assertIn("repo", mods[key])
+            self.assertIn("rama", mods[key])
+            self.assertIn("version", mods[key])
+        # logistica es el N2 de reparto; crm el prioritario CE puro
+        self.assertIn("delivery", mods["logistica"]["odoo"])
+        self.assertEqual(mods["crm"]["odoo"], ["crm"])
+
     def test_pricing_completo(self):
         data = json.loads(CATALOGO.read_text(encoding="utf-8"))
         p = data["pricing"]

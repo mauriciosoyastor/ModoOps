@@ -34,110 +34,111 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   title="Oficina virtual — armá tu borrador | ModoOps"
   description="Recorré la oficina ModoOps, cargá los datos de tu negocio por objeto y enviá tu borrador no vinculante al consultor."
 >
-  <main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-8" data-portal>
-    <p class="rounded-full border border-dashed px-3 py-1 text-xs text-neutral-500">
+  <main class="mx-auto w-full max-w-7xl px-4 py-8 md:px-8" data-portal>
+    <p class="rounded-full border border-dashed px-3 py-1 text-xs text-zinc-400">
       Borrador no vinculante · lo valida el consultor en el Descubrimiento · nada de acá crea tu sistema
     </p>
     <h1 class="mt-2 text-3xl font-semibold">Tu oficina, tu borrador</h1>
-    <p class="mt-1 text-sm text-neutral-500">
+    <p class="mt-1 text-sm text-zinc-400">
       Tres pasos: tu negocio, lo que necesitás hoy (ancla) y para dónde querés crecer.
     </p>
 
-    <div class="mt-4 grid gap-4 md:grid-cols-[1fr_320px]">
-      <div class="rounded-2xl border bg-white p-4">
-        <ol class="flex flex-wrap gap-2 text-xs" data-pasos>
-          <li><button data-paso="0" class="rounded-full border px-3 py-1 font-semibold">1 · Tu negocio</button></li>
-          <li><button data-paso="1" class="rounded-full border px-3 py-1">2 · Tu ancla</button></li>
-          <li><button data-paso="2" class="rounded-full border px-3 py-1">3 · Para crecer</button></li>
-        </ol>
+    <div class="mt-4 grid gap-4">
+      <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4 md:p-6">
 
         <section data-panel="0" class="mt-4">
           <h2 class="text-lg font-semibold">Paso 1 — Tu negocio</h2>
-          <div data-hero class="relative mt-2">
-            <canvas
-              data-hero-canvas
-              class="block w-full rounded-xl"
-              aria-label="Oficina virtual ModoOps: tocá un mueble para ir a su ficha"
-              aria-describedby="hero-ayuda"
-            ></canvas>
+          <div class="mt-2 grid gap-3 lg:grid-cols-2">
+            <div class="flex h-full flex-col rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm md:p-4" data-conversa>
+              <h3 class="font-semibold">Armemos tu borrador conversando</h3>
+              <div class="mt-2 flex max-h-[36rem] min-h-[16rem] flex-1 flex-col gap-2 overflow-auto" data-chat-hilo aria-live="polite"></div>
+              <div class="mt-2 flex flex-wrap gap-1" data-chat-opciones></div>
+              <form data-chat-form class="mt-2 flex flex-col gap-2">
+                <label class="sr-only" for="chat-msg">Respondé en la conversación</label>
+                <textarea id="chat-msg" data-chat-msg rows="3" autocomplete="off" class="max-h-48 min-h-24 w-full rounded border border-white/10 bg-white/[0.06] p-3 text-base text-white placeholder:text-zinc-400" placeholder="Respondé o preguntame lo que sea…"></textarea>
+                <button type="submit" class="w-full rounded-full border px-4 py-3 text-sm font-semibold">Enviar</button>
+              </form>
+              <p class="mt-1 text-xs text-zinc-400">Respondé y también podés preguntarme lo que sea (ej: ¿qué incluye el sistema?). Solo nombre y un contacto son obligatorios. Todo queda en tu navegador hasta que lo envíes.</p>
+            </div>
+            <div class="relative flex h-full flex-col rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm md:p-4" data-hero>
+              <canvas
+                data-hero-canvas
+                class="block min-h-[22rem] w-full flex-1 rounded-xl"
+                aria-label="Oficina virtual ModoOps: tocá un mueble para ir a su ficha"
+                aria-describedby="hero-ayuda"
+              ></canvas>
             <div data-hero-etiquetas class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"></div>
-            <div data-hero-fallback hidden class="rounded-xl border bg-neutral-50 p-3">
+            <div data-hero-fallback hidden class="rounded-xl border border-white/10 bg-white/[0.04] p-3">
               <p class="text-sm font-semibold">Plano del local (sin 3D)</p>
-              <p class="text-xs text-neutral-500">Tocá un sector para ir a su ficha.</p>
+              <p class="text-xs text-zinc-400">Tocá un sector para ir a su ficha.</p>
               <div class="mt-2 flex flex-wrap gap-1">
                 {objetos.map((id) => (
-                  <button data-hero-fallback-btn={id} class="rounded-full border bg-white px-2 py-1 text-xs">
+                  <button data-hero-fallback-btn={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">
                     {OBJETO_LABEL[id]}
                   </button>
                 ))}
               </div>
             </div>
-            <p class="px-1 py-1 text-xs text-neutral-500" data-hero-estado id="hero-ayuda">
+            <p class="px-1 py-1 text-xs text-zinc-400" data-hero-estado id="hero-ayuda">
               Arrastrá para girar · click en un mueble para ir a su ficha.
             </p>
-            <details class="mt-2 rounded-xl border bg-neutral-50 p-3">
-              <summary class="cursor-pointer text-sm font-semibold">Elegir objeto sin 3D (teclado)</summary>
-              <div class="mt-2 flex flex-wrap gap-1">
-                {objetos.map((id) => (
-                  <button data-hero-fallback-btn={id} class="rounded-full border bg-white px-2 py-1 text-xs">
-                    {OBJETO_LABEL[id]}
-                  </button>
-                ))}
-              </div>
-            </details>
+            </div>
           </div>
 
-          <div class="mt-3 grid gap-2 text-sm">
+          <details class="mt-3 rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm">
+            <summary class="cursor-pointer font-semibold">Ver/editar todos los datos</summary>
+            <div class="mt-2 grid gap-2 text-sm">
             <label>Nombre del negocio *
-              <input data-prospecto="nombre" autocomplete="organization" class="mt-1 w-full rounded border p-2" placeholder="Ej: Pinturería Centro" /></label>
+              <input data-prospecto="nombre" autocomplete="organization" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Pinturería Centro" /></label>
             <div class="grid gap-2 md:grid-cols-2">
               <label>Tu nombre
-                <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border p-2" placeholder="Ej: Ana" /></label>
+                <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Ana" /></label>
               <label>Teléfono *
-                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border p-2" placeholder="Ej: 3547 000000" /></label>
+                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: 3547 000000" /></label>
             </div>
             <div class="grid gap-2 md:grid-cols-2">
               <label>Email
-                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border p-2" placeholder="Ej: ana@negocio.com" /></label>
+                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: ana@negocio.com" /></label>
               <label>Rubro
-                <select data-prospecto="rubro" class="mt-1 w-full rounded border p-2">
+                <select data-prospecto="rubro" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500">
                   <option value="retail">Retail mostrador</option>
                   <option value="distribucion">Distribución chica</option>
                   <option value="servicios">Servicios</option>
                 </select></label>
             </div>
             <div class="grid grid-cols-3 gap-2">
-              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
-              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border p-2" /></label>
-              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="mt-1 w-full rounded border p-2" /></label>
+              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
+              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
+              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
             </div>
             <div class="grid gap-2 md:grid-cols-2">
-              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="mt-1 w-full rounded border p-2" /></label>
+              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
               <label class="flex items-center gap-2">¿Llevás stock en Excel hoy?
                 <input data-dato="tiene_excel" type="checkbox" class="h-4 w-4" /></label>
             </div>
             <fieldset class="rounded border p-2">
-              <legend class="px-1 text-xs text-neutral-500">Tu infraestructura (solo sí/no)</legend>
+              <legend class="px-1 text-xs text-zinc-400">Tu infraestructura (solo sí/no)</legend>
               <div class="flex flex-wrap gap-3">
                 <label class="flex items-center gap-2">¿Hosting propio? <input data-infra="hosting_propio" type="checkbox" class="h-4 w-4" /></label>
                 <label class="flex items-center gap-2">¿Dominio con SSL? <input data-infra="dominio_ssl" type="checkbox" class="h-4 w-4" /></label>
                 <label class="flex items-center gap-2">¿Backups? <input data-infra="backups" type="checkbox" class="h-4 w-4" /></label>
               </div>
             </fieldset>
-            <p class="text-xs text-neutral-500">* Solo nombre y un contacto (teléfono o email) son obligatorios. Todo lo demás ayuda al consultor pero es opcional.</p>
-          </div>
+            <p class="text-xs text-zinc-400">* Solo nombre y un contacto (teléfono o email) son obligatorios. Todo lo demás ayuda al consultor pero es opcional.</p>
+            </div>
+          </details>
         </section>
 
         <section data-panel="1" class="mt-4" hidden>
           <h2 class="text-lg font-semibold">Paso 2 — Tu ancla (combo cerrado)</h2>
-          <p class="text-sm text-neutral-500">Tildá lo que necesitás hoy. Siempre incluidos: {SIEMPRE.map((k) => NOMBRES[k]).join(' · ')}.</p>
+          <p class="text-sm text-zinc-400">Tildá lo que necesitás hoy. Siempre incluidos: {SIEMPRE.map((k) => NOMBRES[k]).join(' · ')}.</p>
 
           <div class="mt-3 grid gap-3" data-fichas>
             <article data-ficha="mostrador-3d" class="rounded-xl border p-3">
               <label class="flex items-center gap-2 font-semibold">
                 <input data-incluir="mostrador-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['mostrador-3d']} → {NOMBRES.mostrador}</label>
               <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
-                <label>¿Cuántas cajas? <input data-obj="mostrador-3d" data-campo="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border p-2" /></label>
+                <label>¿Cuántas cajas? <input data-obj="mostrador-3d" data-campo="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
                 <label class="flex items-center gap-2">¿Hacés descuento en caja? <input data-obj="mostrador-3d" data-campo="descuento" type="checkbox" class="h-4 w-4" /></label>
               </div>
             </article>
@@ -146,7 +147,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
               <label class="flex items-center gap-2 font-semibold">
                 <input data-incluir="estanteria-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['estanteria-3d']} → {NOMBRES.deposito}</label>
               <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
-                <label>¿Cuántos depósitos? <input data-obj="estanteria-3d" data-campo="almacenes" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
+                <label>¿Cuántos depósitos? <input data-obj="estanteria-3d" data-campo="almacenes" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
                 <label class="flex items-center gap-2">¿Ubicaciones por estante? <input data-obj="estanteria-3d" data-campo="ubicaciones" type="checkbox" class="h-4 w-4" /></label>
               </div>
             </article>
@@ -155,7 +156,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
               <label class="flex items-center gap-2 font-semibold">
                 <input data-incluir="gondola-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['gondola-3d']} → {NOMBRES.ventas}</label>
               <div class="mt-2 text-sm">
-                <label>¿Cuántas listas de precio? <input data-obj="gondola-3d" data-campo="listas_precio" type="number" min="1" value="1" class="mt-1 w-full rounded border p-2" /></label>
+                <label>¿Cuántas listas de precio? <input data-obj="gondola-3d" data-campo="listas_precio" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
               </div>
             </article>
 
@@ -163,7 +164,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
               <label class="flex items-center gap-2 font-semibold">
                 <input data-incluir="computadora-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['computadora-3d']} → {NOMBRES.compras}</label>
               <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
-                <label>¿Cuántos proveedores? <input data-obj="computadora-3d" data-campo="proveedores" type="number" min="0" value="0" class="mt-1 w-full rounded border p-2" /></label>
+                <label>¿Cuántos proveedores? <input data-obj="computadora-3d" data-campo="proveedores" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
                 <label class="flex items-center gap-2">¿Usás orden de compra? <input data-obj="computadora-3d" data-campo="orden_compra" type="checkbox" class="h-4 w-4" /></label>
               </div>
             </article>
@@ -171,9 +172,9 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <article data-ficha="pizarron-fiscal-3d" class="rounded-xl border p-3">
               <label class="flex items-center gap-2 font-semibold">
                 <input data-incluir="pizarron-fiscal-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['pizarron-fiscal-3d']} → {NOMBRES.fiscal_ar}</label>
-              <p class="mt-1 text-xs text-neutral-500">Borrador sin validez: el cierre real lo hacés con tu contador antes de salir en vivo.</p>
+              <p class="mt-1 text-xs text-zinc-400">Borrador sin validez: el cierre real lo hacés con tu contador antes de salir en vivo.</p>
               <fieldset class="mt-2 text-sm">
-                <legend class="text-xs text-neutral-500">¿Qué comprobantes creés que usás?</legend>
+                <legend class="text-xs text-zinc-400">¿Qué comprobantes creés que usás?</legend>
                 <div class="flex flex-wrap gap-2">
                   {COMPROBANTES.map((c) => (
                     <label class="flex items-center gap-1 rounded border px-2 py-1 text-xs">
@@ -182,14 +183,14 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
                   ))}
                 </div>
               </fieldset>
-              <label class="mt-2 block text-sm">Tu contador <input data-obj="pizarron-fiscal-3d" data-campo="contador" class="mt-1 w-full rounded border p-2" placeholder="Ej: Estudio López" /></label>
+              <label class="mt-2 block text-sm">Tu contador <input data-obj="pizarron-fiscal-3d" data-campo="contador" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Estudio López" /></label>
             </article>
           </div>
         </section>
 
         <section data-panel="2" class="mt-4" hidden>
           <h2 class="text-lg font-semibold">Paso 3 — Para crecer (futuro, no ancla)</h2>
-          <p class="text-sm text-neutral-500">Lo que hoy no entra, pero querés dejar anotado.</p>
+          <p class="text-sm text-zinc-400">Lo que hoy no entra, pero querés dejar anotado.</p>
           <article data-ficha="puerta-crecer-3d" class="mt-3 rounded-xl border border-dashed p-3">
             <p class="font-semibold">{OBJETO_LABEL['puerta-crecer-3d']}</p>
             <div class="mt-2 grid gap-2 text-sm">
@@ -201,34 +202,29 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             </div>
           </article>
 
-          <div class="mt-4 rounded-xl bg-neutral-50 p-3">
+          <div class="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-3">
             <h3 class="font-semibold">Enviá tu borrador al consultor</h3>
             <ul class="mt-1 text-sm text-red-700" data-errores aria-live="polite"></ul>
             <div class="mt-2 flex flex-wrap gap-2">
-              <button data-copiar class="rounded-full bg-black px-4 py-2 text-sm text-white">Copiar JSON</button>
-              <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-sm text-green-700">Enviar por WhatsApp</a>
-              <button data-enviar class="rounded-full bg-orange-600 px-4 py-2 text-sm text-white">Enviar a ModoOps</button>
+              <button data-copiar class="rounded-full border border-white/20 px-4 py-2 text-sm text-white">Copiar JSON</button>
+              <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-sm text-green-300">Enviar por WhatsApp</a>
+              <button data-enviar class="rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-space-void">Enviar a ModoOps</button>
             </div>
-            <p class="mt-1 text-xs text-neutral-500" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
+            <p class="mt-1 text-xs text-zinc-400" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
             <p class="mt-1 text-xs" data-enviado role="status" hidden></p>
           </div>
         </section>
-
-        <div class="mt-4 flex justify-between">
-          <button data-atras class="rounded-full border px-4 py-2 text-sm">← Atrás</button>
-          <button data-adelante class="rounded-full bg-black px-4 py-2 text-sm text-white">Seguir →</button>
-        </div>
       </div>
 
-      <aside class="rounded-2xl border bg-white p-4" aria-live="polite">
+      <aside hidden class="rounded-2xl border border-white/10 bg-white/[0.04] p-4" aria-live="polite">
         <h2 class="text-lg font-semibold">Borrador vivo</h2>
-        <p class="text-xs text-neutral-500">Se guarda solo en tu navegador.</p>
+        <p class="text-xs text-zinc-400">Se guarda solo en tu navegador.</p>
         <ul class="mt-2 flex flex-wrap gap-1" data-seleccion></ul>
         <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-neutral-950 p-2 text-xs text-green-200" data-json>{}</pre>
         <div class="mt-3 rounded-xl border p-3" data-cotizacion-panel>
           <h3 class="font-semibold">Validación del servidor</h3>
-          <p class="text-xs text-neutral-500">Cotizá tu selección contra el catálogo vivo de Odoo (sin guardar nada).</p>
-          <button data-cotizar class="mt-2 rounded-full bg-black px-4 py-2 text-sm text-white">Cotizar en servidor</button>
+          <p class="text-xs text-zinc-400">Cotizá tu selección contra el catálogo vivo de Odoo (sin guardar nada).</p>
+          <button data-cotizar class="mt-2 rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-space-void">Cotizar en servidor</button>
           <div class="mt-2 text-sm" data-cotizacion aria-live="polite"></div>
         </div>
       </aside>
@@ -248,6 +244,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     top: 0;
     border-radius: 9999px;
     background: rgb(255 255 255 / 0.92);
+    color: #111;
     border: 1px solid rgb(0 0 0 / 0.15);
     padding: 0.1rem 0.5rem;
     font-size: 0.7rem;
@@ -274,6 +271,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 <script>
   import {
     OBJETO_A_MODULO,
+    WHATSAPP_COMERCIAL,
     construirBorrador,
     esAncla,
     guardarBorrador,
@@ -297,7 +295,6 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     ia: 'IA ModoOps',
   };
   const SIEMPRE = ['contactos', 'plataforma', 'puente_factura'];
-  const WHATSAPP = 'https://wa.me/5493547532008';
 
   const root = document.querySelector('[data-portal]');
   if (root instanceof HTMLElement) {
@@ -343,6 +340,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
           'computadora-3d': { proveedores: num('[data-obj="computadora-3d"][data-campo="proveedores"]'), orden_compra: bool('[data-obj="computadora-3d"][data-campo="orden_compra"]') },
           'pizarron-fiscal-3d': { comprobantes, contador: texto('[data-obj="pizarron-fiscal-3d"][data-campo="contador"]') },
           'puerta-crecer-3d': { futuros },
+          'zona-logistica-3d': { envios_dia: 0, flota_propia: false, zonas: '' },
         },
         seleccion: [...SIEMPRE, ...incluidos, ...futuros],
         datos: { productos_aprox: num('[data-dato="productos_aprox"]'), tiene_excel: bool('[data-dato="tiene_excel"]') },
@@ -354,8 +352,21 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       };
     }
 
-    const chips = root.querySelector('[data-seleccion]');
-    const json = root.querySelector('[data-json]');
+    // Movimiento reducido: los scrolls programáticos usan 'auto' (global CSS cubre el resto).
+    const reduceMovimiento =
+      typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function desplaza(el) {
+      if (!(el instanceof HTMLElement)) return;
+      el.scrollIntoView({ behavior: reduceMovimiento ? "auto" : "smooth", block: "center" });
+    }
+    // Error de validación: vuelve al paso 1, muestra el nombre y le da foco.
+    function enfocaNombre() {
+      irAPaso(0);
+      const nombreEl = root.querySelector('[data-prospecto="nombre"]');
+      desplaza(nombreEl);
+      if (nombreEl instanceof HTMLElement) nombreEl.focus({ preventScroll: true });
+    }
+    const chips = root.querySelector('[data-seleccion]');    const json = root.querySelector('[data-json]');
     const listaErrores = root.querySelector('[data-errores]');
     const btnCopiar = root.querySelector('[data-copiar]');
     const linkWa = root.querySelector('[data-whatsapp]');
@@ -374,7 +385,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         chips.innerHTML = '';
         for (const k of [...b.modulos_ancla, ...b.modulos_futuros]) {
           const li = document.createElement('li');
-          li.className = 'rounded-full border px-2 py-0.5 text-xs' + (esAncla(k) ? ' bg-black text-white' : ' bg-amber-100');
+          li.className = 'rounded-full border px-2 py-0.5 text-xs' + (esAncla(k) ? ' bg-black text-white' : ' bg-amber-100 text-black');
           li.textContent = (NOMBRES[k] ?? k) + ' · ' + horasDe(k) + ' h';
           chips.appendChild(li);
         }
@@ -390,7 +401,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       }
       const textoWa = 'Hola ModoOps, te paso mi borrador (no vinculante):\n```json\n' + JSON.stringify(b) + '\n```';
       if (linkWa instanceof HTMLAnchorElement) {
-        linkWa.href = WHATSAPP + '?text=' + encodeURIComponent(textoWa);
+        linkWa.href = WHATSAPP_COMERCIAL + '?text=' + encodeURIComponent(textoWa);
         linkWa.classList.toggle('opacity-40', errores.length > 0);
         linkWa.setAttribute('aria-disabled', errores.length > 0 ? 'true' : 'false');
       }
@@ -425,8 +436,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     btnCopiar?.addEventListener('click', (e) => {
       if (borradorActual && validarBorrador(borradorActual).length > 0) {
         e.preventDefault();
-        document.querySelector('[data-paso="0"]')?.dispatchEvent(new Event('click'));
-        root.querySelector('[data-prospecto="nombre"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        enfocaNombre();
         return;
       }
       copiar();
@@ -445,8 +455,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     }
     btnEnviar?.addEventListener('click', async () => {
       if (!borradorActual || validarBorrador(borradorActual).length > 0) {
-        document.querySelector('[data-paso="0"]')?.dispatchEvent(new Event('click'));
-        root.querySelector('[data-prospecto="nombre"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        enfocaNombre();
         return;
       }
       if (!(btnEnviar instanceof HTMLButtonElement)) return;
@@ -526,6 +535,10 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       }
     });
 
+    // Chat unificado: un solo hilo. Las preguntas libres van a POST
+    // /api/oficina/chat y se responden en la conversación sin avanzar el paso
+    // (ver convPreguntaLibre junto al motor de conversación).
+
     // Restaura lo guardado en este navegador
     try {
       const previo = cargarBorrador();
@@ -565,6 +578,364 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       }
     } catch { /* borrador corrupto: se ignora y se empieza de cero */ }
 
+    // Conversación guiada (Paso 1 humanizado): pregunta los datos de a uno,
+    // escribe en los mismos inputs ocultos y llama a pinta() en cada respuesta.
+    // Nada sale del navegador hasta Enviar/WhatsApp; la IA libre sigue aparte.
+    const convHilo = root.querySelector('[data-chat-hilo]');
+    const convOpc = root.querySelector('[data-chat-opciones]');
+    const convForm = root.querySelector('[data-chat-form]');
+    const convMsg = root.querySelector('[data-chat-msg]');
+    const convGet = (sel) => root.querySelector(sel);
+    const convSetT = (sel, v) => { const el = convGet(sel); if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) el.value = v; };
+    const convSetB = (sel, v) => { const el = convGet(sel); if (el instanceof HTMLInputElement) el.checked = !!v; };
+    const convValT = (sel) => { const el = convGet(sel); return el instanceof HTMLInputElement || el instanceof HTMLSelectElement ? el.value.trim() : ''; };
+    const convValB = (sel) => { const el = convGet(sel); return el instanceof HTMLInputElement ? el.checked : false; };
+    function convBurbuja(rol, textoMsg) {
+      if (!(convHilo instanceof HTMLElement)) return;
+      const p = document.createElement('p');
+      p.className = 'rounded-xl border p-2 text-sm ' + (rol === 'user'
+        ? 'border-white/20 bg-white/[0.08] text-right'
+        : 'border-white/10 bg-white/[0.04]');
+      p.textContent = String(textoMsg);
+      convHilo.appendChild(p);
+      p.scrollIntoView({ behavior: reduceMovimiento ? 'auto' : 'smooth', block: 'nearest' });
+    }
+    function convOpciones(lista) {
+      if (!(convOpc instanceof HTMLElement)) return;
+      convOpc.innerHTML = '';
+      for (const op of lista) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = op.etiqueta;
+        b.className = 'rounded-full border border-white/20 px-3 py-1 text-xs font-semibold';
+        b.addEventListener('click', () => convResponder(op.valor));
+        convOpc.appendChild(b);
+      }
+    }
+    const PASOS_CONV = [
+      { id: 'nombre', pregunta: '¡Hola! ¿Cómo se llama tu negocio?', tipo: 'texto', req: true, set: (v) => convSetT('[data-prospecto="nombre"]', v), get: () => convValT('[data-prospecto="nombre"]') },
+      { id: 'contacto', pregunta: '¿Tu nombre? (podés saltear)', tipo: 'texto', saltear: true, set: (v) => convSetT('[data-prospecto="contacto_nombre"]', v), get: () => convValT('[data-prospecto="contacto_nombre"]') },
+      { id: 'telefono', pregunta: '¿A qué teléfono te contactamos? (o escribí "saltear" si preferís email)', tipo: 'tel', saltear: true, set: (v) => convSetT('[data-prospecto="telefono"]', v), get: () => convValT('[data-prospecto="telefono"]') },
+      { id: 'email', pregunta: '¿Y tu email? (o "saltear")', tipo: 'email', saltear: true, set: (v) => convSetT('[data-prospecto="email"]', v), get: () => convValT('[data-prospecto="email"]') },
+      { id: 'rubro', pregunta: '¿Qué rubro es?', tipo: 'opciones', opciones: [{ etiqueta: 'Retail mostrador', valor: 'retail' }, { etiqueta: 'Distribución chica', valor: 'distribucion' }, { etiqueta: 'Servicios', valor: 'servicios' }], set: (v) => convSetT('[data-prospecto="rubro"]', v), get: () => convValT('[data-prospecto="rubro"]') || 'retail' },
+      { id: 'sucursales', pregunta: '¿Cuántas sucursales? (1 por defecto)', tipo: 'numero', defecto: 1, set: (v) => convSetT('[data-prospecto="sucursales"]', String(v)), get: () => convValT('[data-prospecto="sucursales"]') },
+      { id: 'cajas', pregunta: '¿Cuántas cajas? (2 por defecto)', tipo: 'numero', defecto: 2, set: (v) => convSetT('[data-prospecto="cajas"]', String(v)), get: () => convValT('[data-prospecto="cajas"]') },
+      { id: 'usuarios', pregunta: '¿Cuántos usuarios van a usar el sistema? (5 por defecto)', tipo: 'numero', defecto: 5, set: (v) => convSetT('[data-prospecto="usuarios"]', String(v)), get: () => convValT('[data-prospecto="usuarios"]') },
+      { id: 'productos', pregunta: '¿Cuántos productos aprox. tenés? (0 si no sabés)', tipo: 'numero', defecto: 0, set: (v) => convSetT('[data-dato="productos_aprox"]', String(v)), get: () => convValT('[data-dato="productos_aprox"]') },
+      { id: 'excel', pregunta: '¿Llevás stock en Excel hoy?', tipo: 'sino', set: (v) => convSetB('[data-dato="tiene_excel"]', v === 'si'), get: () => convValB('[data-dato="tiene_excel"]') ? 'si' : 'no' },
+      { id: 'hosting', pregunta: '¿Tenés hosting propio?', tipo: 'sino', set: (v) => convSetB('[data-infra="hosting_propio"]', v === 'si'), get: () => convValB('[data-infra="hosting_propio"]') ? 'si' : 'no' },
+      { id: 'ssl', pregunta: '¿Tenés dominio con SSL?', tipo: 'sino', set: (v) => convSetB('[data-infra="dominio_ssl"]', v === 'si'), get: () => convValB('[data-infra="dominio_ssl"]') ? 'si' : 'no' },
+      { id: 'backups', pregunta: '¿Hacés backups?', tipo: 'sino', set: (v) => convSetB('[data-infra="backups"]', v === 'si'), get: () => convValB('[data-infra="backups"]') ? 'si' : 'no' },
+    ];
+    let convPaso = 0;
+    const FIN_PASO1 = PASOS_CONV.length;
+    // --- Ancla (Paso 2) y crecer (Paso 3) en el mismo hilo ---
+    // Escriben en los mismos inputs de las fichas y llaman a pinta().
+    const ETIQ_ANCLA = {
+      'mostrador-3d': 'Mostrador',
+      'estanteria-3d': 'Depósito Inteligente',
+      'gondola-3d': 'Ventas',
+      'computadora-3d': 'Compras',
+      'pizarron-fiscal-3d': 'Fiscal AR',
+    };
+    const FUT_OPTS = [
+      { etiqueta: 'Logística', valor: 'logistica' },
+      { etiqueta: 'Ecommerce', valor: 'ecommerce' },
+      { etiqueta: 'Página web', valor: 'web' },
+      { etiqueta: 'CRM', valor: 'crm' },
+      { etiqueta: 'Otro', valor: 'otro' },
+    ];
+    const COMP_OPTS = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo'];
+    const convIncluir = (id3d) => { const el = root.querySelector(`[data-incluir="${id3d}"]`); return el instanceof HTMLInputElement ? el.checked : false; };
+    const convSetIncluir = (id3d, v) => { const el = root.querySelector(`[data-incluir="${id3d}"]`); if (el instanceof HTMLInputElement) el.checked = !!v; };
+    const convObjVal = (id3d, campo) => {
+      const el = root.querySelector(`[data-obj="${id3d}"][data-campo="${campo}"]`);
+      if (el instanceof HTMLInputElement && el.type === 'checkbox') return el.checked ? 'si' : 'no';
+      return el instanceof HTMLInputElement ? el.value : '';
+    };
+    const convSetObj = (id3d, campo, v) => {
+      const el = root.querySelector(`[data-obj="${id3d}"][data-campo="${campo}"]`);
+      if (el instanceof HTMLInputElement && el.type === 'checkbox') el.checked = !!v;
+      else if (el instanceof HTMLInputElement) el.value = String(v);
+    };
+    const convFuturo = (k) => { const el = root.querySelector(`[data-futuro="${k}"]`); return el instanceof HTMLInputElement ? el.checked : false; };
+    const convSetFuturo = (k, v) => { const el = root.querySelector(`[data-futuro="${k}"]`); if (el instanceof HTMLInputElement) el.checked = !!v; };
+    const convNum = (id, pregunta, defecto, get, set) => ({ id, pregunta, tipo: 'numero', defecto, get, set });
+    const convSiNo = (id, pregunta, get, set, luegoSi) => ({ id, pregunta, tipo: 'sino', get, set, luegoSi });
+    function armarAncla() {
+      const det = {
+        'mostrador-3d': [
+          convNum('m-cajas', '¿Cuántas cajas? (2 por defecto)', 2, () => convObjVal('mostrador-3d', 'cajas'), (v) => convSetObj('mostrador-3d', 'cajas', v)),
+          convSiNo('m-desc', '¿Hacés descuento en caja?', () => convObjVal('mostrador-3d', 'descuento'), (v) => convSetObj('mostrador-3d', 'descuento', v === 'si')),
+        ],
+        'estanteria-3d': [
+          convNum('e-alm', '¿Cuántos depósitos? (1 por defecto)', 1, () => convObjVal('estanteria-3d', 'almacenes'), (v) => convSetObj('estanteria-3d', 'almacenes', v)),
+          convSiNo('e-ubi', '¿Ubicaciones por estante?', () => convObjVal('estanteria-3d', 'ubicaciones'), (v) => convSetObj('estanteria-3d', 'ubicaciones', v === 'si')),
+        ],
+        'gondola-3d': [
+          convNum('g-listas', '¿Cuántas listas de precio? (1 por defecto)', 1, () => convObjVal('gondola-3d', 'listas_precio'), (v) => convSetObj('gondola-3d', 'listas_precio', v)),
+        ],
+        'computadora-3d': [
+          convNum('c-prov', '¿Cuántos proveedores? (0 por defecto)', 0, () => convObjVal('computadora-3d', 'proveedores'), (v) => convSetObj('computadora-3d', 'proveedores', v)),
+          convSiNo('c-oc', '¿Trabajás con orden de compra?', () => convObjVal('computadora-3d', 'orden_compra'), (v) => convSetObj('computadora-3d', 'orden_compra', v === 'si')),
+        ],
+        'pizarron-fiscal-3d': [
+          {
+            id: 'f-comp', pregunta: '¿Qué comprobantes usás? Tocá los que correspondan y después “Listo”.', tipo: 'multi',
+            opciones: COMP_OPTS.map((c) => ({ etiqueta: c, valor: c })),
+            get: () => [...root.querySelectorAll('[data-obj="pizarron-fiscal-3d"][data-campo="comprobantes"]')].filter((el) => el instanceof HTMLInputElement && el.checked).map((el) => el.value),
+            set: (arr) => { root.querySelectorAll('[data-obj="pizarron-fiscal-3d"][data-campo="comprobantes"]').forEach((el) => { if (el instanceof HTMLInputElement) el.checked = arr.includes(el.value); }); },
+          },
+          { id: 'f-cont', pregunta: '¿Quién es tu contador? (o “Saltear”)', tipo: 'texto', saltear: true, get: () => convObjVal('pizarron-fiscal-3d', 'contador'), set: (v) => convSetObj('pizarron-fiscal-3d', 'contador', v) },
+        ],
+      };
+      return Object.keys(ETIQ_ANCLA).map((id3d) => convSiNo(
+        'ancla-' + id3d,
+        `¿Necesitás ${ETIQ_ANCLA[id3d]} hoy?`,
+        () => (convIncluir(id3d) ? 'si' : 'no'),
+        (v) => convSetIncluir(id3d, v === 'si'),
+        det[id3d],
+      ));
+    }
+    function armarCrecer() {
+      return [{
+        id: 'crecer', pregunta: '¿Para dónde querés crecer? Tocá todo lo que te sirva y después “Listo”. (A desarrollar, a cotizar.)', tipo: 'multi',
+        opciones: FUT_OPTS,
+        get: () => FUT_OPTS.map((o) => o.valor).filter(convFuturo),
+        set: (arr) => { FUT_OPTS.forEach((o) => convSetFuturo(o.valor, arr.includes(o.valor))); },
+      }];
+    }
+    const cola = [...PASOS_CONV];
+    let convAnclaLista = false;
+    let convAnclaIntro = false;
+    function convAseguraCola() {
+      if (convAnclaLista) return;
+      convAnclaLista = true;
+      cola.push(...armarAncla(), ...armarCrecer());
+    }
+    function convReiniciar() {
+      cola.length = 0;
+      cola.push(...PASOS_CONV, ...armarAncla(), ...armarCrecer());
+      convAnclaLista = true;
+      convAnclaIntro = false;
+      convPaso = 0;
+      convPreguntar();
+    }
+    convAseguraCola();
+    function convNormalizaSiNo(t) {
+      const v = t.trim().toLowerCase();
+      if (['si', 'sí', 's', 'yes', 'y', '1'].includes(v)) return 'si';
+      if (['no', 'n', '0', 'nop'].includes(v)) return 'no';
+      return null;
+    }
+    function convPintaMulti(p) {
+      if (!(convOpc instanceof HTMLElement)) return;
+      convOpc.innerHTML = '';
+      for (const op of p.opciones) {
+        const on = p.sel.has(op.valor);
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = (on ? '✓ ' : '') + op.etiqueta;
+        b.className = 'rounded-full border px-3 py-1 text-xs font-semibold' + (on ? ' bg-white text-black' : ' border-white/20');
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        b.addEventListener('click', () => {
+          if (p.sel.has(op.valor)) p.sel.delete(op.valor);
+          else p.sel.add(op.valor);
+          convPintaMulti(p);
+        });
+        convOpc.appendChild(b);
+      }
+      const listo = document.createElement('button');
+      listo.type = 'button';
+      listo.textContent = 'Listo (' + p.sel.size + ') →';
+      listo.className = 'rounded-full border border-[var(--color-star-warm)] px-3 py-1 text-xs font-semibold';
+      listo.addEventListener('click', () => convResponder('__listo'));
+      convOpc.appendChild(listo);
+    }
+    function convPreguntar() {
+      // Salta lo ya cargado (restaurado del navegador).
+      while (convPaso < cola.length) {
+        const p = cola[convPaso];
+        const actual = p.get();
+        if (p.tipo === 'texto' && actual) { convPaso += 1; continue; }
+        if (p.tipo === 'numero' && actual !== '' && actual !== String(p.defecto)) { convPaso += 1; continue; }
+        break;
+      }
+      // Puerta al ancla: valida contacto y presenta el Paso 2.
+      if (convPaso === FIN_PASO1 && !convAnclaIntro) {
+        const tel = convValT('[data-prospecto="telefono"]');
+        const mail = convValT('[data-prospecto="email"]');
+        if (!tel && !mail) {
+          convBurbuja('bot', 'Necesito al menos un contacto: ¿teléfono o email? Empecemos de nuevo por el teléfono.');
+          convPaso = 2;
+          return convPreguntar();
+        }
+        convBurbuja('bot', '¡Genial! Ahora armemos tu ancla: te pregunto qué necesitás hoy, lo de todos los días.');
+        convAnclaIntro = true;
+      }
+      if (convPaso >= cola.length) {
+        const nombre = convValT('[data-prospecto="nombre"]') || 'tu negocio';
+        const anclaTxt = Object.keys(ETIQ_ANCLA).filter(convIncluir).map((id) => ETIQ_ANCLA[id]).join(', ') || '—';
+        const futTxt = FUT_OPTS.filter((o) => convFuturo(o.valor)).map((o) => o.etiqueta).join(', ') || '—';
+        convBurbuja('bot', '¡Listo ' + nombre + '! Tu borrador: ancla ' + anclaTxt + ' · para crecer: ' + futTxt + '. Lo tenés en el Paso 3 para enviarlo por WhatsApp o a ModoOps.');
+        convOpciones([{ etiqueta: 'Ir al Paso 2', valor: '__paso:1' }, { etiqueta: 'Ir al Paso 3 (enviar)', valor: '__paso:2' }, { etiqueta: 'Repasar', valor: '__reiniciar' }]);
+        return;
+      }
+      const p = cola[convPaso];
+      if (p.tipo === 'multi') {
+        convBurbuja('bot', p.pregunta);
+        p.sel = new Set(p.get());
+        convPintaMulti(p);
+        const input = root.querySelector('[data-chat-msg]');
+        if (input instanceof HTMLElement) input.focus({ preventScroll: true });
+        return;
+      }
+      convBurbuja('bot', p.pregunta);
+      if (p.tipo === 'sino') convOpciones([{ etiqueta: 'Sí', valor: 'si' }, { etiqueta: 'No', valor: 'no' }]);
+      else if (p.tipo === 'opciones') convOpciones(p.opciones);
+      else if (p.saltear) convOpciones([{ etiqueta: 'Saltear', valor: '__saltar' }]);
+      else convOpciones([]);
+      const input = root.querySelector('[data-chat-msg]');
+      if (input instanceof HTMLElement) input.focus({ preventScroll: true });
+    }
+    // Preguntas libres en el mismo hilo: van a la IA sin avanzar el paso.
+    let iaHistorialLibre = [];
+    function esPreguntaLibre(t, p) {
+      if (!t || t.startsWith('__')) return false;
+      if (p?.tipo === 'sino' && convNormalizaSiNo(t)) return false;
+      if (p?.tipo === 'opciones' && p.opciones.some((o) => o.valor === t)) return false;
+      if (p?.tipo === 'numero' && (t === '' || /^-?\d[\d.,]*$/.test(t))) return false;
+      if (p?.tipo === 'email' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t)) return false;
+      if (p?.tipo === 'tel' && (t.replace(/\D/g, '').length >= 6 || t === '')) return false;
+      if (/\?\s*$/.test(t)) return true;
+      return /^(qu[eé]|c[oó]mo|cu[aá]ndo|d[oó]nde|cu[aá]nto|por\s*qu[eé]|incluye|incluyen|precio|cuesta|cuestan|sirve|sirven|pod[eé]s|pued[eo]|pueden|hay|tien[ee]n?|hac[eé]s|hacen|para\s*qu[eé])/i.test(t);
+    }
+    async function convPreguntaLibre(textoMsg) {
+      iaHistorialLibre = [...iaHistorialLibre.slice(-10), { role: 'user', text: textoMsg }];
+      convBurbuja('user', textoMsg);
+      convBurbuja('bot', 'Ya te averiguo…');
+      const items = convHilo instanceof HTMLElement ? convHilo.querySelectorAll('p') : [];
+      const espera = items.length ? items[items.length - 1] : null;
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000);
+      const responde = (texto) => { if (espera) espera.textContent = texto; else convBurbuja('bot', texto); };
+      try {
+        const res = await fetch('/api/oficina/chat', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ message: textoMsg.slice(0, 2000), history: iaHistorialLibre.slice(0, -1) }),
+          signal: ctrl.signal,
+        });
+        clearTimeout(timer);
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) {
+          const fuente = ['estatica', 'ollama', 'mock'].includes(String(data.source ?? '')) ? ' · ' + data.source : '';
+          responde(String(data.reply) + fuente);
+          iaHistorialLibre = [...iaHistorialLibre.slice(-10), { role: 'assistant', text: String(data.reply) }];
+        } else if (res.status === 429) {
+          responde('Demasiadas consultas por ahora: sigamos con tu borrador.');
+        } else {
+          throw new Error('ia');
+        }
+      } catch {
+        clearTimeout(timer);
+        responde('La IA no responde ahora: sigamos con tu borrador, está a salvo.');
+      }
+      convPreguntar();
+    }
+    function convResponder(crudo) {
+      const p = cola[convPaso];
+      if (!p) {
+        if (crudo === '__seguir') { irAPaso(paso + 1); return; }
+        if (crudo === '__reiniciar') { convReiniciar(); return; }
+        if (typeof crudo === 'string' && crudo.startsWith('__paso:')) {
+          irAPaso(Number(crudo.split(':')[1]) || 0);
+          return;
+        }
+        convPreguntaLibre(String(crudo ?? '').trim());
+        return;
+      }
+      const t = String(crudo ?? '').trim();
+      if (t === '__seguir') { irAPaso(paso + 1); return; }
+      if (t === '__reiniciar') { convReiniciar(); return; }
+      if (t.startsWith('__paso:')) {
+        irAPaso(Number(t.split(':')[1]) || 0);
+        return;
+      }
+      if (t && esPreguntaLibre(t, p)) { convPreguntaLibre(t); return; }
+      if (p.tipo === 'multi') {
+        if (t === '__listo') {
+          const elegidos = [...p.sel];
+          p.set(elegidos);
+          const nombres = elegidos.map((v) => p.opciones.find((o) => o.valor === v)?.etiqueta ?? v);
+          convBurbuja('user', nombres.length ? nombres.join(' · ') : 'Nada por ahora');
+          convPaso += 1;
+          pinta();
+          return convPreguntar();
+        }
+        convBurbuja('bot', 'Tocá las opciones que correspondan y después “Listo”, dale.');
+        return;
+      }
+      if (t === '__saltar') {
+        if (p.tipo === 'numero') p.set(p.defecto);
+        convBurbuja('user', 'Saltear');
+        convPaso += 1;
+        pinta();
+        return convPreguntar();
+      }
+      if (p.tipo === 'texto') {
+        if (!t) { convBurbuja('bot', p.req ? 'Contame al menos 2 letras, dale.' : 'Si no querés, tocá “Saltear”.'); return; }
+        if (p.req && t.length < 2) { convBurbuja('bot', 'Contame al menos 2 letras, dale.'); return; }
+        p.set(t);
+        convBurbuja('user', t);
+      } else if (p.tipo === 'tel') {
+        if (!t) { convBurbuja('bot', 'Escribí el teléfono o “saltear”.'); return; }
+        const digitos = t.replace(/\D/g, '');
+        if (digitos.length > 0 && digitos.length < 6) { convBurbuja('bot', 'Ese teléfono parece corto, ¿lo revisamos?'); return; }
+        if (!digitos) p.set('');
+        else p.set(t);
+        convBurbuja('user', t);
+      } else if (p.tipo === 'email') {
+        if (!t) { convBurbuja('bot', 'Escribí el email o “saltear”.'); return; }
+        if (t && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t)) { convBurbuja('bot', 'Ese email no me cierra, ¿lo revisamos?'); return; }
+        p.set(t);
+        convBurbuja('user', t);
+      } else if (p.tipo === 'numero') {
+        if (t === '') { p.set(p.defecto); convBurbuja('user', 'Usar ' + p.defecto); }
+        else {
+          const n = Number(t.replace(',', '.'));
+          if (!Number.isFinite(n) || n < 0) { convBurbuja('bot', 'Probá con un número (0 o más).'); return; }
+          p.set(Math.floor(n));
+          convBurbuja('user', String(Math.floor(n)));
+        }
+      } else if (p.tipo === 'sino' || p.tipo === 'opciones') {
+        const norm = p.tipo === 'sino' ? convNormalizaSiNo(t) : t;
+        const valido = p.tipo === 'sino' ? (norm === 'si' || norm === 'no') : p.opciones.some((o) => o.valor === t);
+        if (!valido) { convBurbuja('bot', 'Elegí una de las opciones, dale.'); return; }
+        p.set(norm ?? t);
+        const etiqueta = p.tipo === 'sino' ? (norm === 'si' ? 'Sí' : 'No') : (p.opciones.find((o) => o.valor === t)?.etiqueta ?? t);
+        convBurbuja('user', etiqueta);
+        if (norm === 'si' && p.luegoSi?.length) cola.splice(convPaso + 1, 0, ...p.luegoSi);
+      }
+      convPaso += 1;
+      pinta();
+      convPreguntar();
+    }
+    convForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!(convMsg instanceof HTMLInputElement) && !(convMsg instanceof HTMLTextAreaElement)) return;
+      const v = convMsg.value;
+      convMsg.value = '';
+      convResponder(v);
+    });
+    // Enter envía, Shift+Enter salta de línea.
+    convMsg?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        convForm?.dispatchEvent(new Event('submit', { cancelable: true }));
+      }
+    });
+
     // Wizard
     let paso = 0;
     function pintaPaso() {
@@ -582,8 +953,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     root.querySelectorAll('[data-paso]').forEach((b) => {
       b.addEventListener('click', () => irAPaso(Number(b.getAttribute('data-paso')) || 0));
     });
-    root.querySelector('[data-atras]')?.addEventListener('click', () => irAPaso(paso - 1));
-    root.querySelector('[data-adelante]')?.addEventListener('click', () => irAPaso(paso + 1));
+    // Navegación entre paneles solo desde el chat (irAPaso directo).
 
     // Hero 3D → ficha (click en mueble tilda y baja a la ficha).
     // S5: el objeto vive en ?objeto= para compartir y refrescar (deep-link).
@@ -604,7 +974,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         irAPaso(2);
       }
       if (card instanceof HTMLElement) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        desplaza(card);
         card.classList.add('ficha-flash');
         setTimeout(() => card.classList.remove('ficha-flash'), 1600);
       }
@@ -645,13 +1015,15 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 
     pintaPaso();
     pinta();
-    // S5: al abrir con ?objeto= se va al panel y la ficha que corresponde.
+    convPreguntar();
+    // Ruta predeterminada: el chat con la IA (Paso 1). Si la URL trae
+    // ?objeto= de una sesión anterior, se limpia para no revivir ese panel.
+    // El click en un mueble sigue fijando ?objeto= para compartir en sesión.
     try {
-      const inicial = new URL(window.location.href).searchParams.get('objeto');
-      const ids = ['mostrador-3d', 'estanteria-3d', 'gondola-3d', 'computadora-3d', 'pizarron-fiscal-3d', 'puerta-crecer-3d'];
-      if (inicial && ids.includes(inicial)) {
-        irAPaso(inicial === 'puerta-crecer-3d' ? 2 : 1);
-        irAFicha(inicial);
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('objeto')) {
+        url.searchParams.delete('objeto');
+        window.history.replaceState(null, '', url);
       }
     } catch { /* sin URL disponible: se arranca en paso 0 */ }
   }

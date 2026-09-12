@@ -16,5 +16,6 @@ _temp_*.md
 .vercel/
 web/.vercel/
 .venv/
+.venv-win/
 .claude/
 CLAUDE.md

@@ -40,18 +40,17 @@ def generar(inp: dict, catalogo=None) -> dict:
         c_obj = _loaded
         modules = {k: c_obj.get(k) for k in c_obj.allKeys()}
         pricing = c_obj.pricing()
-        # delega validate a interface si existe
-        val = c_obj.validate(modulos, anexo)
-        _pre_errors = val.get("errors", [])
     else:
-        c_obj = None
+        # dict (SSOT serializado o legacy): recupera el objeto si viene adjunto
+        c_obj = _loaded.get("_catalogo_obj") if isinstance(_loaded, dict) else None
+        if c_obj is None or not hasattr(c_obj, "validate"):
+            c_obj = None
         modules = _loaded["modules"]
         pricing = _loaded["pricing"]
-        _pre_errors = []
 
     # si tenemos Catalogo object, delega hard gates a interface (single seam)
     if c_obj is not None:
-        errors = list(_pre_errors)
+        errors = list(c_obj.validate(modulos, anexo).get("errors", []))
     else:
         errors = []
         # Hard gate: módulo fuera de catálogo
@@ -94,12 +93,16 @@ def generar(inp: dict, catalogo=None) -> dict:
         precio["ars_tipo_cambio"] = ars_tc
 
     # Lista cerrada (comercial sin odoo, técnico con mapeo)
+    # Candidatos no entran: van por errors (requieren Descubrimiento)
+    def _es_candidato(m: str) -> bool:
+        return bool(c_obj is not None and hasattr(c_obj, "esCandidato") and c_obj.esCandidato(m))
+
     lista = []
     for m in modulos:
-        if m in modules:
+        if m in modules and not _es_candidato(m):
             lista.append({"key": m, "modoops": modules[m]["modoops"]})
 
-    anexo_tecnico = {"mapeo": {k: {"odoo": v.get("odoo", []), "version": v.get("version")} for k, v in modules.items() if k in modulos}}
+    anexo_tecnico = {"mapeo": {k: {"odoo": v.get("odoo", []), "version": v.get("version")} for k, v in modules.items() if k in modulos and not _es_candidato(k)}}
 
     # Propuesta comercial MD (marca blanca)
     comercial_md = f"# Propuesta Comercial ModoOps — {vertical}\n\n## Lista cerrada\n"

@@ -103,6 +103,23 @@ class ConfiguradorTests(unittest.TestCase):
         out = configurador.generar(inp)
         self.assertEqual(out["precio"]["ars_tipo_cambio"], 1200.5)
 
+    def test_hard_gate_candidato_requiere_descubrimiento(self):
+        inp = {
+            "vertical": "retail",
+            "sucursales": 1,
+            "almacenes": 1,
+            "cajas_pos": 1,
+            "modulos_tildados": ["mostrador", "crm"],
+            "anexo_fiscal_ref": "AF-1",
+            "sku_count": 0,
+        }
+        out = configurador.generar(inp)
+        self.assertTrue(any("crm" in e and "Descubrimiento" in e for e in out["errors"]))
+        # el candidato no entra a la lista cerrada
+        keys = [item["key"] for item in out["lista_cerrada"]]
+        self.assertNotIn("crm", keys)
+        self.assertIn("mostrador", keys)
+
     def test_is_pure_module(self):
         # no importa odoo
         src = (LOGIC_DIR / "configurador.py").read_text(encoding="utf-8")

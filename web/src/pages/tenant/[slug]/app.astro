@@ -1,9 +1,11 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Button from "../../../components/ui/Button.astro";
 import { BffError } from "../../../lib/bff/errors.ts";
 import { invalidateBffSession } from "../../../lib/bff/http.ts";
 import { loadTenantLauncher } from "../../../lib/bff/launcher.ts";
 import { withMasterSession } from "../../../lib/bff/tenant-status.ts";
+import { resumenHome } from "../../../lib/bff/home.ts";
 
 
 export const prerender = false;
@@ -73,13 +75,20 @@ function accentVar(key: string): string {
 }
 
 const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
+
+// Home operativa (spec home-hub, slice 3): tabs por URL (?tab=), estática.
+// resumenHome({}) nunca falla (ancla por defecto); los números vivos llegan en el slice 4.
+const homeTabParam = Astro.url.searchParams.get("tab") || "";
+const homeRes = resumenHome({ tab: homeTabParam });
+const homeTabs = homeRes.ok ? homeRes.home.tabs : [];
+const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes.home.tab)?.label ?? "" : "";
 ---
 
 <BaseLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Tenant ${slug} — ModoOps`}>
-  <main class="mo-tenant">
+  <main class:list={["mo-tenant", tenant && !tenantError && "with-nav"]}>
     <header class="mo-tenant__topbar">
       <div>
-        <p class="mo-tenant__eyebrow">ModoOps · Control Plane → Tenant</p>
+        <p class="mo-tenant__eyebrow">ModoOps · Tu operación</p>
         <h1>{tenant?.name ?? slug} <code class="mo-tenant__db">{tenant?.db_name ?? `modoops_${slug}`}</code></h1>
         <p class="mo-tenant__meta">
           {tenant ? `${tenant.vertical} · ` : ""}<span class:list={["mo-badge", `is-${tenant?.state ?? "activo"}`]}>{tenant?.state ?? "—"}</span>
@@ -99,6 +108,32 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
 
     {tenant && !tenantError ? (
       <>
+        <section class="mo-home" aria-label="Home operativa">
+          <p class="mo-home__saludo">Hola, <strong>{tenant.name}</strong> · así viene tu día</p>
+          <div role="tablist" aria-label="Módulos" class="mo-tabs">
+            {homeTabs.map((t) => (
+              <a role="tab" aria-selected={t.active ? "true" : "false"} href={`/tenant/${slug}/app?tab=${t.id}`} class:list={["mo-tab", t.active && "is-active"]}>{t.label}</a>
+            ))}
+          </div>
+          <p class="mo-home__tab" data-home-estado aria-live="polite">Viendo: {homeTabLabel} — cargando números…</p>
+          <div class="mo-home__saldo" data-home-saldo>
+            <p class="mo-home__caja-line">
+              <span data-home-caja class="mo-home__caja" style="font-variant-numeric: tabular-nums;">—</span>
+              <button type="button" data-home-ojito aria-pressed="false" aria-label="Ocultar montos" class="mo-home__ojito">👁</button>
+              <span class="sr-only" aria-live="polite" data-home-ojito-msg></span>
+            </p>
+            <p class="mo-home__vs" data-home-vs></p>
+          </div>
+          <div class="mo-home__cards">
+            <div class="mo-home__card"><h3>Por cobrar</h3><p data-home-porcobrar style="font-variant-numeric: tabular-nums;">—</p></div>
+            <div class="mo-home__card"><h3>Stock valorizado</h3><p data-home-stock style="font-variant-numeric: tabular-nums;">—</p></div>
+          </div>
+          <div class="mo-home__acciones">
+            <Button href="/oficina" variant="primary">Armar borrador</Button>
+            <Button href="/admin/leads" variant="ghost-dark">Ver leads</Button>
+            <Button href="#launcher" variant="ghost-dark">Mis módulos</Button>
+          </div>
+        </section>
         <section class="mo-tenant__panel">
           <h2>Armar sistema — Módulos ModoOps del Catálogo</h2>
           <p class="mo-tenant__hint">Instalá/quita módulos para <code>{tenant.db_name}</code>. IA es un módulo más del Catálogo (q4). Preview <code>odoo-bin -d {tenant.db_name} -i/-u &lt;mod&gt;</code> auditado en <code>modoops.tenant.log</code>.</p>
@@ -130,7 +165,7 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
               <p class="mo-tenant__hint">Escribí natural: “stock del producto 42”, “cobrar OT 5 $100”, o “hola”. El BFF hidrata a <code>stock.consulta</code>/<code>ot.cobro</code>/<code>echo</code> vía <code>llm.ts</code> (mock si Ollama sin modelo).</p>
               <div id="ia-chat-log" class="mo-chat__log" aria-live="polite"></div>
               <form id="ia-chat-form" class="mo-chat__form">
-                <input id="ia-chat-input" name="message" placeholder="Ej: stock producto 42" autocomplete="off" />
+                <input id="ia-chat-input" name="message" placeholder="Ej: stock producto 42" autocomplete="off" aria-label="Mensaje para la IA" />
                 <button type="submit" class="mo-btn-primary">Enviar</button>
               </form>
               <pre id="ia-chat-debug" class="mo-chat__debug"></pre>
@@ -138,7 +173,7 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
           ) : null}
         </section>
 
-        <section>
+        <section id="launcher">
           <h2 class="mo-tenant__h2">Launcher — {tenant.name} (tiles {tiles.length})</h2>
           {launcherError ? <p class="mo-tenant__error">{launcherError}</p> : tiles.length === 0 ? <p class="mo-tenant__empty">Sin tiles visibles para este usuario en este tenant.</p> : (
             <div class="mo-app__grid">
@@ -153,6 +188,14 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
             </div>
           )}
         </section>
+
+        <nav aria-label="Principal" class="mo-bottomnav">
+          <a href={`/tenant/${slug}/app`} aria-current="page"><span aria-hidden="true">◉</span><span>Cuenta</span></a>
+          <a href="#launcher"><span aria-hidden="true">▦</span><span>Módulos</span></a>
+          <a href="/oficina" aria-label="Oficina: armar borrador"><span class="mo-qr" aria-hidden="true">⌂</span></a>
+          <a href="/admin/leads"><span aria-hidden="true">✉</span><span>Leads</span></a>
+          <a href="/admin/tenants"><span aria-hidden="true">⋯</span><span>Más</span></a>
+        </nav>
       </>
     ) : null}
   </main>
@@ -249,6 +292,57 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
   cancelBtn?.addEventListener("click", () => { pollActiva = false; dlg?.close(); });
   document.querySelector("[data-logout]")?.addEventListener("click", async()=>{ await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login"); });
 
+  // Home viva (spec home-hub, slice 4): montos desde GET home del tenant,
+  // toggle ocultar en memoria (nunca se persiste el oculto).
+  {
+    const estadoEl = document.querySelector("[data-home-estado]");
+    const cajaEl = document.querySelector("[data-home-caja]");
+    const porCobrarEl = document.querySelector("[data-home-porcobrar]");
+    const stockEl = document.querySelector("[data-home-stock]");
+    const vsEl = document.querySelector("[data-home-vs]");
+      const ojoBtn = document.querySelector("[data-home-ojito]");
+      const ojoMsg = document.querySelector("[data-home-ojito-msg]");
+    if (estadoEl && cajaEl && ojoBtn instanceof HTMLButtonElement) {
+      const slugM = window.location.pathname.match(/^\/tenant\/([^/]+)\/app/);
+      const homeSlug = slugM ? slugM[1] : "";
+      const homeTab = new URLSearchParams(window.location.search).get("tab") || "";
+      const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
+      let montos: { cajaHoy: number; porCobrar: number; stockValorizado: number; vsAyerPct: number } | null = null;
+      let oculto = false;
+      const pinta = () => {
+        const txt = (v: number) => (oculto ? "$ ∗∗∗" : fmtARS.format(v));
+        cajaEl.textContent = montos ? txt(montos.cajaHoy) : "—";
+        if (porCobrarEl) porCobrarEl.textContent = montos ? txt(montos.porCobrar) : "—";
+        if (stockEl) stockEl.textContent = montos ? txt(montos.stockValorizado) : "—";
+        if (vsEl instanceof HTMLElement && montos) {
+          const p = montos.vsAyerPct;
+          vsEl.textContent = p === 0 ? "" : `${p > 0 ? "↑" : "↓"} ${Math.abs(p)}% vs ayer en ventas`;
+          vsEl.classList.toggle("is-neg", p < 0);
+        }
+      };
+      ojoBtn.addEventListener("click", () => {
+        oculto = !oculto;
+        ojoBtn.setAttribute("aria-pressed", String(oculto));
+        ojoBtn.setAttribute("aria-label", oculto ? "Mostrar montos" : "Ocultar montos");
+        if (ojoMsg) ojoMsg.textContent = oculto ? "Montos ocultos." : "Montos visibles.";
+        pinta();
+      });
+      (async () => {
+        try {
+          const res = await fetch(`/api/tenant/${homeSlug}/home?tab=${encodeURIComponent(homeTab)}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = (await res.json()) as { home?: typeof montos };
+          if (!data.home) throw new Error("sin home");
+          montos = data.home;
+          estadoEl.textContent = "Números al día.";
+          pinta();
+        } catch {
+          estadoEl.textContent = "No se pudieron cargar los números.";
+        }
+      })();
+    }
+  }
+
   // Chat IA herramental — hidrata BFF /api/modoops/:db/agent/run con {message, requestId}
   const chatRoot = document.getElementById("ia-chat-root") as HTMLDivElement | null;
   const chatLog = document.getElementById("ia-chat-log") as HTMLDivElement | null;
@@ -287,6 +381,29 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
 
 <style>
   .mo-tenant { max-width:78rem; margin:0 auto; padding:2rem 1rem 3rem; }
+  .with-nav { padding-bottom:6rem; }
+  .mo-home { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1.1rem; background:var(--sg-glass-fill); margin-bottom:1.25rem; }
+  .mo-home__saludo { margin:0 0 .6rem; color:var(--sg-text-muted-dark); font-size:.9rem; }
+  .mo-home__saludo strong { color:var(--color-core-cream); }
+  .mo-tabs { display:flex; gap:.4rem; flex-wrap:wrap; }
+  .mo-tab { display:inline-flex; align-items:center; min-height:44px; padding:.5rem 1rem; border-radius:999px; font-size:.85rem; color:var(--sg-text-muted-dark); text-decoration:none; transition:color .15s ease, background-color .15s ease; }
+  .mo-tab.is-active { background:var(--color-brand-accent); color:var(--color-space-void); font-weight:600; }
+  .mo-home__tab { font-size:.85rem; color:var(--sg-text-muted-dark); margin:.6rem 0 0; }
+  .mo-home__saldo { margin-top:.8rem; }
+  .mo-home__caja-line { display:flex; align-items:center; gap:.6rem; margin:0; }
+  .mo-home__caja { font-size:2rem; font-weight:700; letter-spacing:-.02em; }
+  .mo-home__ojito { display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; font-size:1.3rem; background:transparent; border:0; cursor:pointer; }
+  .mo-home__vs { margin:.2rem 0 0; font-size:.85rem; font-weight:600; color:#4ade80; }
+  .mo-home__vs.is-neg { color:#f87171; }
+  .mo-home__cards { display:grid; gap:.6rem; grid-template-columns:1fr 1fr; margin-top:.8rem; }
+  .mo-home__card { border:1px solid var(--sg-glass-border); border-radius:.9rem; padding:.8rem; background:rgba(0,0,0,.18); }
+  .mo-home__card h3 { margin:0 0 .3rem; font-size:.8rem; font-weight:500; color:var(--sg-text-muted-dark); }
+  .mo-home__card p { margin:0; font-size:1.25rem; font-weight:700; }
+  .mo-home__acciones { display:flex; gap:.6rem; flex-wrap:wrap; margin-top:.9rem; }
+  .mo-bottomnav { position:fixed; bottom:0; left:0; right:0; z-index:40; display:grid; grid-template-columns:repeat(5,1fr); background:rgb(0 0 0/.92); border-top:1px solid var(--sg-glass-border); padding-bottom:env(safe-area-inset-bottom); }
+  .mo-bottomnav a { display:flex; flex-direction:column; align-items:center; gap:2px; padding:.6rem .25rem; font-size:.7rem; color:var(--sg-text-muted-dark); text-decoration:none; min-height:44px; }
+  .mo-bottomnav a[aria-current="page"] { color:var(--color-brand-accent); font-weight:600; }
+  .mo-qr { width:2.6rem; height:2.6rem; margin-top:-1.2rem; border-radius:50%; background:var(--color-brand-accent); color:#000; display:flex; align-items:center; justify-content:center; font-size:1.2rem; border:4px solid #000; }
   .mo-tenant__topbar { display:flex; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap; }
   .mo-tenant__eyebrow { color:var(--sg-flame-orange); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0; font-weight:700; }
   .mo-tenant__db { font-size:.75rem; color:var(--sg-text-muted-dark); }
@@ -329,6 +446,6 @@ const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
   .mo-chat__msg { font-size:.85rem; margin:.25rem 0; white-space:pre-wrap; }
   .mo-chat__msg.is-user { color:#93c5fd; } .mo-chat__msg.is-agent { color:#86efac; } .mo-chat__msg.is-error { color:#f87171; }
   .mo-chat__form { display:flex; gap:.5rem; }
-  .mo-chat__form input { flex:1; border:1px solid #2b2b2b; border-radius:999px; padding:.5rem .8rem; background:#0a0a0a; color:#fff; }
+  .mo-chat__form input { flex:1; border:1px solid #2b2b2b; border-radius:999px; padding:.5rem .8rem; background:#0a0a0a; color:#fff; font-size:1rem; }
   .mo-chat__debug { background:#0a0a0a; border:1px solid #2b2b2b; border-radius:.5rem; padding:.5rem; font-size:.7rem; white-space:pre-wrap; min-height:2rem; }
 </style>

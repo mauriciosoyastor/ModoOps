@@ -1,5 +1,6 @@
 # AUTO-GENERADO — no editar a mano. Fuente: modoops_catalogo/catalogo.json
 # Generado por: python tools/configurador/sync_catalogo.py --generate
+# Solo validados (candidatos no instalables: requieren Descubrimiento).
 
 CATALOGO_MODOOPS = [
     ("mostrador", "Mostrador (POS 2 cajas)"),

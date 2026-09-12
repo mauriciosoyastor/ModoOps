@@ -2,25 +2,47 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/sections/Hero.astro';
 import Problem from '../components/sections/Problem.astro';
+import Ejemplo from '../components/sections/Ejemplo.astro';
+import Contraste from '../components/sections/Contraste.astro';
+import Circuito from '../components/sections/Circuito.astro';
 import Solution from '../components/sections/Solution.astro';
+import PuenteOficina from '../components/sections/PuenteOficina.astro';
+import Descubrimiento from '../components/sections/Descubrimiento.astro';
+import Migracion from '../components/sections/Migracion.astro';
+import Fiscal from '../components/sections/Fiscal.astro';
 import Path from '../components/sections/Path.astro';
 import Audience from '../components/sections/Audience.astro';
 import HowWeWork from '../components/sections/HowWeWork.astro';
+import Despues from '../components/sections/Despues.astro';
+import Crecer from '../components/sections/Crecer.astro';
+import Garantia from '../components/sections/Garantia.astro';
+import Faq from '../components/sections/Faq.astro';
 import Contact from '../components/sections/Contact.astro';
 import { brand } from '../data/business';
 
 const title = `${brand.name} — ${brand.tagline}`;
-const description = `ModoOps — Sistema de Gestión Modular para PYME Argentina · una sucursal, caja y stock integrados.`;
+const description = `ModoOps — Sistema de Gestión Modular para PYME Argentina · una sucursal, caja y depósito integrados.`;
 ---
 
 <BaseLayout {title} {description}>
   <main>
     <Hero />
     <Problem />
+    <Ejemplo />
+    <Contraste />
+    <Circuito />
     <Solution />
+    <PuenteOficina />
+    <Descubrimiento />
+    <Migracion />
+    <Fiscal />
     <Path />
     <Audience />
     <HowWeWork />
+    <Despues />
+    <Crecer />
+    <Garantia />
+    <Faq />
     <Contact />
   </main>
 </BaseLayout>

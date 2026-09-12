@@ -32,14 +32,21 @@ def load_ssot() -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _es_candidato(mod: dict) -> bool:
+    return mod.get("estado", "validado") == "candidato"
+
+
 def render_selection(modules: dict) -> str:
     lines = [
         "# AUTO-GENERADO — no editar a mano. Fuente: modoops_catalogo/catalogo.json",
         "# Generado por: python tools/configurador/sync_catalogo.py --generate",
+        "# Solo validados (candidatos no instalables: requieren Descubrimiento).",
         "",
         "CATALOGO_MODOOPS = [",
     ]
     for key, mod in modules.items():
+        if _es_candidato(mod):
+            continue
         label = mod.get("label") or mod.get("modoops") or key
         # escape single quotes
         label_esc = label.replace("'", "\\'")
@@ -53,6 +60,7 @@ def render_selection(modules: dict) -> str:
 
 def render_ts(modules: dict, pricing: dict) -> str:
     keys = list(modules.keys())
+    candidatos = [k for k, m in modules.items() if _es_candidato(m)]
     union = " | ".join(f'"{k}"' for k in keys)
     labels = {k: (modules[k].get("label") or modules[k].get("modoops") or k) for k in keys}
     horas = {k: modules[k].get("horas", 10) for k in keys}
@@ -64,6 +72,9 @@ def render_ts(modules: dict, pricing: dict) -> str:
 export type CatalogoKey = {union};
 
 export const CATALOGO_KEYS = new Set<CatalogoKey>([{", ".join(f'"{k}"' for k in keys)}]);
+
+/** Candidatos a desarrollar (puerta crecer): a cotizar, nunca en lista cerrada directa. */
+export const CANDIDATO_KEYS = new Set<CatalogoKey>([{", ".join(f'"{k}"' for k in candidatos)}]);
 
 export const CATALOGO_LABELS: Record<CatalogoKey, string> = {labels_json} as const;
 
@@ -84,6 +95,7 @@ def render_md(modules: dict) -> str:
 |----------------|------------------------|---------|--------------|-------|-------|
 """
     rows = []
+    cand_rows = []
     for key, mod in modules.items():
         modoops = mod.get("modoops", key)
         odoo = ", ".join(f"`{x}`" for x in mod.get("odoo", [])) or "—"
@@ -99,11 +111,14 @@ def render_md(modules: dict) -> str:
         nota = mod.get("nota") or mod.get("addon") or ""
         # escape pipe
         nota = nota.replace("|", "\\|")
-        rows.append(f"| **{modoops}** (`{key}`) | {odoo} | {depends} | {ancla_str} | {horas} | {nota} |")
+        row = f"| **{modoops}** (`{key}`) | {odoo} | {depends} | {ancla_str} | {horas} | {nota} |"
+        (cand_rows if _es_candidato(mod) else rows).append(row)
     footer = """
-## Módulos candidatos (requieren Descubrimiento + validación antes de entrar al Catálogo)
+## Módulos candidatos a desarrollar (puerta crecer: a cotizar, requieren Descubrimiento + validación)
 
-> Candidatos ya incluidos como módulos con `ancla_retail: false` (Taller, B2B Básico, Migración Excel, IA). Para añadir un candidato, agregarlo a `modoops_catalogo/catalogo.json` y regenerar.
+| Módulo ModoOps | Módulo Odoo / técnico | Depends | Ancla Retail | Horas est. | Notas |
+|----------------|------------------------|---------|--------------|------------|-------|
+""" + "\n".join(cand_rows) + """
 
 ## Configurador ModoOps (herramienta interna) — reglas
 

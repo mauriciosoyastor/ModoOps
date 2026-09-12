@@ -1,0 +1,20 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import Button from '../ui/Button.astro';
+import { puenteOficina } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="dark" id="oficina" embedded={embedded}>
+  <SectionHeading title={puenteOficina.title} lead={puenteOficina.lead} invert />
+  <div class="mt-2 flex flex-wrap gap-4">
+    <Button href={puenteOficina.href} variant="primary" data-cta="cta_oficina" data-source="puente">{puenteOficina.cta}</Button>
+  </div>
+  <p class="mt-6 max-w-2xl text-sm text-ash-gray">{puenteOficina.note}</p>
+</Section>
