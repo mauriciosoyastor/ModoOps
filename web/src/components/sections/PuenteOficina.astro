@@ -18,3 +18,9 @@ const { embedded = false } = Astro.props;
   </div>
   <p class="mt-6 max-w-2xl text-sm text-ash-gray">{puenteOficina.note}</p>
 </Section>
+
+<script>
+  document.querySelectorAll('a[data-cta="cta_oficina"][data-source="puente"]').forEach((el) => {
+    el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_oficina', {props:{source:'puente'}}));
+  });
+</script>

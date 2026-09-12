@@ -18,13 +18,13 @@ import Crecer from '../components/sections/Crecer.astro';
 import Garantia from '../components/sections/Garantia.astro';
 import Faq from '../components/sections/Faq.astro';
 import Contact from '../components/sections/Contact.astro';
-import { brand } from '../data/business';
+import { seo } from '../data/business';
 
-const title = `${brand.name} — ${brand.tagline}`;
-const description = `ModoOps — Sistema de Gestión Modular para PYME Argentina · una sucursal, caja y depósito integrados.`;
+const title = seo.title;
+const description = seo.description;
 ---
 
-<BaseLayout {title} {description}>
+<BaseLayout {title} {description} canonical={`${seo.site}/`} ogImage={seo.ogImage}>
   <main>
     <Hero />
     <Problem />

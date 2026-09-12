@@ -16,6 +16,8 @@ import {
   crecer,
   garantia,
   faq,
+  seo,
+  seoOficina,
 } from './business';
 
 /**
@@ -41,7 +43,7 @@ const FORBIDDEN = [
 ];
 
 describe('guardia de copy comerciante', () => {
-  const publicCopy = { hero, problem, solution, ejemplo, contraste, circuito, puenteOficina, descubrimiento, migracion, fiscal, audience, howWeWork, despues, crecer, garantia, faq };
+  const publicCopy = { hero, problem, solution, ejemplo, contraste, circuito, puenteOficina, descubrimiento, migracion, fiscal, audience, howWeWork, despues, crecer, garantia, faq, seo, seoOficina };
   for (const [name, value] of Object.entries(publicCopy)) {
     it(`${name} no contiene términos prohibidos`, () => {
       const text = JSON.stringify(value);
@@ -78,5 +80,17 @@ describe('guardia de copy comerciante', () => {
       expect(item.q.length).toBeGreaterThan(0);
       expect(item.a.length).toBeGreaterThan(0);
     }
+  });
+
+  it('seo trae title/description compartibles en WhatsApp', () => {
+    for (const s of [seo, seoOficina]) {
+      expect(s.title.length).toBeGreaterThan(0);
+      expect(s.title.length).toBeLessThanOrEqual(70);
+      expect(s.description.length).toBeGreaterThanOrEqual(50);
+      expect(s.description.length).toBeLessThanOrEqual(200);
+    }
+    expect(seo.site.startsWith('https://')).toBe(true);
+    expect(seo.ogImage.startsWith('/')).toBe(true);
+    expect(seo.ogImage).toMatch(/\.(png|jpg|jpeg)$/);
   });
 });
