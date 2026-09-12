@@ -269,3 +269,26 @@ export const nav = [
   { href: '#camino', label: 'Camino' },
   { href: '#contacto', label: 'Contacto' },
 ] as const;
+
+/**
+ * SEO/OG canónico — fog item 3 (mapa #160).
+ * Single source of truth para <head> de la landing y /oficina.
+ * ogImage usa un PNG existente (<300KB) porque WhatsApp no renderiza SVG;
+ * cuando lleguen fotos reales del local (fog item 2) se reemplaza acá.
+ */
+export const seo = {
+  site: 'https://modoops.com.ar',
+  title: 'ModoOps — Tu operación, en modo',
+  description:
+    'Sistema de Gestión Modular para comercios de una sucursal: mostrador, depósito y compras en un solo lugar.',
+  ogImage: '/images/galaxy-hero.png',
+  ogImageAlt: 'ModoOps — Tu operación, en modo',
+  locale: 'es_AR',
+  twitterCard: 'summary_large_image',
+} as const;
+
+export const seoOficina = {
+  title: 'Recorré tu oficina — armá tu borrador | ModoOps',
+  description:
+    'Recorré la oficina ModoOps, cargá los datos de tu negocio por objeto y enviá tu borrador no vinculante al consultor.',
+} as const;

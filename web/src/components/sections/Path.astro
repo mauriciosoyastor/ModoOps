@@ -28,3 +28,9 @@ const { embedded = false } = Astro.props;
     Tip: antes de hablar, <a href="/oficina" class="underline underline-offset-4" data-cta="cta_oficina" data-source="camino">recorré tu oficina virtual y armá tu borrador</a>.
   </p>
 </Section>
+
+<script>
+  document.querySelectorAll('a[data-cta="cta_oficina"][data-source="camino"]').forEach((el) => {
+    el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_oficina', {props:{source:'camino'}}));
+  });
+</script>

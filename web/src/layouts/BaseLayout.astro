@@ -6,9 +6,20 @@ import FloatingWhatsApp from '../components/ui/FloatingWhatsApp.astro';
 interface Props {
   title: string;
   description: string;
+  canonical?: string;
+  ogImage?: string;
+  ogType?: string;
+  noindex?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, canonical, ogImage, ogType = 'website', noindex = false } = Astro.props;
+
+// URLs absolutas para OG/WhatsApp: si hay canonical explícito manda su origen
+// (dominio canónico único); si no, Astro.site con fallback.
+const siteBase = (Astro.site?.toString() ?? 'https://modoops.com.ar').replace(/\/$/, '');
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteBase).toString();
+const imgBase = canonical ? new URL(canonicalUrl).origin : siteBase;
+const ogImageUrl = new URL(ogImage ?? '/images/galaxy-hero.png', imgBase).toString();
 ---
 
 <!doctype html>
@@ -24,10 +35,20 @@ const { title, description } = Astro.props;
       }
     </style>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:locale" content="es_AR" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content="ModoOps" />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:alt" content={title} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

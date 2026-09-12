@@ -2,6 +2,7 @@
 // Ruta REAL del portal (ticket 03) — recorrido guiado + hero 3D, reescrita con polish.
 // No es prototype: sin precios como oferta, borrador completo v1, localStorage, envío.
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { seoOficina } from '../data/business';
 import { OBJETO_LABEL, PUERTA_FUTURO, horasDe, type Objeto3DId } from '../lib/oficina-mapping';
 
 const NOMBRES: Record<string, string> = {
@@ -32,8 +33,9 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 ---
 
 <BaseLayout
-  title="Oficina virtual — armá tu borrador | ModoOps"
-  description="Recorré la oficina ModoOps, cargá los datos de tu negocio por objeto y enviá tu borrador no vinculante al consultor."
+  title={seoOficina.title}
+  description={seoOficina.description}
+  canonical="https://modoops.com.ar/oficina"
 >
   <main class="mx-auto w-full max-w-7xl px-4 py-8 md:px-8" data-portal>
     <p class="rounded-full border border-dashed px-3 py-1 text-xs text-zinc-400">
