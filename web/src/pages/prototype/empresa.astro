@@ -197,6 +197,16 @@ const ancla = zonas.filter((p) => p.id !== 'logistica');
           try {
             const { mountEmpresaScene } = await import('../../scripts/empresa-scene');
             escena = mountEmpresaScene(canvas, () => {}, etiquetas) as unknown as typeof escena;
+            // Demo para capturas: ?demo=logistica pre-responde tripleta Sí,
+            // góndola No (fantasma) y crecer web. Solo prototype.
+            if (new URLSearchParams(location.search).get('demo') === 'logistica') {
+              estado = responderGuion(estado, 'logistica', 0, 'si');
+              estado = responderGuion(estado, 'logistica', 1, 'si');
+              estado = responderGuion(estado, 'logistica', 2, 'si');
+              estado = responderGuion(estado, 'ventas', 0, 'no');
+              crecerSel.add('web');
+              escena?.resaltar('zona-logistica-3d');
+            }
             pinta();
           } catch {
             pre.textContent = 'Sin WebGL: completá el cuestionario igual, el borrador sigue vivo abajo.';
