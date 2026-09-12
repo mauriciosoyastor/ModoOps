@@ -366,24 +366,58 @@ export function mountOficinaScene(
       }
       if (!mesh.userData.fijo) mat.emissive.setHex(0x000000);
     });
-    if (reduced) foto();
+    if (quieto) foto();
     else programa();
   }
 
-  // Path GLTF real con cascada a procedural: intenta el GLB del manifest y
-  // cae al procedural si falta (sin manifest versionado siempre es false).
+  // Path GLTF real con cascada a procedural: solo carga lo versionado en
+  // models.manifest.json; si falta, el procedural queda como fallback total.
   async function cargarGLBZona(id: Objeto3DId): Promise<boolean> {
     try {
+      const manRes = await fetch('/models/models.manifest.json');
+      if (!manRes.ok) return false;
+      const man = (await manRes.json()) as {
+        models: { file: string }[];
+      };
+      const zona = id === 'zona-logistica-3d' ? 'logistica/' : null;
+      if (!zona) return false;
+      const entries = man.models.filter((m) => m.file.startsWith(`models/${zona}`));
+      if (entries.length === 0) return false;
       const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-      const prueba = new GLTFLoader().path;
-      void prueba;
-      const res = await fetch(`/models/${id}/v1.glb`, { method: 'HEAD' });
-      return res.ok;
-    } catch {
+      const loader = new GLTFLoader();
+      const gLog = raices.find((r) => r.userData.objeto === id);
+      if (!gLog) return false;
+      // Dársena: cinta en el suelo libre + caja sobre el pallet procedural.
+      // Medidas reales del GLB (2.00x0.40x1.00 cinta, 1.10x0.55x1.00 caja).
+      const spots: Record<string, { pos: [number, number, number]; ry: number; s: number }> = {
+        'conveyor-v1': { pos: [3.7, 0, -1.3], ry: 0, s: 1 },
+        'caja-v1': { pos: [4.1, 1.14, -0.2], ry: 0, s: 0.6 },
+      };
+      for (const e of entries) {
+        const base = e.file.split('/').pop()?.replace(/\.glb$/, '') ?? '';
+        const spot = spots[base];
+        if (!spot) continue;
+        const gltf = await loader.loadAsync(`/${e.file}`);
+        gltf.scene.position.set(...spot.pos);
+        gltf.scene.rotation.y = spot.ry;
+        gltf.scene.scale.setScalar(spot.s);
+        gltf.scene.traverse((o) => {
+          const mesh = o as THREE.Mesh;
+          if (mesh.isMesh) {
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+          }
+        });
+        gLog.add(gltf.scene);
+      }
+      canvas.dataset.glb = 'true';
+      if (quieto) foto();
+      return true;
+    } catch (err) {
+      console.warn('[empresa-glb] fallback', String(err));
       return false;
     }
   }
-  void cargarGLBZona('zona-logistica-3d');
 
   // Mostrador (madera + tapa clara + zócalo + frente con paneles) — frente
   {
@@ -613,7 +647,7 @@ export function mountOficinaScene(
     const id = nodo.userData.objeto as Objeto3DId;
     resaltar(id);
     seleccionado = id;
-    if (reduced && aLaVista) foto();
+    if (quieto && aLaVista) foto();
     else pintaCarteles();
     onPick(id, OBJETO_A_MODULO[id]);
   };
@@ -623,6 +657,8 @@ export function mountOficinaScene(
   // Estado compartido ANTES de resize(): resize() corre de inmediato y lee
   // estas variables (si van después, mueren por zona muerta temporal).
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // ?estatica=1: un solo frame (capturas deterministas en CI/headless).
+  const quieto = reduced || new URLSearchParams(location.search).get('estatica') === '1';
   let raf = 0;
   let aLaVista = true;
 
@@ -632,7 +668,7 @@ export function mountOficinaScene(
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    if (reduced && aLaVista) foto();
+    if (quieto && aLaVista) foto();
   }
   resize();
   const ro = new ResizeObserver(resize);
@@ -642,7 +678,7 @@ export function mountOficinaScene(
   // programados mientras el canvas no intersecta el viewport.
   const t0 = performance.now();
   function programa() {
-    if (!raf && aLaVista && !reduced) raf = requestAnimationFrame(frame);
+    if (!raf && aLaVista && !quieto) raf = requestAnimationFrame(frame);
   }
   // Movimiento reducido: un frame fijo por evento, sin loop
   // (manual: rendering on demand).
@@ -651,7 +687,7 @@ export function mountOficinaScene(
     renderer.render(scene, camera);
     pintaCarteles();
   }
-  if (reduced) {
+  if (quieto) {
     controls.addEventListener('change', () => {
       if (aLaVista) foto();
     });
@@ -660,7 +696,7 @@ export function mountOficinaScene(
     raf = 0;
     const t = (now - t0) * 0.001;
     controls.update();
-    if (!reduced) grupo.position.y = Math.sin(t * 0.8) * 0.015;
+    if (!quieto) grupo.position.y = Math.sin(t * 0.8) * 0.015;
     renderer.render(scene, camera);
     pintaCarteles();
     programa();
@@ -668,15 +704,18 @@ export function mountOficinaScene(
   const vigia = new IntersectionObserver(
     (entries) => {
       aLaVista = entries.some((e) => e.isIntersecting);
-      if (reduced) {
+      if (quieto) {
         if (aLaVista) foto();
       } else programa();
     },
     { threshold: 0 },
   );
   vigia.observe(canvas);
-  if (reduced) foto();
+  if (quieto) foto();
   else programa();
+  // Al final del montaje: los grupos (incluida la dársena) ya existen y el
+  // GLB puede colgarse del suyo; si falta, queda el procedural.
+  void cargarGLBZona('zona-logistica-3d');
   canvas.dataset.mounted = 'true';
 
   function dispose() {

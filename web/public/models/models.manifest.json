@@ -1,0 +1,35 @@
+{
+  "budgetGzipBytes": 716800,
+  "models": [
+    {
+      "file": "models/logistica/conveyor-v1.glb",
+      "bytes": 18688,
+      "gzipBytes": 3783,
+      "sha256": "9087ec11d9dcc85ada9d14a66910244bfbb5df57c64b2647956a32525935dee3",
+      "license": "CC0-1.0",
+      "sourceUrl": "https://kenney.nl/assets/factory-kit",
+      "packVersion": "kenney_factory-kit_3.0",
+      "sourceFile": "conveyor-long.glb"
+    },
+    {
+      "file": "models/logistica/caja-v1.glb",
+      "bytes": 7496,
+      "gzipBytes": 1602,
+      "sha256": "f5c7a7b4d7ec48c2695dc5241d62a38dbb54b487e6be0f089548582c91bacdfd",
+      "license": "CC0-1.0",
+      "sourceUrl": "https://kenney.nl/assets/factory-kit",
+      "packVersion": "kenney_factory-kit_3.0",
+      "sourceFile": "box-large.glb"
+    },
+    {
+      "file": "models/logistica/Textures/colormap.png",
+      "bytes": 11813,
+      "gzipBytes": 10111,
+      "sha256": "35d7bd6900dde0208429eeaec87fa17fbf024ed59f3f4eab54bc92802eba9dd7",
+      "license": "CC0-1.0",
+      "sourceUrl": "https://kenney.nl/assets/factory-kit",
+      "packVersion": "kenney_factory-kit_3.0",
+      "sourceFile": "colormap.png"
+    }
+  ]
+}
