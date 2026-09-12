@@ -1,0 +1,21 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { descubrimiento } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="linen" id="descubrimiento" embedded={embedded}>
+  <SectionHeading title={descubrimiento.title} lead={descubrimiento.lead} />
+  <ol class="grid max-w-3xl gap-3">
+    {descubrimiento.agenda.map((dia) => (
+      <li class="galaxy-card rounded-[var(--radius-card)] p-4 text-[length:var(--text-body-lg)]">{dia}</li>
+    ))}
+  </ol>
+  <p class="mt-6 max-w-2xl text-sm text-ash-gray">{descubrimiento.closing}</p>
+</Section>

@@ -1,0 +1,16 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { migracion } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="white" id="migracion" embedded={embedded}>
+  <SectionHeading title={migracion.title} lead={migracion.lead} />
+  <p class="max-w-2xl text-[length:var(--text-body-lg)] text-ash-gray">{migracion.detail}</p>
+</Section>

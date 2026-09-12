@@ -1,0 +1,16 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { despues } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="white" id="despues" embedded={embedded}>
+  <SectionHeading title={despues.title} lead={despues.lead} />
+  <p class="max-w-2xl text-[length:var(--text-body-lg)] text-ash-gray">{despues.detail}</p>
+</Section>

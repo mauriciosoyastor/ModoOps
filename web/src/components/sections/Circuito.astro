@@ -1,0 +1,23 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { circuito } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="linen" id="circuito" embedded={embedded}>
+  <SectionHeading title={circuito.title} lead={circuito.lead} />
+  <ol class="grid max-w-3xl gap-3">
+    {circuito.steps.map((step, i) => (
+      <li class="galaxy-card flex items-baseline gap-4 rounded-[var(--radius-card)] p-4">
+        <span class="text-[length:var(--text-subheading)] font-semibold text-nebula-cyan" aria-hidden="true">{i + 1}</span>
+        <span class="text-[length:var(--text-body-lg)]">{step}</span>
+      </li>
+    ))}
+  </ol>
+</Section>

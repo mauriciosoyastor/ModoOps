@@ -1,0 +1,23 @@
+---
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { contraste } from '../../data/business';
+
+interface Props {
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+---
+
+<Section variant="dark" id="contraste" embedded={embedded}>
+  <SectionHeading title={contraste.title} lead={contraste.lead} invert />
+  <div class="grid max-w-4xl gap-3">
+    {contraste.rows.map((row) => (
+      <div class="galaxy-card grid gap-2 rounded-[var(--radius-card)] p-4 md:grid-cols-2 md:gap-6">
+        <p class="text-ash-gray">{row.hoy}</p>
+        <p class="font-medium text-core-cream">{row.con}</p>
+      </div>
+    ))}
+  </div>
+</Section>
