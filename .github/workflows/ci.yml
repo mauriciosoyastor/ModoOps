@@ -53,6 +53,9 @@ jobs:
       - name: Install Node deps (root + web)
         run: npm ci --ignore-scripts
 
+      - name: Check — 3D models manifest + weight budget
+        run: node tools/check-models.mjs
+
       - name: Check — Cloudflare deploy contract
         run: npm run check:deploy-contract
 
