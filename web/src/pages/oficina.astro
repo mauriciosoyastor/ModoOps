@@ -205,9 +205,9 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <h3 class="font-semibold">Enviá tu borrador al consultor</h3>
             <ul class="mt-1 text-sm text-red-700" data-errores aria-live="polite"></ul>
             <div class="mt-2 flex flex-wrap gap-2">
-              <button data-copiar class="rounded-full bg-black px-4 py-2 text-sm text-white">Copiar JSON</button>
-              <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-sm text-green-700">Enviar por WhatsApp</a>
-              <button data-enviar class="rounded-full bg-orange-600 px-4 py-2 text-sm text-white">Enviar a ModoOps</button>
+              <button data-copiar class="rounded-full border border-white/20 px-4 py-2 text-sm text-white">Copiar JSON</button>
+              <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-sm text-green-300">Enviar por WhatsApp</a>
+              <button data-enviar class="rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-black">Enviar a ModoOps</button>
             </div>
             <p class="mt-1 text-xs text-zinc-400" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
             <p class="mt-1 text-xs" data-enviado role="status" hidden></p>
@@ -215,8 +215,8 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         </section>
 
         <div class="mt-4 flex justify-between">
-          <button data-atras class="rounded-full border px-4 py-2 text-sm">← Atrás</button>
-          <button data-adelante class="rounded-full bg-black px-4 py-2 text-sm text-white">Seguir →</button>
+          <button data-atras class="rounded-full border border-white/20 px-4 py-2 text-sm text-white">← Atrás</button>
+          <button data-adelante class="rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-black">Seguir →</button>
         </div>
       </div>
 
@@ -228,7 +228,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         <div class="mt-3 rounded-xl border p-3" data-cotizacion-panel>
           <h3 class="font-semibold">Validación del servidor</h3>
           <p class="text-xs text-zinc-400">Cotizá tu selección contra el catálogo vivo de Odoo (sin guardar nada).</p>
-          <button data-cotizar class="mt-2 rounded-full bg-black px-4 py-2 text-sm text-white">Cotizar en servidor</button>
+          <button data-cotizar class="mt-2 rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-black">Cotizar en servidor</button>
           <div class="mt-2 text-sm" data-cotizacion aria-live="polite"></div>
         </div>
       </aside>
@@ -355,8 +355,21 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       };
     }
 
-    const chips = root.querySelector('[data-seleccion]');
-    const json = root.querySelector('[data-json]');
+    // Movimiento reducido: los scrolls programáticos usan 'auto' (global CSS cubre el resto).
+    const reduceMovimiento =
+      typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function desplaza(el) {
+      if (!(el instanceof HTMLElement)) return;
+      el.scrollIntoView({ behavior: reduceMovimiento ? "auto" : "smooth", block: "center" });
+    }
+    // Error de validación: vuelve al paso 1, muestra el nombre y le da foco.
+    function enfocaNombre() {
+      document.querySelector('[data-paso="0"]')?.dispatchEvent(new Event("click"));
+      const nombreEl = root.querySelector('[data-prospecto="nombre"]');
+      desplaza(nombreEl);
+      if (nombreEl instanceof HTMLElement) nombreEl.focus({ preventScroll: true });
+    }
+    const chips = root.querySelector('[data-seleccion]');    const json = root.querySelector('[data-json]');
     const listaErrores = root.querySelector('[data-errores]');
     const btnCopiar = root.querySelector('[data-copiar]');
     const linkWa = root.querySelector('[data-whatsapp]');
@@ -426,8 +439,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     btnCopiar?.addEventListener('click', (e) => {
       if (borradorActual && validarBorrador(borradorActual).length > 0) {
         e.preventDefault();
-        document.querySelector('[data-paso="0"]')?.dispatchEvent(new Event('click'));
-        root.querySelector('[data-prospecto="nombre"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        enfocaNombre();
         return;
       }
       copiar();
@@ -446,8 +458,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     }
     btnEnviar?.addEventListener('click', async () => {
       if (!borradorActual || validarBorrador(borradorActual).length > 0) {
-        document.querySelector('[data-paso="0"]')?.dispatchEvent(new Event('click'));
-        root.querySelector('[data-prospecto="nombre"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        enfocaNombre();
         return;
       }
       if (!(btnEnviar instanceof HTMLButtonElement)) return;
@@ -605,7 +616,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         irAPaso(2);
       }
       if (card instanceof HTMLElement) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        desplaza(card);
         card.classList.add('ficha-flash');
         setTimeout(() => card.classList.remove('ficha-flash'), 1600);
       }
