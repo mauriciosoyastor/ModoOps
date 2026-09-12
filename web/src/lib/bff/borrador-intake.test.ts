@@ -71,7 +71,7 @@ describe("borradorALead", () => {
   });
   it("revienta con JSON gigante", () => {
     const b = borradorBase();
-    (b as Record<string, unknown>).relleno = "x".repeat(100_000);
+    (b as unknown as Record<string, unknown>).relleno = "x".repeat(100_000);
     expect(() => borradorALead(b)).toThrow();
   });
 });

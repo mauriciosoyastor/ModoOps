@@ -88,7 +88,7 @@ describe("oficina-mapping — seam único objeto↔módulo", () => {
     expect(b.modulos_futuros).toEqual(["migracion_excel"]);
     expect(b.horas_estimadas).toBe(
       ["mostrador", "deposito", "ventas", "compras", "fiscal_ar", "contactos", "migracion_excel"]
-        .map(horasDe)
+        .map((k) => horasDe(k as CatalogoKey))
         .reduce((a, h) => a + h, 0),
     );
     expect(b.prospecto.nombre).toBe("Pinturería Centro");
@@ -177,8 +177,8 @@ describe("oficina-mapping — guion v2 (3 preguntas por módulo)", () => {
     expect(ancla).toHaveLength(5);
     for (const p of ancla) {
       expect(p.preguntas).toHaveLength(3);
-      expect(p.texto).toBe(p.preguntas[0]);
-      for (const t of p.preguntas) {
+      expect(p.texto).toBe(p.preguntas![0]);
+      for (const t of p.preguntas!) {
         expect(t.endsWith("?")).toBe(true);
       }
     }
@@ -186,8 +186,8 @@ describe("oficina-mapping — guion v2 (3 preguntas por módulo)", () => {
 
   it("Mostrador parte atención y cobro", () => {
     const m = GUION_CHAT.find((p) => p.id === "mostrador")!;
-    expect(m.preguntas[0]).toMatch(/mostrador|en persona/);
-    expect(m.preguntas[1]).toMatch(/caja/);
+    expect(m.preguntas![0]).toMatch(/mostrador|en persona/);
+    expect(m.preguntas![1]).toMatch(/caja/);
   });
 
   it("No en P1 bloquea y limpia hijas", () => {
