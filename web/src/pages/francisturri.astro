@@ -72,7 +72,7 @@ const vistaInicial = parseVista(Astro.url.search);
         href={contact.whatsapp}
         target="_blank"
         rel="noopener"
-        class="mt-4 inline-flex min-h-[44px] items-center rounded-full bg-amber-200 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        class="mt-4 inline-flex min-h-[44px] items-center rounded-full bg-star-warm px-6 py-3 text-sm font-semibold text-space-void transition-colors hover:bg-star-glow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         Escribime por WhatsApp
       </a>
@@ -83,6 +83,11 @@ const vistaInicial = parseVista(Astro.url.search);
   <script>
     const canvas = document.querySelector('canvas[data-camara]');
     if (canvas instanceof HTMLCanvasElement && !canvas.dataset.mounted) {
+      if (typeof IntersectionObserver === 'undefined') {
+        canvas.style.display = 'none';
+        const fb = document.querySelector('[data-camara-fallback]');
+        if (fb instanceof HTMLElement) fb.hidden = false;
+      } else {
       const io = new IntersectionObserver(
         async (entries) => {
           if (!entries.some((e) => e.isIntersecting)) return;
@@ -91,7 +96,7 @@ const vistaInicial = parseVista(Astro.url.search);
           const estado = document.querySelector('[data-camara-estado]');
           try {
             const { mountCamaraScene } = await import('../scripts/camara-scene');
-            const { parseVista, serializeVista } = await import('../lib/foto-vista');
+            const { parseVista } = await import('../lib/foto-vista');
             // Monta siempre: con reduced-motion la escena entra en modo quieto
             // (un frame estático + render on-demand) en vez de dejar el canvas vacío.
             const escena = mountCamaraScene(canvas, parseVista(window.location.search));
@@ -120,6 +125,7 @@ const vistaInicial = parseVista(Astro.url.search);
         { rootMargin: '200px' },
       );
       io.observe(canvas);
+      }
     }
   </script>
 </BaseLayout>
