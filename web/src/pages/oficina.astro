@@ -120,11 +120,11 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
                 <input data-dato="tiene_excel" type="checkbox" class="h-4 w-4" /></label>
             </div>
             <fieldset class="rounded border p-2">
-              <legend class="px-1 text-xs text-zinc-400">Tu infraestructura (solo sí/no)</legend>
+              <legend class="px-1 text-xs text-zinc-400">Tu parte técnica (solo sí/no)</legend>
               <div class="flex flex-wrap gap-3">
-                <label class="flex items-center gap-2">¿Hosting propio? <input data-infra="hosting_propio" type="checkbox" class="h-4 w-4" /></label>
-                <label class="flex items-center gap-2">¿Dominio con SSL? <input data-infra="dominio_ssl" type="checkbox" class="h-4 w-4" /></label>
-                <label class="flex items-center gap-2">¿Backups? <input data-infra="backups" type="checkbox" class="h-4 w-4" /></label>
+                <label class="flex items-center gap-2">¿Pagás hosting o servidor? <input data-infra="hosting_propio" type="checkbox" class="h-4 w-4" /></label>
+                <label class="flex items-center gap-2">¿Página con candadito (https)? <input data-infra="dominio_ssl" type="checkbox" class="h-4 w-4" /></label>
+                <label class="flex items-center gap-2">¿Copias de seguridad? <input data-infra="backups" type="checkbox" class="h-4 w-4" /></label>
               </div>
             </fieldset>
             <p class="text-xs text-zinc-400">* Solo nombre y un contacto (teléfono o email) son obligatorios. Todo lo demás ayuda al consultor pero es opcional.</p>
@@ -284,13 +284,14 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 <script>
   import {
     OBJETO_A_MODULO,
-    WHATSAPP_COMERCIAL,
     construirBorrador,
     esAncla,
     guardarBorrador,
     cargarBorrador,
     horasDe,
     validarBorrador,
+    mensajeWhatsApp,
+    enlaceWhatsApp,
   } from '../lib/oficina-mapping';
 
   const NOMBRES = {
@@ -412,9 +413,9 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
           listaErrores.appendChild(li);
         }
       }
-      const textoWa = 'Hola ModoOps, te paso mi borrador (no vinculante):\n```json\n' + JSON.stringify(b) + '\n```';
+      const textoWa = mensajeWhatsApp(b);
       if (linkWa instanceof HTMLAnchorElement) {
-        linkWa.href = WHATSAPP_COMERCIAL + '?text=' + encodeURIComponent(textoWa);
+        linkWa.href = enlaceWhatsApp(textoWa);
         linkWa.classList.toggle('opacity-40', errores.length > 0);
         linkWa.setAttribute('aria-disabled', errores.length > 0 ? 'true' : 'false');
       }
@@ -607,6 +608,24 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     const convSetB = (sel, v) => { const el = convGet(sel); if (el instanceof HTMLInputElement) el.checked = !!v; };
     const convValT = (sel) => { const el = convGet(sel); return el instanceof HTMLInputElement || el instanceof HTMLSelectElement ? el.value.trim() : ''; };
     const convValB = (sel) => { const el = convGet(sel); return el instanceof HTMLInputElement ? el.checked : false; };
+    const convEnviarBtn = convForm instanceof HTMLFormElement ? convForm.querySelector('button[type="submit"]') : null;
+    // El botón Enviar muta a CTA verde de WhatsApp cuando el cuestionario termina.
+    function pintaBotonEnviar(modo) {
+      if (!(convEnviarBtn instanceof HTMLButtonElement)) return;
+      if (modo === 'whatsapp') {
+        convEnviarBtn.dataset.modo = 'whatsapp';
+        convEnviarBtn.textContent = 'Enviar por WhatsApp';
+        convEnviarBtn.style.background = '#22c55e';
+        convEnviarBtn.style.borderColor = 'transparent';
+        convEnviarBtn.style.color = '#06130c';
+      } else {
+        convEnviarBtn.dataset.modo = 'chat';
+        convEnviarBtn.textContent = 'Enviar';
+        convEnviarBtn.style.background = '';
+        convEnviarBtn.style.borderColor = '';
+        convEnviarBtn.style.color = '';
+      }
+    }
     function convBurbuja(rol, textoMsg) {
       if (!(convHilo instanceof HTMLElement)) return;
       const p = document.createElement('p');
@@ -635,14 +654,8 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       { id: 'telefono', pregunta: '¿A qué teléfono te contactamos? (o escribí "saltear" si preferís email)', tipo: 'tel', saltear: true, set: (v) => convSetT('[data-prospecto="telefono"]', v), get: () => convValT('[data-prospecto="telefono"]') },
       { id: 'email', pregunta: '¿Y tu email? (o "saltear")', tipo: 'email', saltear: true, set: (v) => convSetT('[data-prospecto="email"]', v), get: () => convValT('[data-prospecto="email"]') },
       { id: 'rubro', pregunta: '¿Qué rubro es?', tipo: 'opciones', opciones: [{ etiqueta: 'Retail mostrador', valor: 'retail' }, { etiqueta: 'Distribución chica', valor: 'distribucion' }, { etiqueta: 'Servicios', valor: 'servicios' }], set: (v) => convSetT('[data-prospecto="rubro"]', v), get: () => convValT('[data-prospecto="rubro"]') || 'retail' },
-      { id: 'sucursales', pregunta: '¿Cuántas sucursales? (1 por defecto)', tipo: 'numero', defecto: 1, set: (v) => convSetT('[data-prospecto="sucursales"]', String(v)), get: () => convValT('[data-prospecto="sucursales"]') },
-      { id: 'cajas', pregunta: '¿Cuántas cajas? (2 por defecto)', tipo: 'numero', defecto: 2, set: (v) => convSetT('[data-prospecto="cajas"]', String(v)), get: () => convValT('[data-prospecto="cajas"]') },
-      { id: 'usuarios', pregunta: '¿Cuántos usuarios van a usar el sistema? (5 por defecto)', tipo: 'numero', defecto: 5, set: (v) => convSetT('[data-prospecto="usuarios"]', String(v)), get: () => convValT('[data-prospecto="usuarios"]') },
-      { id: 'productos', pregunta: '¿Cuántos productos aprox. tenés? (0 si no sabés)', tipo: 'numero', defecto: 0, set: (v) => convSetT('[data-dato="productos_aprox"]', String(v)), get: () => convValT('[data-dato="productos_aprox"]') },
-      { id: 'excel', pregunta: '¿Llevás stock en Excel hoy?', tipo: 'sino', set: (v) => convSetB('[data-dato="tiene_excel"]', v === 'si'), get: () => convValB('[data-dato="tiene_excel"]') ? 'si' : 'no' },
-      { id: 'hosting', pregunta: '¿Tenés hosting propio?', tipo: 'sino', set: (v) => convSetB('[data-infra="hosting_propio"]', v === 'si'), get: () => convValB('[data-infra="hosting_propio"]') ? 'si' : 'no' },
-      { id: 'ssl', pregunta: '¿Tenés dominio con SSL?', tipo: 'sino', set: (v) => convSetB('[data-infra="dominio_ssl"]', v === 'si'), get: () => convValB('[data-infra="dominio_ssl"]') ? 'si' : 'no' },
-      { id: 'backups', pregunta: '¿Hacés backups?', tipo: 'sino', set: (v) => convSetB('[data-infra="backups"]', v === 'si'), get: () => convValB('[data-infra="backups"]') ? 'si' : 'no' },
+      // El resto (sucursales, cajas, usuarios, productos, Excel, hosting, SSL,
+      // backups) viaja con valores por defecto y se ajusta en "Ver/editar todos los datos".
     ];
     let convPaso = 0;
     const FIN_PASO1 = PASOS_CONV.length;
@@ -725,13 +738,22 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
           { id: 'f-cont', pregunta: '¿Quién es tu contador? (o “Saltear”)', tipo: 'texto', saltear: true, get: () => convObjVal('pizarron-fiscal-3d', 'contador'), set: (v) => convSetObj('pizarron-fiscal-3d', 'contador', v) },
         ],
       };
-      return Object.keys(ETIQ_ANCLA).map((id3d) => convSiNo(
-        'ancla-' + id3d,
-        `¿Necesitás ${ETIQ_ANCLA[id3d]} hoy?`,
-        () => (convIncluir(id3d) ? 'si' : 'no'),
-        (v) => convSetIncluir(id3d, v === 'si'),
-        det[id3d],
-      ));
+      // Un solo multi-select: tildás todo lo de tu día a día y solo te pregunto
+      // el detalle de lo que elegiste (lo no elegido queda fuera, sin preguntas).
+      const OPCIONES_ANCLA = Object.keys(ETIQ_ANCLA).map((id3d) => ({ etiqueta: ETIQ_ANCLA[id3d], valor: id3d }));
+      return [{
+        id: 'ancla', pregunta: '¿Qué usás en tu día a día? Tocá todo y después "Listo".', tipo: 'multi',
+        opciones: OPCIONES_ANCLA,
+        get: () => OPCIONES_ANCLA.map((o) => o.valor).filter(convIncluir),
+        set: (arr) => {
+          OPCIONES_ANCLA.forEach((o) => convSetIncluir(o.valor, arr.includes(o.valor)));
+          const extras = [];
+          for (const id3d of OPCIONES_ANCLA.map((o) => o.valor)) {
+            if (arr.includes(id3d)) extras.push(...det[id3d]);
+          }
+          if (extras.length) cola.splice(convPaso + 1, 0, ...extras);
+        },
+      }];
     }
     function armarCrecer() {
       return [{
@@ -773,7 +795,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         const b = document.createElement('button');
         b.type = 'button';
         b.textContent = (on ? '✓ ' : '') + op.etiqueta;
-        b.className = 'rounded-full border px-3 py-1 text-xs font-semibold' + (on ? ' bg-white text-black' : ' border-white/20');
+        b.className = 'rounded-full border px-4 py-2 text-sm font-semibold' + (on ? ' border-transparent bg-[var(--color-star-warm)] text-space-void' : ' border-white/30 bg-white/[0.06] text-white');
         b.setAttribute('aria-pressed', on ? 'true' : 'false');
         b.addEventListener('click', () => {
           if (p.sel.has(op.valor)) p.sel.delete(op.valor);
@@ -785,7 +807,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       const listo = document.createElement('button');
       listo.type = 'button';
       listo.textContent = 'Listo (' + p.sel.size + ') →';
-      listo.className = 'rounded-full border border-[var(--color-star-warm)] px-3 py-1 text-xs font-semibold';
+      listo.className = 'rounded-full border border-transparent bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-space-void';
       listo.addEventListener('click', () => convResponder('__listo'));
       convOpc.appendChild(listo);
     }
@@ -811,14 +833,21 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         convAnclaIntro = true;
       }
       if (convPaso >= cola.length) {
-        const nombre = convValT('[data-prospecto="nombre"]') || 'tu negocio';
-        const anclaTxt = Object.keys(ETIQ_ANCLA).filter(convIncluir).map((id) => ETIQ_ANCLA[id]).join(', ') || '—';
-        const futTxt = FUT_OPTS.filter((o) => convFuturo(o.valor)).map((o) => o.etiqueta).join(', ') || '—';
-        convBurbuja('bot', '¡Listo ' + nombre + '! Tu borrador: ancla ' + anclaTxt + ' · para crecer: ' + futTxt + '. Lo tenés en el Paso 3 para enviarlo por WhatsApp o a ModoOps.');
-        convOpciones([{ etiqueta: 'Ir al Paso 2', valor: '__paso:1' }, { etiqueta: 'Ir al Paso 3 (enviar)', valor: '__paso:2' }, { etiqueta: 'Repasar', valor: '__reiniciar' }]);
+        pinta();
+        const bFin = borradorActual ?? construirBorrador(leeEstado());
+        const nombre = bFin.prospecto.nombre || 'tu negocio';
+        const anclaMostrar = bFin.modulos_ancla.filter((k) => !SIEMPRE.includes(k)).map((k) => NOMBRES[k] ?? k);
+        const futEtiq = new Map([...FUT_OPTS.map((o) => [o.valor, o.etiqueta]), ['logistica', 'Logística']]);
+        const futMostrar = bFin.modulos_futuros.map((k) => futEtiq.get(k) ?? NOMBRES[k] ?? k);
+        const anclaTxt = anclaMostrar.join(', ') || '—';
+        const futTxt = futMostrar.join(', ') || '—';
+        convBurbuja('bot', '¡Listo ' + nombre + '! Tu borrador: ancla ' + anclaTxt + ' · para crecer: ' + futTxt + '. Tocá el botón verde para enviarlo por WhatsApp.');
+        convOpciones([{ etiqueta: 'Enviar por WhatsApp', valor: '__whatsapp' }, { etiqueta: 'Ir al Paso 2', valor: '__paso:1' }, { etiqueta: 'Ir al Paso 3 (enviar)', valor: '__paso:2' }, { etiqueta: 'Repasar', valor: '__reiniciar' }]);
+        pintaBotonEnviar('whatsapp');
         return;
       }
       const p = cola[convPaso];
+      pintaBotonEnviar('chat');
       if (p.tipo === 'multi') {
         convBurbuja('bot', p.pregunta);
         p.sel = new Set(p.get());
@@ -880,21 +909,36 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       }
       convPreguntar();
     }
+    function abrirWhatsAppFinal() {
+      pinta();
+      const b = borradorActual ?? construirBorrador(leeEstado());
+      if (validarBorrador(b).length > 0) {
+        convBurbuja('bot', 'Te falta nombre y un contacto para enviarlo: completalos y lo mandamos por WhatsApp.');
+        enfocaNombre();
+        return;
+      }
+      convBurbuja('bot', 'Abriendo WhatsApp con tu cuestionario hecho…');
+      window.open(enlaceWhatsApp(mensajeWhatsApp(b)), '_blank', 'noopener');
+    }
     function convResponder(crudo) {
       const p = cola[convPaso];
       if (!p) {
-        if (crudo === '__seguir') { irAPaso(paso + 1); return; }
-        if (crudo === '__reiniciar') { convReiniciar(); return; }
-        if (typeof crudo === 'string' && crudo.startsWith('__paso:')) {
-          irAPaso(Number(crudo.split(':')[1]) || 0);
+        const tFin = String(crudo ?? '').trim();
+        if (tFin === '__seguir') { irAPaso(paso + 1); return; }
+        if (tFin === '__reiniciar') { convReiniciar(); return; }
+        if (tFin === '__whatsapp' || tFin === '') { abrirWhatsAppFinal(); return; }
+        if (typeof tFin === 'string' && tFin.startsWith('__paso:')) {
+          irAPaso(Number(tFin.split(':')[1]) || 0);
           return;
         }
-        convPreguntaLibre(String(crudo ?? '').trim());
+        if (esPreguntaLibre(tFin, undefined)) { convPreguntaLibre(tFin); return; }
+        abrirWhatsAppFinal();
         return;
       }
       const t = String(crudo ?? '').trim();
       if (t === '__seguir') { irAPaso(paso + 1); return; }
       if (t === '__reiniciar') { convReiniciar(); return; }
+      if (t === '__whatsapp') { abrirWhatsAppFinal(); return; }
       if (t.startsWith('__paso:')) {
         irAPaso(Number(t.split(':')[1]) || 0);
         return;
@@ -963,6 +1007,12 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       if (!(convMsg instanceof HTMLInputElement) && !(convMsg instanceof HTMLTextAreaElement)) return;
       const v = convMsg.value;
       convMsg.value = '';
+      // Cuestionario terminado: el botón verde abre WhatsApp directo, sin parser.
+      if (convEnviarBtn instanceof HTMLButtonElement && convEnviarBtn.dataset.modo === 'whatsapp') {
+        if (v.trim() && esPreguntaLibre(v.trim(), undefined)) { convPreguntaLibre(v.trim()); return; }
+        abrirWhatsAppFinal();
+        return;
+      }
       convResponder(v);
     });
     // Enter envía, Shift+Enter salta de línea.
