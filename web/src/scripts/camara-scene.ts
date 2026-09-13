@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import type { VistaId } from '../lib/foto-vista.ts';
+import type { VistaId } from '../lib/foto-vista';
 
 export interface CamaraHandle {
   (): void;
@@ -113,6 +113,8 @@ export function mountCamaraScene(canvas: HTMLCanvasElement, vistaInicial: VistaI
   controls.maxDistance = 12;
   controls.minPolarAngle = 0.2;
   controls.maxPolarAngle = Math.PI / 2 - 0.05;
+  // Teclado: flechas rotan, +/− zoom (canvas con tabindex en la página).
+  controls.listenToKeyEvents(canvas);
 
   function setVista(vista: VistaId) {
     const v = VISTAS[vista];
@@ -177,13 +179,20 @@ export function mountCamaraScene(canvas: HTMLCanvasElement, vistaInicial: VistaI
     raf = 0;
     ro.disconnect();
     controls.dispose();
+    const materiales = new Set<THREE.Material>();
     scene.traverse((o) => {
       const mesh = o as THREE.Mesh;
       if (mesh.isMesh) {
         mesh.geometry.dispose();
-        (mesh.material as THREE.Material).dispose();
+        const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        for (const m of mats) materiales.add(m as THREE.Material);
       }
     });
+    for (const m of materiales) m.dispose();
+    if (scene.environment) {
+      (scene.environment as THREE.Texture).dispose();
+      scene.environment = null;
+    }
     renderer.dispose();
     delete canvas.dataset.mounted;
   }
