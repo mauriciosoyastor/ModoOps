@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { parseVista, type VistaId } from '../lib/foto-vista';
+
+const VISTAS: { id: VistaId; etiqueta: string }[] = [
+  { id: 'frontal', etiqueta: 'Vista frontal' },
+  { id: 'lateral', etiqueta: 'Vista lateral' },
+  { id: 'lente', etiqueta: 'Detalle del lente' },
+];
+const vistaInicial = parseVista(Astro.url.search);
+---
+
+<BaseLayout
+  title="FrancisTurriFotografía — bodas, 15 años, cumpleaños y eventos"
+  description="Fotografía de bodas, cumpleaños de 15, fiestas y eventos. Mirá la cámara, elegí tu servicio y escribime por WhatsApp."
+>
+  <main class="mx-auto w-full max-w-6xl px-4 py-8 md:px-8">
+    <p class="text-sm text-zinc-400">Bodas · 15 años · Cumpleaños · Eventos</p>
+    <h1 class="mt-2 text-3xl font-semibold md:text-5xl">Siempre sacá como un profesional</h1>
+    <p class="mt-2 max-w-2xl text-zinc-300">
+      Cubro tu cumpleaños, casamiento o evento con mirada documental: momentos reales, sin poses
+      incómodas. Elegí la vista de la cámara y después contame tu fecha por WhatsApp.
+    </p>
+
+    <section aria-label="Cámara interactiva" class="mt-6">
+      <div class="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+        <canvas data-camara class="block w-full" role="img" aria-label="Modelo 3D de cámara fotográfica"></canvas>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Vistas de la cámara">
+        {
+          VISTAS.map((v) => (
+            <button
+              type="button"
+              data-vista={v.id}
+              aria-pressed={v.id === vistaInicial ? 'true' : 'false'}
+              class="rounded-full border border-white/15 px-4 py-2 text-sm transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              {v.etiqueta}
+            </button>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="servicios" aria-label="Servicios" class="mt-10"><h2 class="text-2xl font-semibold">Servicios</h2></section>
+    <section id="galeria" aria-label="Galería" class="mt-10"><h2 class="text-2xl font-semibold">Galería</h2></section>
+    <section id="paquetes" aria-label="Paquetes" class="mt-10"><h2 class="text-2xl font-semibold">Paquetes</h2></section>
+    <section id="proceso" aria-label="Cómo trabajo" class="mt-10"><h2 class="text-2xl font-semibold">Cómo trabajo</h2></section>
+    <section id="faq" aria-label="Preguntas frecuentes" class="mt-10"><h2 class="text-2xl font-semibold">Preguntas frecuentes</h2></section>
+    <section id="contacto" aria-label="Contacto" class="mt-10"><h2 class="text-2xl font-semibold">Contacto</h2></section>
+    <section id="chat" aria-label="Chat" class="mt-10"><h2 class="text-2xl font-semibold">Contame tu evento</h2></section>
+  </main>
+
+  <script>
+    const canvas = document.querySelector('canvas[data-camara]');
+    const reduced =
+      typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (canvas instanceof HTMLCanvasElement && !reduced) {
+      const { mountCamaraScene } = await import('../scripts/camara-scene');
+      const { parseVista, serializeVista } = await import('../lib/foto-vista');
+      const escena = mountCamaraScene(canvas, parseVista(window.location.search));
+      const botones = [...document.querySelectorAll('button[data-vista]')] as HTMLButtonElement[];
+      const pinta = (activa: string) => {
+        for (const b of botones) b.setAttribute('aria-pressed', String(b.dataset.vista === activa));
+      };
+      for (const b of botones) {
+        b.addEventListener('click', () => {
+          const vista = (b.dataset.vista ?? 'frontal') as 'frontal' | 'lateral' | 'lente';
+          escena.setVista(vista);
+          const url = new URL(window.location.href);
+          url.search = '?' + serializeVista(vista);
+          window.history.replaceState(null, '', url);
+          pinta(vista);
+        });
+      }
+    }
+  </script>
+</BaseLayout>
