@@ -14,7 +14,8 @@
                 <filter string="Suspendido" name="filter_state_suspendido" domain="[('state','=','suspendido')]"/>
                 <filter string="Baja" name="filter_state_baja" domain="[('state','=','baja')]"/>
                 <separator/>
-                <filter string="Vencimiento próximo" name="filter_abono_soon" domain="[]"/>
+                <filter string="En mora" name="filter_en_mora" domain="[('state','=','activo'),('abono_due_date','!=',False),('abono_due_date','&lt;',context_today())]"/>
+                <filter string="En gracia" name="filter_en_gracia" domain="[('state','=','activo'),('suspend_grace_until','!=',False),('suspend_grace_until','&gt;=',context_today())]"/>
             </search>
         </field>
     </record>
