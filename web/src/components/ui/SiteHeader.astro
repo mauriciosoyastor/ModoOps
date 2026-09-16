@@ -18,6 +18,7 @@ import { nav, brand } from '../../data/business';
           ))
         }
         <a href="/login" class="rounded-full border border-nebula-cyan/40 px-4 py-1.5 text-core-cream transition-colors hover:border-nebula-cyan hover:text-nebula-cyan" data-cta="cta_login" data-source="header">Trabajo en ModoOps</a>
+        <a href="#contacto" class="rounded-full bg-star-warm px-4 py-1.5 font-semibold text-space-void transition-colors hover:opacity-90 md:hidden" data-cta="cta_propuesta" data-source="header-mobile">Pedir propuesta</a>
       </nav>
   </div>
 </header>
@@ -25,5 +26,8 @@ import { nav, brand } from '../../data/business';
 <script>
   document.querySelectorAll('a[data-cta="cta_login"][data-source="header"]').forEach((el) => {
     el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_login', {props:{source:'header'}}));
+  });
+  document.querySelectorAll('a[data-cta="cta_propuesta"][data-source="header-mobile"]').forEach((el) => {
+    el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_propuesta', {props:{source:'header-mobile'}}));
   });
 </script>

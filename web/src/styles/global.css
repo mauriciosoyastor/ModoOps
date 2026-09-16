@@ -68,6 +68,12 @@
     outline-offset: 3px;
   }
 
+  /* Ticket 03: titulares balanceados (brief landing §4); display ya usa tracking-tight ≈ -1px */
+  h1,
+  h2 {
+    text-wrap: balance;
+  }
+
   body {
     font-family: var(--font-sans);
     font-size: var(--text-body);
@@ -103,6 +109,14 @@
   --sg-text-muted-dark: color-mix(in srgb, var(--color-star-white) 64%, transparent);
   --sg-radius-card: 1.25rem;
   --sg-radius-pill: 999px;
+
+  /* Ticket 03: motion tokens (quietud por defecto; solo explican cambio de estado) */
+  --motion-micro: 100ms;
+  --motion-small: 200ms;
+  --motion-medium: 250ms;
+  --motion-large: 350ms;
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);
 }
 
 @layer utilities {
