@@ -8,6 +8,8 @@
     "build": "npm --prefix web install && npm --prefix web run build",
     "deploy": "vercel --prod",
     "check:deploy-contract": "node tools/check-cf-deploy-contract.mjs",
+    "check:design": "node tools/design-check/check.js",
+    "test:design": "node --test tools/design-check/check.test.mjs",
     "test": "python -m pytest modoops_ia/tests -q",
     "test:py": "python -m pytest modoops_ia/tests -v",
     "check:grafo": "node tools/check-grafo.mjs"

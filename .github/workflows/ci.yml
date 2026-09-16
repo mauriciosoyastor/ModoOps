@@ -59,6 +59,11 @@ jobs:
       - name: Check — Cloudflare deploy contract
         run: npm run check:deploy-contract
 
+      - name: Design gate — prohibidos + tests
+        run: |
+          npm run check:design
+          npm run test:design
+
       - name: Build — web (Astro)
         run: npm run build
 

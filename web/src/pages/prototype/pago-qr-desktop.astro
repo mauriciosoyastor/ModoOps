@@ -1,0 +1,248 @@
+---
+ // PROTOTYPE throwaway — variante desktop de pago QR interoperable (mapa sistema-diseno-modoops, ticket 06).
+// "What should this look like?" (skill prototype, rama UI): ruta descartable con ?method=qr|efectivo|tarjeta.
+// No enlazar desde prod. Sin persistencia: estado en memoria + URL (?method=). Webhook simulado con
+// botones (en prod: MP Orders API + webhook/polling). Run: dev-server de web/ → /prototype/pago-qr-desktop
+import '../../styles/global.css';
+
+const method = ['qr', 'efectivo', 'tarjeta'].includes(Astro.url.searchParams.get('method') || '')
+  ? Astro.url.searchParams.get('method')
+  : 'qr';
+
+const mqs = (m: string) => `/prototype/pago-qr-desktop?method=${m}`;
+const TABS = [
+  { id: 'qr', label: 'QR interoperable' },
+  { id: 'efectivo', label: 'Efectivo' },
+  { id: 'tarjeta', label: 'Tarjeta presente' },
+] as const;
+---
+
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="PROTOTYPE descartable: cobro desktop con QR para mostrador ModoOps." />
+    <meta name="theme-color" content="#000000" />
+    <title>PROTOTYPE — Cobro desktop QR (mostrador)</title>
+    <style>
+      html { color-scheme: dark; background: #000; }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+      :focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+      .receipt { border-radius: 1.25rem; padding: 1.5rem; border: 1px solid color-mix(in srgb, var(--color-nebula-cyan) 32%, transparent); background-color: color-mix(in srgb, var(--color-galaxy-deep) 72%, transparent); }
+      .paypanel { border-radius: 1.25rem; padding: 1.5rem; border: 1px solid color-mix(in srgb, var(--color-nebula-cyan) 32%, transparent); background: #000; min-height: 26rem; }
+      .btn-p { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 1rem 1.5rem; font-weight: 600; min-height: 44px; background: var(--color-star-warm); color: var(--color-space-void); transition: background-color 0.15s ease, opacity 0.15s ease; }
+      .btn-p:hover { opacity: 0.92; }
+      .btn-p:active { transform: scale(0.97); }
+      .btn-g { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 1rem 1.5rem; font-weight: 500; min-height: 44px; border: 1px solid color-mix(in srgb, var(--color-canvas-white) 50%, transparent); color: var(--color-canvas-white); background: transparent; transition: border-color 0.15s ease, opacity 0.15s ease; }
+      .btn-g:hover { border-color: var(--color-canvas-white); }
+      .tab { padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.875rem; color: var(--color-ash-gray); min-height: 44px; transition: color 0.15s ease, background-color 0.15s ease; }
+      .tab[aria-selected="true"] { background: var(--color-star-warm); color: var(--color-space-void); font-weight: 600; }
+      .denom { border: 1px solid color-mix(in srgb, var(--color-canvas-white) 30%, transparent); border-radius: 0.75rem; padding: 0.75rem 0; font-variant-numeric: tabular-nums; min-height: 44px; transition: border-color 0.15s ease, background-color 0.15s ease; }
+      .denom:hover { border-color: var(--color-canvas-white); }
+      .denom[aria-pressed="true"] { border-color: var(--color-star-warm); background: color-mix(in srgb, var(--color-star-warm) 18%, transparent); }
+      .simbar { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem 0.75rem; border-radius: 999px; background: rgb(0 0 0 / 0.9); border: 1px dashed rgb(255 255 255 / 0.35); font-size: 0.8rem; }
+      .simbar button { padding: 0.5rem 0.9rem; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.3); min-height: 44px; }
+      .qr-card { background: #fff; border-radius: 1rem; padding: 1rem; width: fit-content; }
+      .num { font-variant-numeric: tabular-nums; }
+      [hidden] { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <p style="margin: 1rem auto 0; max-width: 72rem; padding: 0 1.5rem;" class="text-xs text-neutral-500">
+      <span class="rounded-full border border-dashed px-3 py-1">
+        PROTOTYPE — cobro desktop QR · nada de acá está en prod · reaccionar en ticket 06 · webhook simulado abajo
+      </span>
+    </p>
+
+    <main class="mx-auto w-full max-w-6xl px-6 py-8 md:px-10">
+      <p class="text-sm text-star-white/70" aria-live="polite" data-status>Listo · ticket armándose</p>
+      <h1 class="mt-2 text-3xl font-semibold tracking-tight">Cobrar · Caja 1 — Mostrador</h1>
+
+      <div class="mt-6 grid gap-4 lg:grid-cols-2">
+        <!-- Receipt panel -->
+        <section aria-labelledby="ticket-t" class="receipt" data-receipt>
+          <h2 id="ticket-t" class="text-sm text-star-white/70">Ticket · Pinturería Centro</h2>
+          <ul class="mt-3 space-y-2 text-base">
+            <li class="flex justify-between gap-4"><span>Látex interior 20 L × 1</span><span class="num">$ 8.900</span></li>
+            <li class="flex justify-between gap-4"><span>Rodillo lana 22 cm × 2</span><span class="num">$ 2.300</span></li>
+            <li class="flex justify-between gap-4 text-star-white/70"><span>Descuento general 5%</span><span class="num">−$ 560</span></li>
+          </ul>
+          <p class="mt-4 flex justify-between border-t border-white/10 pt-4 text-2xl font-semibold">
+            <span>Total</span><span class="num" data-total>$ 10.640</span>
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Método de cobro">
+            {TABS.map((t) => (
+              <a role="tab" aria-selected={t.id === method ? 'true' : 'false'} href={mqs(t.id)} class="tab">{t.label}</a>
+            ))}
+          </div>
+          <div class="mt-4 flex gap-3">
+            <button type="button" class="btn-p" data-cobrar>Cobrar $ 10.640</button>
+          </div>
+        </section>
+
+        <!-- Pago panel -->
+        <section aria-labelledby="pago-t" class="paypanel">
+          <h2 id="pago-t" class="text-sm text-star-white/70">Pago · <span data-method-label>{TABS.find((t) => t.id === method)?.label}</span></h2>
+
+          <div data-state="idle">
+            <p class="mt-6 text-lg">Armá el ticket y elegí cómo cobrar.</p>
+            <p class="mt-2 text-sm text-star-white/60">Al pulsar Cobrar se crea la orden (MP Orders API por sucursal + caja) y el ticket se bloquea hasta que el pago se confirme o se cancele.</p>
+          </div>
+
+          <div data-state="processing-qr" hidden>
+            <div class="qr-card mt-6" role="img" aria-label="Código QR para pagar con cualquier billetera">
+              <svg data-qr width="220" height="220" viewBox="0 0 25 25" shape-rendering="crispEdges" aria-hidden="true"></svg>
+            </div>
+            <p class="num mt-4 text-3xl font-semibold">$ 10.640</p>
+            <p class="mt-1 text-sm text-star-white/70">El cliente escanea con <strong>cualquier billetera</strong> (MODO, banco, MP). Vence en <span class="num" data-timer>5:00</span>.</p>
+            <p class="mt-1 text-xs text-star-white/50 num" data-order>Orden MP-…</p>
+            <div class="mt-4 flex gap-3">
+              <button type="button" class="btn-g" data-cancelar>Cancelar</button>
+            </div>
+          </div>
+
+          <div data-state="processing-efectivo" hidden>
+            <p class="mt-6 text-sm text-star-white/70">Recibido</p>
+            <div class="mt-2 grid grid-cols-3 gap-2" role="group" aria-label="Denominaciones ARS">
+              {[100, 500, 1000, 2000, 5000, 10000].map((d) => (
+                <button type="button" class="denom num" data-denom={d} aria-pressed="false">$ {d.toLocaleString('es-AR')}</button>
+              ))}
+            </div>
+            <p class="mt-4 text-base">Recibido: <span class="num font-semibold" data-recibido>$ 0</span> · Vuelto: <span class="num font-semibold" data-vuelto>$ 0</span></p>
+            <div class="mt-4 flex gap-3">
+              <button type="button" class="btn-g" data-payexact>Pago exacto</button>
+              <button type="button" class="btn-p" data-confirmar-efectivo>Confirmar efectivo</button>
+              <button type="button" class="btn-g" data-cancelar>Cancelar</button>
+            </div>
+          </div>
+
+          <div data-state="processing-tarjeta" hidden>
+            <p class="mt-6 text-lg">Cobrá en la terminal física por <span class="num font-semibold">$ 10.640</span>.</p>
+            <p class="mt-2 text-sm text-star-white/60">El desktop no toca tarjetas: la autorización vive en el pinpad. Confirmá solo cuando la terminal apruebe.</p>
+            <div class="mt-4 flex gap-3">
+              <button type="button" class="btn-p" data-confirmar-tarjeta>Terminal aprobó</button>
+              <button type="button" class="btn-g" data-cancelar>Cancelar</button>
+            </div>
+          </div>
+
+          <div data-state="success" hidden>
+            <p class="mt-6 text-5xl" aria-hidden="true">✓</p>
+            <h3 class="mt-2 text-2xl font-semibold">Pago exitoso</h3>
+            <p class="mt-2 text-sm text-star-white/70">Referencia <span class="num" data-ref>—</span> · <span data-success-method>—</span>. Stock descontado, caja liberada.</p>
+            <div class="mt-4 flex gap-3">
+              <button type="button" class="btn-p" data-nueva>Nueva venta</button>
+            </div>
+          </div>
+
+          <div data-state="error" hidden>
+            <p class="mt-6 text-5xl" aria-hidden="true">!</p>
+            <h3 class="mt-2 text-2xl font-semibold">No se pudo confirmar el pago</h3>
+            <p class="mt-2 text-sm text-star-white/70" data-error-cause>Rechazado por la billetera.</p>
+            <div class="mt-4 flex gap-3">
+              <button type="button" class="btn-p" data-reintentar>Reintentar (nuevo QR)</button>
+              <button type="button" class="btn-g" data-cambiar>Cambiar método</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div class="simbar" role="group" aria-label="Simulación de webhook (solo prototipo)">
+      <span class="text-neutral-400">webhook:</span>
+      <button type="button" data-sim="approved">aprobado</button>
+      <button type="button" data-sim="rejected">rechazado</button>
+      <button type="button" data-sim="expired">expirado</button>
+    </div>
+
+    <script define:vars={{ method }}>
+      const $ = (s, r = document) => r.querySelector(s);
+      const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+      const TOTAL = 10640;
+      let state = 'idle', timerId = null, secs = 300, order = null, recibido = 0;
+
+      const states = $$('[data-state]');
+      const status = $('[data-status]');
+      const STATUS_TXT = { idle: 'Listo · ticket armándose', 'processing-qr': 'Esperando pago · QR exhibido', 'processing-efectivo': 'Contando efectivo', 'processing-tarjeta': 'Esperando terminal física', success: 'Pago exitoso', error: 'Pago no confirmado' };
+      function show(next, focusSel) {
+        state = next;
+        states.forEach((el) => { el.hidden = el.dataset.state !== next; });
+        status.textContent = STATUS_TXT[next] ?? next;
+        document.querySelector('[data-cobrar]')?.toggleAttribute('disabled', next.startsWith('processing'));
+        if (focusSel) $(focusSel)?.focus();
+      }
+      const fmt = (n) => '$ ' + n.toLocaleString('es-AR');
+
+      // Pseudo-QR determinista (visual; en prod el QR lo emite MP Orders API).
+      function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+      function rng(seed) { let a = seed; return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+      function drawQR(seed) {
+        const svg = $('[data-qr]'); if (!svg) return;
+        const N = 25, r = rng(hash(seed)), cells = [];
+        const finder = (x, y) => { for (let i = -1; i < 8; i++) for (let j = -1; j < 8; j++) { const xx = x + i, yy = y + j; if (xx < 0 || yy < 0 || xx >= N || yy >= N) continue; const edge = i === -1 || i === 7 || j === -1 || j === 7, core = i >= 2 && i <= 4 && j >= 2 && j <= 4; cells.push(`<rect x="${xx}" y="${yy}" width="1" height="1" fill="${edge || (i >= 0 && i < 7 && j >= 0 && j < 7 && !core) || core ? '#000' : '#fff'}"/>`); } };
+        for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (r() > 0.52) cells.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="#000"/>`);
+        svg.innerHTML = `<rect width="25" height="25" fill="#fff"/>` + cells.join('');
+        finder(0, 0); finder(18, 0); finder(0, 18);
+        svg.innerHTML += '';
+      }
+
+      function tick() {
+        secs--;
+        const t = $('[data-timer]'); if (t) t.textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+        if (secs <= 0) fail('Expirado: el QR venció a los 5 minutos. Generá uno nuevo sin perder el ticket.');
+      }
+      function startTimer() { clearInterval(timerId); secs = 300; timerId = setInterval(tick, 1000); }
+      function stopTimer() { clearInterval(timerId); timerId = null; }
+
+      function cobrar() {
+        order = 'MP-' + Date.now().toString(36).toUpperCase();
+        $('[data-order]').textContent = 'Orden ' + order + ' · Caja 1';
+        if (method === 'qr') { drawQR(order); startTimer(); show('processing-qr', '[data-cancelar]'); }
+        else if (method === 'efectivo') { recibido = 0; paintCash(); show('processing-efectivo', '[data-payexact]'); }
+        else show('processing-tarjeta', '[data-confirmar-tarjeta]');
+      }
+      function succeed(met, ref) {
+        stopTimer();
+        $('[data-ref]').textContent = ref ?? order ?? 'EF-' + Date.now().toString(36).toUpperCase();
+        $('[data-success-method]').textContent = met;
+        show('success', '[data-nueva]');
+      }
+      function fail(cause) {
+        stopTimer();
+        $('[data-error-cause]').textContent = cause;
+        show('error', '[data-reintentar]');
+      }
+
+      // Efectivo
+      function paintCash() {
+        $('[data-recibido]').textContent = fmt(recibido);
+        $('[data-vuelto]').textContent = fmt(Math.max(0, recibido - TOTAL));
+        $$('[data-denom]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+      }
+      $$('[data-denom]').forEach((b) => b.addEventListener('click', () => { recibido += Number(b.dataset.denom); paintCash(); }));
+      $('[data-payexact]')?.addEventListener('click', () => { recibido = TOTAL; paintCash(); });
+      $('[data-confirmar-efectivo]')?.addEventListener('click', () => {
+        if (recibido < TOTAL) { fail(`Faltan ${fmt(TOTAL - recibido)}: sumá denominaciones o usá pago exacto.`); return; }
+        succeed('Efectivo');
+      });
+      $('[data-confirmar-tarjeta]')?.addEventListener('click', () => succeed('Tarjeta presente'));
+
+      $('[data-cobrar]')?.addEventListener('click', cobrar);
+      $$('[data-cancelar]').forEach((b) => b.addEventListener('click', () => { stopTimer(); show('idle', '[data-cobrar]'); }));
+      $('[data-nueva]')?.addEventListener('click', () => { order = null; show('idle', '[data-cobrar]'); });
+      $('[data-reintentar]')?.addEventListener('click', cobrar);
+      $('[data-cambiar]')?.addEventListener('click', () => show('idle', '[data-cobrar]'));
+
+      // Simulación de webhook (en prod: MP webhook/polling → mismo succeed/fail).
+      $$('[data-sim]').forEach((b) => b.addEventListener('click', () => {
+        if (!state.startsWith('processing')) return;
+        const k = b.dataset.sim;
+        if (k === 'approved') succeed(method === 'qr' ? 'QR interoperable' : method === 'efectivo' ? 'Efectivo' : 'Tarjeta presente');
+        else if (k === 'rejected') fail('Rechazado por la billetera: fondos insuficientes o cancelado por el cliente.');
+        else fail('Expirado: el QR venció a los 5 minutos. Generá uno nuevo sin perder el ticket.');
+      }));
+
+      show('idle', null);
+    </script>
+  </body>
+</html>
