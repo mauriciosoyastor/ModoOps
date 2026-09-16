@@ -4,6 +4,11 @@
 
 **Producto:** landing + PDF one-pager · **Mauricio Matasini** · consultoría de sistemas de gestión para comercios (oferta actual: Odoo CE retail).
 
+> **Vigencia (2026-09, decisión A del mapa sistema-diseno-modoops):** la landing implementada es
+> **dark-galaxia** y manda el stylesheet (`web/src/styles/global.css`) + `web/AGENTS.md`. Esta tabla
+> refleja lo vigente, no la intención clara original. Spec viva: `docs/design-system/`; gate:
+> `tools/design-check/`.
+
 ---
 
 ## Overrides — Consultoría (obligatorio)
@@ -17,15 +22,17 @@
 
 ---
 
-## Tokens — Colors
+## Tokens — Colors (vigentes dark-galaxia, stylesheet manda)
 
 | Name | Value | Token | Role |
 |------|-------|-------|------|
-| Midnight Void | `#000000` | `--color-midnight-void` | Hero, footer, texto en fondos claros |
-| Canvas White | `#ffffff` | `--color-canvas-white` | Texto en hero, fondo botón primario, cards |
-| Soft Linen | `#f5f5f5` | `--color-soft-linen` | Secciones alternas (problema, camino, etc.) |
-| Ash Gray | `#bababa` | `--color-ash-gray` | Texto secundario, bordes suaves |
-| Trust Slate | `#1a3a52` | `--color-trust-slate` | Acento opcional (links, borde CTA secundario) — **no** gradiente |
+| Midnight Void | `#000000` | `--color-midnight-void` | Hero, footer, fondo base |
+| Canvas White | `#f3ecf2` | `--color-canvas-white` | Texto base (alias star-white, no blanco puro) |
+| Soft Linen | `#101020` | `--color-soft-linen` | Bandas alternas **oscuras** (alias space-mist) |
+| Galaxy Deep | `#2a3444` | — (ver `white` en `Section`) | Secciones "claras", siempre oscuras |
+| Star Warm | `#c05a42` | `--color-brand-accent` | **Único acento: CTA primario siempre con texto oscuro** (4.78 AA; en blanco falla) |
+| Ash Gray | `#867f7f` | `--color-ash-gray` | Bordes y notas `body-sm` — prohibido en texto CTA/cuerpo crítico |
+| Trust Slate | `#496a95` | `--color-trust-slate` | Bordes ghost y glass **estático** en chrome — **no** gradiente |
 
 ---
 
@@ -95,16 +102,16 @@ Borde 1px `midnight-void`, texto negro, transparente. Uso: enlaces secundarios e
 
 ## Do
 
-- Hero oscuro + CTA pill blanco visible.
-- Alternar linen / white entre secciones.
+- Hero oscuro + CTA pill star-warm con texto oscuro visible.
+- Alternar bandas oscuras (mist / deep) entre secciones, full-bleed.
 - Mantener mucho aire (50px entre secciones).
 - Contraste WCAG AA en textos críticos (no ash gray en CTAs).
 
 ## Don't
 
 - Neural Gradient ni paletas neon.
-- Sombras fuertes o glassmorphism.
-- Dark mode completo (solo hero + footer oscuros).
+- Sombras fuertes; glass solo estático en chrome UI (SiteHeader), nunca decorativo.
+- Superficies claras nuevas (el tema vigente es dark completo).
 - Iconografía “AI brain” / neuro.
 
 ---
