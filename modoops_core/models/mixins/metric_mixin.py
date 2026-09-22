@@ -10,6 +10,8 @@ from datetime import timedelta
 from odoo import fields, models
 from odoo.tools.safe_eval import safe_eval
 
+from ..hub_delta import shift_period_back as _shift_period_back
+
 _logger = logging.getLogger(__name__)
 
 
@@ -96,6 +98,51 @@ class MetricMixin(models.AbstractModel):
             return Model.search_count(domain)
         except Exception:
             _logger.exception("Error calculando métrica para %s %s", self._name, self.id)
+            return None
+
+    def _metric_current_bounds(self):
+        """(inicio, fin) semiabierto del período actual según scope, o (None, None).
+
+        Solo scopes de flujo tienen "período anterior" (ticket 10, regla mismo
+        largo): today/due_today → el día; due_week → 7 días. none/overdue son
+        stock acumulado → sin delta.
+        """
+        self.ensure_one()
+        if not self.metric_date_field or self.metric_date_scope in (
+            False,
+            "none",
+            "overdue",
+        ):
+            return (None, None)
+        today = fields.Date.context_today(self)
+        if self.metric_date_scope in ("today", "due_today"):
+            return (today, today + timedelta(days=1))
+        if self.metric_date_scope == "due_week":
+            return (today, today + timedelta(days=8))
+        return (None, None)
+
+    def _compute_metric_previous(self):
+        """Mismo cálculo que el actual pero en el período inmediato anterior."""
+        self.ensure_one()
+        start, end = self._metric_current_bounds()
+        if start is None or not self.metric_model or self.metric_model not in self.env:
+            return None
+        prev_start, prev_end = _shift_period_back(start, end)
+        Model = self.env[self.metric_model]
+        domain = list(self._eval_domain(self.metric_domain))
+        date_field = self.metric_date_field
+        domain.extend([(date_field, ">=", prev_start), (date_field, "<", prev_end)])
+        try:
+            if self.metric_aggregate == "sum" and self.metric_field:
+                data = Model.read_group(domain, [self.metric_field], [])
+                if not data:
+                    return 0
+                return data[0].get(self.metric_field) or 0
+            return Model.search_count(domain)
+        except Exception:
+            _logger.exception(
+                "Error calculando métrica previa para %s %s", self._name, self.id
+            )
             return None
 
     def _get_metric_display(self):

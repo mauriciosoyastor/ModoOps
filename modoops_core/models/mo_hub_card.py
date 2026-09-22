@@ -3,6 +3,8 @@ import logging
 from odoo import api, fields, models, _
 from odoo.tools.safe_eval import safe_eval
 
+from .hub_delta import delta_ref as _hub_delta_ref, pct_change as _hub_pct_change
+
 _logger = logging.getLogger(__name__)
 
 
@@ -98,6 +100,15 @@ class SgHubCard(models.Model):
 
     def _serialize_card(self):
         self.ensure_one()
+        raw = self._compute_metric_raw()
+        previous = self._compute_metric_previous()
+        pct = _hub_pct_change(raw, previous)
+        scope = self.metric_date_scope
+        ref = _hub_delta_ref(scope) if pct is not None else None
+        pending = self.variant == "warning" or (
+            scope in ("due_today", "due_week", "overdue")
+            and raw not in (None, 0, 0.0)
+        )
         return {
             "id": self.id,
             "label": self.label,
@@ -106,7 +117,10 @@ class SgHubCard(models.Model):
             "variant": self.variant,
             "accent_key": self.accent_key or "",
             "enter_label": self.enter_label or _("Ingresar →"),
-            "value": self._get_metric_display(),
+            "value": self._format_metric_value(raw),
+            "delta_pct": round(pct, 1) if pct is not None else None,
+            "delta_ref": ref,
+            "pending": bool(pending),
             "action": self._get_action_payload(),
         }
 

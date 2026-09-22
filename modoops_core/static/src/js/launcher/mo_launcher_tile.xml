@@ -5,6 +5,7 @@
         <div
             t-attf-class="sg-launcher-tile sg-launcher-tile--{{ props.tile.accent_key or 'flame-orange' }} sg-stagger-item"
             t-on-click="() => props.onClick(props.tile)"
+            t-on-keydown="onTileKeydown"
             role="button"
             tabindex="0"
         >
@@ -14,11 +15,22 @@
                 </div>
                 <h3 class="sg-launcher-tile__label" t-esc="props.tile.label"/>
                 <p t-if="props.tile.hint" class="sg-launcher-tile__hint" t-esc="props.tile.hint"/>
+                <p t-if="chipText" class="sg-launcher-tile__chip" t-esc="chipText"/>
             </div>
             <div class="sg-launcher-tile__accent" aria-hidden="true">
                 <span
-                    t-attf-class="sg-launcher-tile__metric {{ props.loading ? 'sg-launcher-tile__metric--loading' : '' }}"
+                    t-attf-class="sg-launcher-tile__metric tabular-nums {{ props.loading ? 'sg-launcher-tile__metric--loading' : '' }}"
                     t-esc="props.tile.value"
+                />
+                <span
+                    t-if="deltaText"
+                    t-attf-class="sg-launcher-tile__delta sg-launcher-tile__delta--{{ deltaDir }}"
+                    t-esc="deltaText"
+                />
+                <span
+                    t-if="props.tile.delta_ref &amp;&amp; deltaText"
+                    class="sg-launcher-tile__delta-ref"
+                    t-esc="props.tile.delta_ref"
                 />
             </div>
         </div>

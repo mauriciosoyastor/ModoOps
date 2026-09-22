@@ -1,0 +1,193 @@
+---
+// PROTOTYPE throwaway — sistema de diseño dark-galaxia vigente (tickets 05/08).
+// "Tres variantes del sistema (tokens | componentes | superficies), switchable via ?variant=, en /prototype/sistema-diseno."
+// No enlazar desde prod (ruta descartable). Sin JS de negocio, sin persistencia. Gate check.js lo salta (SKIP_DIRS).
+// Run: dev-server de web/ → /prototype/sistema-diseno?variant=tokens (o componentes, superficies)
+import '../../styles/global.css';
+const variant = Astro.url.searchParams.get('variant') ?? 'tokens';
+const order = ['tokens', 'componentes', 'superficies'];
+const labels: Record<string, string> = {
+  tokens: 'A · Tokens',
+  componentes: 'B · Componentes',
+  superficies: 'C · Superficies',
+};
+---
+
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="PROTOTYPE descartable: sistema de diseño ModoOps dark-galaxia." />
+    <meta name="theme-color" content="#000000" />
+    <title>PROTOTYPE — Sistema de diseño ModoOps</title>
+    <style>
+      .proto-switcher {
+        position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%);
+        z-index: 100; display: flex; align-items: center; gap: 0.75rem;
+        background: #f3ecf2; color: #000; border-radius: 999px;
+        padding: 0.4rem 0.6rem; box-shadow: 0 4px 24px rgb(0 0 0 / 0.45);
+        font-size: 0.875rem; font-weight: 600;
+      }
+      .proto-switcher button {
+        border-radius: 999px; min-width: 44px; min-height: 44px;
+        padding: 0 0.9rem; font-weight: 700;
+        transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      }
+      .proto-switcher button:hover { background: #000; color: #f3ecf2; }
+      .swatch { border-radius: 1.25rem; padding: 1rem; min-height: 96px;
+        display: flex; flex-direction: column; justify-content: flex-end; gap: 0.15rem;
+        border: 1px solid color-mix(in srgb, #496a95 32%, transparent);
+        transition: border-color 0.15s ease, opacity 0.15s ease; }
+      .demo-btn { display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 5rem; padding: 1rem 1.5rem; font-weight: 500; min-height: 44px;
+        transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease; }
+    </style>
+  </head>
+  <body class="bg-space-void text-star-white">
+    <a href="#contenido" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-black">Saltar al contenido</a>
+    <p style="margin: 1rem auto 0; max-width: 70rem; padding: 0 1.5rem;">
+      <span class="inline-block rounded-full border border-dashed border-star-white/40 px-3 py-1 text-xs text-star-white/70">
+        PROTOTYPE — sistema dark-galaxia vigente · manda <code>global.css</code> · nada de acá está en prod
+      </span>
+    </p>
+
+    <main id="contenido" class="mx-auto w-full max-w-[70rem] px-6 py-10 md:px-10">
+      <header class="max-w-3xl">
+        <p class="text-sm font-semibold uppercase tracking-[0.14em] text-star-white/70">ModoOps · <span translate="no">ModoOps</span> · ES-AR voseo</p>
+        <h1 class="mt-3 text-[2.5rem] font-semibold leading-[1.1] tracking-tight" style="text-wrap: balance;">El sistema en una pantalla: tokens, componentes y superficies.</h1>
+        <p class="mt-4 text-lg text-star-white/90">Mirá cómo lo implementamos: oscuro completo, un solo acento, mucho aire. Cambiá de variante abajo o con <kbd>←</kbd> <kbd>→</kbd>.</p>
+      </header>
+
+      {variant === 'tokens' && (
+        <section aria-label="Tokens" class="mt-10">
+          <h2 class="text-[2rem] font-medium">A · Tokens — la materia prima</h2>
+          <p class="mt-2 text-star-white/80">11 colores, 1 fuente (Inter), escala tipo 48→14, ritmo 50/12, radios pill 80 + card 20. El stylesheet manda; el doc solo blanquea.</p>
+          <div class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div class="swatch" style="background:#000000; color:#f3ecf2"><strong>space-void #000000</strong><span class="text-sm opacity-80">Hero, footer, base</span></div>
+            <div class="swatch" style="background:#101020; color:#f3ecf2"><strong>space-mist #101020</strong><span class="text-sm opacity-80">alias soft-linen · banda alterna</span></div>
+            <div class="swatch" style="background:#2a3444; color:#f3ecf2"><strong>galaxy-deep #2a3444</strong><span class="text-sm opacity-80">alias white · sección clara oscura</span></div>
+            <div class="swatch" style="background:#c05a42; color:#000000"><strong>star-warm #c05a42 ★</strong><span class="text-sm">único acento · CTA con texto oscuro 4.78 AA</span></div>
+            <div class="swatch" style="background:#b65e49; color:#000000"><strong>star-glow #b65e49</strong><span class="text-sm">hover CTA</span></div>
+            <div class="swatch" style="background:#f3ecf2; color:#000"><strong>star-white #f3ecf2</strong><span class="text-sm">texto base (no blanco puro)</span></div>
+            <div class="swatch" style="background:#496a95; color:#fff"><strong>nebula-cyan #496a95</strong><span class="text-sm">bordes ghost, glass estático</span></div>
+            <div class="swatch" style="background:#867f7f; color:#000"><strong>ash-gray #867f7f</strong><span class="text-sm">solo bordes/notas · nunca texto crítico</span></div>
+          </div>
+          <div class="mt-8 grid gap-3 md:grid-cols-2">
+            <div class="rounded-[1.25rem] border border-nebula-cyan/30 p-6">
+              <h3 class="text-xl font-medium">Tipo — Inter, titulares balanceados</h3>
+              <p class="mt-3 text-[3rem] leading-[1.05] font-semibold tracking-tight">Display 48</p>
+              <p class="mt-1 text-[2.5rem] leading-[1.1] font-semibold">Display-sm 40</p>
+              <p class="mt-1 text-[2rem] leading-[1.15]">Heading 32 · peso 500</p>
+              <p class="mt-1 text-2xl">Subheading 24 · cards</p>
+              <p class="mt-1 text-lg">Body-lg 18 · lead</p>
+              <p class="mt-1 text-base">Body 16 · cuerpo</p>
+              <p class="mt-1 text-sm text-star-white/70">Body-sm 14 · notas, ash-gray permitido acá</p>
+            </div>
+            <div class="rounded-[1.25rem] border border-nebula-cyan/30 p-6">
+              <h3 class="text-xl font-medium">Ritmo + motion quieta</h3>
+              <ul class="mt-3 space-y-2 text-star-white/85">
+                <li>Section gap 50px · element 12px · ancho máx 1120px</li>
+                <li>Radios: pill 80px (solo botones) · card 20px</li>
+                <li>Motion: micro 100ms / small 200ms / medium 250ms / large 350ms</li>
+                <li>Ease standard <code>cubic-bezier(0.16,1,0.3,1)</code> · propiedades explícitas, nunca <code>transition-all</code></li>
+                <li><code>prefers-reduced-motion</code> → quietud · foco <code>:focus-visible</code> global</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {variant === 'componentes' && (
+        <section aria-label="Componentes" class="mt-10">
+          <h2 class="text-[2rem] font-medium">B · Componentes — permitido / prohibido</h2>
+          <p class="mt-2 text-star-white/80">Mismo botón en 3 sabores · bandas Section · tabla table-first · pago como máquina de estados.</p>
+          <div class="mt-6 flex flex-wrap gap-4">
+            <span class="demo-btn bg-star-warm text-space-void">Pedir descubrimiento</span>
+            <span class="demo-btn border border-canvas-white/50 text-canvas-white">WhatsApp (ghost-dark)</span>
+            <span class="demo-btn border border-nebula-cyan/60 text-canvas-white">Ver cómo trabajamos</span>
+          </div>
+          <p class="mt-3 text-sm text-star-white/70">Permitido: press <code>scale 0.97</code> 100ms, spinner→check. Prohibido: bounce, shimmer, pill para metadata, blanco sobre warm (falla AA).</p>
+          <div class="mt-6 overflow-hidden rounded-[1.25rem] border border-nebula-cyan/30">
+            <div class="bg-space-void px-6 py-6"><strong>Section dark</strong> · hero, contacto — fondo void</div>
+            <div class="bg-space-mist px-6 py-6"><strong>Section linen</strong> · problema, camino — hoy oscura #101020 (drift blanqueado)</div>
+            <div class="bg-galaxy-deep px-6 py-6"><strong>Section white</strong> · solución — hoy oscura #2a3444, sin superficies claras nuevas</div>
+          </div>
+          <div class="mt-6 overflow-x-auto rounded-[1.25rem] border border-nebula-cyan/30">
+            <table class="w-full text-left text-sm">
+              <caption class="px-4 pt-4 text-left text-star-white/70">Tabla densa · numéricos derecha tabular · chip+texto (color nunca solo)</caption>
+              <thead><tr class="text-star-white/70"><th class="px-4 py-3">Tenant</th><th class="px-4 py-3">Estado</th><th class="px-4 py-3 text-right">Vence</th><th class="px-4 py-3 text-right">Acción</th></tr></thead>
+              <tbody>
+                <tr class="border-t border-star-white/10"><td class="px-4 py-3">Panadería Sur</td><td class="px-4 py-3"><span class="rounded-full border border-star-warm/60 px-2 py-0.5">● En mora</span></td><td class="px-4 py-3 text-right tabular-nums">12/10</td><td class="px-4 py-3 text-right">Ver</td></tr>
+                <tr class="border-t border-star-white/10"><td class="px-4 py-3">Kiosco Norte</td><td class="px-4 py-3"><span class="rounded-full border border-nebula-cyan/60 px-2 py-0.5">● En gracia</span></td><td class="px-4 py-3 text-right tabular-nums">28/10</td><td class="px-4 py-3 text-right">Ver</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-6 grid gap-3 md:grid-cols-2">
+            <div class="rounded-[1.25rem] border border-nebula-cyan/30 p-6">
+              <h3 class="font-medium">Pago QR desktop — máquina de estados</h3>
+              <p class="mt-2 text-sm text-star-white/80"><code>idle → processing → success | error</code> (+<code>authorized</code> interno). Imposible éxito sin confirmación · timeout + reintento · sin countdown a presión ni confetti.</p>
+              <p class="mt-3 inline-block rounded-full bg-space-mist px-3 py-1 text-sm">● processing… skeleton solo mientras autoriza</p>
+            </div>
+            <div class="rounded-[1.25rem] border border-nebula-cyan/30 p-6">
+              <h3 class="font-medium">Input + error honesto</h3>
+              <label for="proto-cuit" class="mt-2 block text-sm">CUIT</label>
+              <input id="proto-cuit" inputmode="numeric" autocomplete="off" value="30-12345678-9" class="mt-1 w-full rounded-xl border border-star-white/20 bg-transparent px-3 py-2 text-base" />
+              <p role="alert" class="mt-2 text-sm text-star-warm">Revisá el CUIT: faltan 2 dígitos. El foco viene acá.</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {variant === 'superficies' && (
+        <section aria-label="Superficies" class="mt-10">
+          <h2 class="text-[2rem] font-medium">C · Superficies — dónde vive cada regla</h2>
+          <p class="mt-2 text-star-white/80">Landing (8 bandas) · Control Plane (tabla tenants) · Shell Tenant (POS 2 col). Capacidad × craft.</p>
+          <ol class="mt-6 space-y-1 overflow-hidden rounded-[1.25rem] border border-nebula-cyan/30 text-sm">
+            <li class="bg-space-void px-4 py-3">1 Hero — titular resultado + 1 CTA verb-first sobre fold</li>
+            <li class="bg-space-mist px-4 py-3">2 Problema · 3 Solución (galaxy) · 4 Camino</li>
+            <li class="bg-galaxy-deep px-4 py-3">5 Descubrimiento — <strong>$155 USD</strong> tabular, sin mezclar monedas</li>
+            <li class="bg-space-mist px-4 py-3">6 Para quién · 7 Cómo trabajamos · 8 Contacto (form ≤5 campos, 16px, voseo)</li>
+          </ol>
+          <div class="mt-6 grid gap-3 md:grid-cols-2">
+            <div class="rounded-[1.25rem] border border-nebula-cyan/30 p-6">
+              <h3 class="font-medium">Control Plane — veredicto arriba-izq</h3>
+              <p class="mt-2"><span class="rounded-full border border-star-warm/60 px-2 py-0.5 text-sm">● 3 en mora</span> <span class="ml-2 text-sm text-star-white/70">showing 8 of 24 · filtros en URL, reversibles</span></p>
+              <p class="mt-2 text-sm text-star-white/70">Row actions 1–2 + overflow · destructiva con confirm · Enter abre detalle · targets ≥44px.</p>
+            </div>
+            <div class="rounded-[1.25rem] border border-nebula-cyan/30 p-6">
+              <h3 class="font-medium">Shell POS — densidad operativa</h3>
+              <div class="mt-2 grid grid-cols-2 gap-2 text-sm">
+                <div class="rounded-xl bg-space-mist p-3">Grilla · stock inline · atajos<br /><span class="text-star-white/60">foco en Cobrar</span></div>
+                <div class="rounded-xl bg-space-mist p-3">Receipt · denominaciones ARS<br /><span class="text-star-white/60">pay-exact · log por caja</span></div>
+              </div>
+              <p class="mt-2 text-sm text-star-white/70">Error AFIP como estado con causa + reintento · color nunca solo.</p>
+            </div>
+          </div>
+          <p class="mt-6 text-sm text-star-white/70">Gate: <code>node tools/design-check/check.js</code> en verde + AA medido + LCP &lt;2.5s = “hecho”. Checklist: <code>tools/design-check/checklist.md</code>.</p>
+        </section>
+      )}
+    </main>
+
+    <nav aria-label="Variantes del prototipo" class="proto-switcher">
+      <button type="button" data-prev aria-label="Variante anterior">←</button>
+      <span id="proto-label">{labels[variant] ?? variant} · {order.indexOf(variant) + 1}/3</span>
+      <button type="button" data-next aria-label="Variante siguiente">→</button>
+    </nav>
+
+    <script>
+      const order = ['tokens', 'componentes', 'superficies'];
+      const get = () => new URLSearchParams(location.search).get('variant') ?? 'tokens';
+      const go = (v) => { const u = new URL(location.href); u.searchParams.set('variant', v); location.href = u.toString(); };
+      const step = (d) => { const i = order.indexOf(get()); go(order[(i + d + order.length) % order.length]); };
+      document.querySelector('[data-prev]')?.addEventListener('click', () => step(-1));
+      document.querySelector('[data-next]')?.addEventListener('click', () => step(1));
+      addEventListener('keydown', (e) => {
+        const t = e.target;
+        if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || (t instanceof HTMLElement && t.isContentEditable)) return;
+        if (e.key === 'ArrowLeft') step(-1);
+        if (e.key === 'ArrowRight') step(1);
+      });
+    </script>
+  </body>
+</html>

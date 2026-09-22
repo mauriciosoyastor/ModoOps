@@ -33,6 +33,10 @@ export type HubCard = {
   accent_key: AccentKey | string;
   enter_label: string;
   value: string;
+  /** Ticket 10: aditivos opcionales — payload viejo sigue tipando. */
+  delta_pct?: number | null;
+  delta_ref?: string | null;
+  pending?: boolean;
   action: Record<string, unknown>;
 };
 

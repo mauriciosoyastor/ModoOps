@@ -1,3 +1,4 @@
+from . import hub_delta  # puro, sin Odoo: primero para mixins
 from . import mo_hub_section
 from .mixins import metric_mixin
 from . import mo_hub_card
