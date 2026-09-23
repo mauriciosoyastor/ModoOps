@@ -1,49 +1,41 @@
 ---
-import BaseLayout from "../../../layouts/BaseLayout.astro";
-import Button from "../../../components/ui/Button.astro";
-import { BffError } from "../../../lib/bff/errors.ts";
-import { invalidateBffSession } from "../../../lib/bff/http.ts";
-import { loadTenantLauncher } from "../../../lib/bff/launcher.ts";
-import { withMasterSession } from "../../../lib/bff/tenant-status.ts";
-import { resumenHome } from "../../../lib/bff/home.ts";
-
+import LightAppLayout from '../../../layouts/LightAppLayout.astro';
+import { BffError } from '../../../lib/bff/errors.ts';
+import { invalidateBffSession } from '../../../lib/bff/http.ts';
+import { loadTenantLauncher } from '../../../lib/bff/launcher.ts';
+import { withMasterSession } from '../../../lib/bff/tenant-status.ts';
+import { resumenHome } from '../../../lib/bff/home.ts';
 
 export const prerender = false;
 
-// Hub 2 — launcher por tenant (q2 recomendado): /tenant/[slug]/app tenant-scoped
-const slug = String(Astro.params.slug || "").trim();
+const slug = String(Astro.params.slug || '').trim();
 if (!slug || !/^[a-z0-9_]+$/.test(slug)) {
-  return new Response("slug inválido", { status: 400 });
+  return new Response('slug inválido', { status: 400 });
 }
 
 const _sessT = (Astro.locals as Record<string, unknown>).session as { name?: string; login?: string } | undefined;
 const _odooT = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
-if (!_odooT) return Astro.redirect("/login");
-let odooSessionId: string = _odooT;
-let userName = _sessT?.name || _sessT?.login || "";
+if (!_odooT) return Astro.redirect('/login');
+const odooSessionId: string = _odooT;
+const userName = _sessT?.name || _sessT?.login || '';
 
-// Solo interno Hub1 q5: si no es admin/modoops, igual allow para demo — en prod check groups_id
-let tenant: import("../../../lib/bff/backend-client.ts").TenantRow | null = null;
-let tenantError = "";
-let tiles: import("../../../lib/bff/types.ts").LauncherTile[] = [];
-let launcherError = "";
-// G8 launcher real: metadata vía master + tiles vía DB del tenant, sin
-// fallback silencioso a master. Si la DB tenant no responde, se muestra
-// estado explícito en vez de tiles ficticios.
+let tenant: import('../../../lib/bff/backend-client.ts').TenantRow | null = null;
+let tenantError = '';
+let tiles: import('../../../lib/bff/types.ts').LauncherTile[] = [];
+let launcherError = '';
+
 try {
   const res = await loadTenantLauncher(slug, odooSessionId);
   tenant = res.tenant;
   tiles = res.tiles;
 } catch (cause) {
-  if (cause instanceof BffError && cause.code === "unauthorized") {
+  if (cause instanceof BffError && cause.code === 'unauthorized') {
     invalidateBffSession(Astro.cookies);
-    return Astro.redirect("/login");
+    return Astro.redirect('/login');
   }
-  if (cause instanceof BffError && cause.code === "not_found") {
+  if (cause instanceof BffError && cause.code === 'not_found') {
     tenantError = cause.message;
   } else {
-    // La metadata puede estar bien aunque el launcher falle: re-resolver
-    // el tenant solo para el encabezado, y mostrar el error del launcher.
     try {
       tenant = await withMasterSession((master, sessionId) => master.getTenantBySlug(sessionId, slug));
       if (!tenant) tenantError = `Tenant '${slug}' no existe en modoops_master`;
@@ -51,401 +43,773 @@ try {
       tenantError = `Tenant '${slug}' no existe en modoops_master`;
     }
     if (!tenantError) {
-      const raw = (cause as Error)?.message || "No se pudo cargar launcher";
+      const raw = (cause as Error)?.message || 'No se pudo cargar launcher';
       launcherError =
-        cause instanceof BffError && cause.code === "odoo_unavailable"
+        cause instanceof BffError && cause.code === 'odoo_unavailable'
           ? `DB del tenant no responde — ${raw}`
           : raw;
     }
   }
 }
 
-function accentVar(key: string): string {
-  const map: Record<string, string> = {
-    "flame-yellow": "var(--sg-flame-yellow)",
-    "flame-orange": "var(--sg-flame-orange)",
-    "flame-deep": "var(--sg-flame-deep)",
-    "flame-rust": "var(--sg-flame-rust)",
-    "ember-amber": "var(--sg-ember-amber)",
-    "ember-coral": "var(--sg-ember-coral)",
-    "ember-scarlet": "var(--sg-ember-scarlet)",
-    "ember-wine": "var(--sg-ember-wine)",
-  };
-  return map[key] || "var(--sg-flame-orange)";
-}
-
-const hasIA = tenant?.modules_installed?.includes("IA ModoOps") ?? false;
-
-// Home operativa (spec home-hub, slice 3): tabs por URL (?tab=), estática.
-// resumenHome({}) nunca falla (ancla por defecto); los números vivos llegan en el slice 4.
-const homeTabParam = Astro.url.searchParams.get("tab") || "";
+const hasIA = tenant?.modules_installed?.includes('IA ModoOps') ?? false;
+const homeTabParam = Astro.url.searchParams.get('tab') || '';
 const homeRes = resumenHome({ tab: homeTabParam });
 const homeTabs = homeRes.ok ? homeRes.home.tabs : [];
-const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes.home.tab)?.label ?? "" : "";
+const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes.home.tab)?.label ?? '' : '';
+const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
 ---
 
-<BaseLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Tenant ${slug} — ModoOps`}>
-  <main class:list={["mo-tenant", tenant && !tenantError && "with-nav"]}>
-    <header class="mo-tenant__topbar">
+<LightAppLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Shell · ${slug}`} theme="papel">
+  <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="page" id="contenido">
+    <header class="top">
       <div>
-        <p class="mo-tenant__eyebrow">ModoOps · Tu operación</p>
-        <h1>{tenant?.name ?? slug} <code class="mo-tenant__db">{tenant?.db_name ?? `modoops_${slug}`}</code></h1>
-        <p class="mo-tenant__meta">
-          {tenant ? `${tenant.vertical} · ` : ""}<span class:list={["mo-badge", `is-${tenant?.state ?? "activo"}`]}>{tenant?.state ?? "—"}</span>
-          {` · ${tenant?.modules_installed_count ?? 0} módulos`}
-          {hasIA ? <span class="mo-badge is-ia">IA activa</span> : <span class="mo-badge is-ia-off">IA no instalada</span>}
-          {tenant?.abono_due_date ? ` · vto abono ${tenant.abono_due_date}` : ""}
+        <p class="mo-brand mo-brand--eyebrow" translate="no">ModoOps</p>
+        <p class="mo-saludo">
+          {tenant ? `Así viene tu día en ${tenant.name}.` : 'Shell del tenant'}
         </p>
-        <p class="mo-tenant__user">{userName} · <a href="/admin/tenants">← Admin tenants (Hub 1)</a></p>
+        <p class="tenant-name">
+          {tenant?.name ?? slug}
+          <code class="db">{tenant?.db_name ?? `modoops_${slug}`}</code>
+          {tenant ? (
+            <span class:list={['mo-badge', `is-${tenant.state}`]}>{tenant.state}</span>
+          ) : null}
+        </p>
+        <p class="meta">{userName}</p>
       </div>
-      <div class="mo-tenant__actions">
-        <a href="/admin/tenants" class="mo-btn-ghost">← Tenants</a>
-        <button type="button" data-logout class="mo-btn-ghost">Cerrar sesión</button>
+      <div class="actions">
+        <a class="mo-btn" href="/admin/tenants">← Tenants</a>
+        <button type="button" class="mo-btn mo-btn--ghost" data-logout>Cerrar sesión</button>
       </div>
     </header>
 
-    {tenantError ? <p class="mo-tenant__error">{tenantError} — <a href="/admin/tenants">volver a lista</a></p> : null}
+    {tenantError ? (
+      <p class="mo-banner mo-banner--danger" role="alert">
+        {tenantError} — <a href="/admin/tenants">volver a lista</a>
+      </p>
+    ) : null}
 
     {tenant && !tenantError ? (
       <>
-        <section class="mo-home" aria-label="Home operativa">
-          <p class="mo-home__saludo">Hola, <strong>{tenant.name}</strong> · así viene tu día</p>
-          <div role="tablist" aria-label="Módulos" class="mo-tabs">
-            {homeTabs.map((t) => (
-              <a role="tab" aria-selected={t.active ? "true" : "false"} href={`/tenant/${slug}/app?tab=${t.id}`} class:list={["mo-tab", t.active && "is-active"]}>{t.label}</a>
-            ))}
-          </div>
-          <p class="mo-home__tab" data-home-estado aria-live="polite">Viendo: {homeTabLabel} — cargando números…</p>
-          <div class="mo-home__saldo" data-home-saldo>
-            <p class="mo-home__caja-line">
-              <span data-home-caja class="mo-home__caja" style="font-variant-numeric: tabular-nums;">—</span>
-              <button type="button" data-home-ojito aria-pressed="false" aria-label="Ocultar montos" class="mo-home__ojito">👁</button>
-              <span class="sr-only" aria-live="polite" data-home-ojito-msg></span>
-            </p>
-            <p class="mo-home__vs" data-home-vs></p>
-          </div>
-          <div class="mo-home__cards">
-            <div class="mo-home__card"><h3>Por cobrar</h3><p data-home-porcobrar style="font-variant-numeric: tabular-nums;">—</p></div>
-            <div class="mo-home__card"><h3>Stock valorizado</h3><p data-home-stock style="font-variant-numeric: tabular-nums;">—</p></div>
-          </div>
-          <div class="mo-home__acciones">
-            <Button href="/oficina" variant="primary">Armar borrador</Button>
-            <Button href="/admin/leads" variant="ghost-dark">Ver leads</Button>
-            <Button href="#launcher" variant="ghost-dark">Mis módulos</Button>
-          </div>
-        </section>
-        <section class="mo-tenant__panel">
-          <h2>Armar sistema — Módulos ModoOps del Catálogo</h2>
-          <p class="mo-tenant__hint">Instalá/quita módulos para <code>{tenant.db_name}</code>. IA es un módulo más del Catálogo (q4). Preview <code>odoo-bin -d {tenant.db_name} -i/-u &lt;mod&gt;</code> auditado en <code>modoops.tenant.log</code>.</p>
-          <div id="tenant-install-root" data-tenant-id={tenant.id} data-db={tenant.db_name} data-installed={tenant.modules_installed ?? ""}></div>
-          <dialog id="tenant-install-dialog" class="mo-dialog">
-            <form method="dialog" id="tenant-install-form">
-              <h3>Gestionar módulos — {tenant.name}</h3>
-              <p class="mo-dialog__db">{tenant.db_name}</p>
-              <div class="mo-dialog__grid" id="tenant-install-grid"></div>
-              <label class="mo-dialog__notes">Notas <input name="notes" placeholder="ticket, motivo" /></label>
-              <div class="mo-dialog__actions">
-                <label>Acción <select name="action"><option value="install">Instalar</option><option value="remove">Quitar</option></select></label>
-                <button type="submit">Confirmar</button>
-                <button type="button" id="tenant-install-cancel">Cancelar</button>
-              </div>
-              <pre id="tenant-install-preview" class="mo-dialog__preview"></pre>
-              <span id="tenant-install-msg" class="mo-admin__msg"></span>
-            </form>
-          </dialog>
-          <div class="mo-tenant__cta">
-            <button type="button" id="tenant-install-open" class="mo-btn-primary">Gestionar módulos / IA</button>
-            <a href="/admin/tenants" class="mo-btn-ghost">+ Nuevo Tenant</a>
-            <span class="mo-tenant__modules">{tenant.modules_installed ? `Instalados: ${tenant.modules_installed}` : "0 módulos — armar sistema"}</span>
-          </div>
-          {!hasIA ? <p class="mo-tenant__ia-cta">¿Agregar IA? Tildá <strong>IA ModoOps — Agente herramental</strong> en “Gestionar módulos / IA” → hidrata <em>Mostrador, Depósito Inteligente, Compras, Fiscal AR, Taller, etc.</em> vía Tools <code>stock.consulta</code>/<code>ot.cobro</code> + Memoria tenant 90d.</p> : <p class="mo-tenant__ia-ok">IA activa — Tools: <a href={`/api/modoops/${tenant.db_name}/agent/tools`} target="_blank"><code>GET /api/modoops/{tenant.db_name}/agent/tools</code></a> · Techo 200/mes Log → 429.</p>}
-          {hasIA ? (
-            <div class="mo-tenant__chat" id="ia-chat-root" data-db={tenant.db_name}>
-              <h3>Chat IA — Agente herramental (mock free + Ollama opcional)</h3>
-              <p class="mo-tenant__hint">Escribí natural: “stock del producto 42”, “cobrar OT 5 $100”, o “hola”. El BFF hidrata a <code>stock.consulta</code>/<code>ot.cobro</code>/<code>echo</code> vía <code>llm.ts</code> (mock si Ollama sin modelo).</p>
-              <div id="ia-chat-log" class="mo-chat__log" aria-live="polite"></div>
-              <form id="ia-chat-form" class="mo-chat__form">
-                <input id="ia-chat-input" name="message" placeholder="Ej: stock producto 42" autocomplete="off" aria-label="Mensaje para la IA" />
-                <button type="submit" class="mo-btn-primary">Enviar</button>
-              </form>
-              <pre id="ia-chat-debug" class="mo-chat__debug"></pre>
-            </div>
-          ) : null}
+        <nav class="mo-pill-group tabs" aria-label="Módulos" role="tablist">
+          {homeTabs.map((t) => (
+            <a
+              role="tab"
+              class="mo-pill"
+              href={tabHref(t.id)}
+              aria-selected={t.active ? 'true' : 'false'}
+              aria-current={t.active ? 'true' : undefined}
+            >
+              {t.label}
+            </a>
+          ))}
+        </nav>
+
+        <p class="mo-count" data-home-estado aria-live="polite">Viendo: {homeTabLabel} — cargando números…</p>
+
+        <section class="widgets" aria-label="Resumen del día">
+          <article class="mo-kpi">
+            <p class="mo-kpi__label">Caja del día</p>
+            <p class="mo-kpi__value" data-home-caja style="font-variant-numeric: tabular-nums;">—</p>
+            <p class="mo-kpi__hint" data-home-vs></p>
+          </article>
+          <article class="mo-kpi">
+            <p class="mo-kpi__label">Por cobrar</p>
+            <p class="mo-kpi__value" data-home-porcobrar style="font-variant-numeric: tabular-nums;">—</p>
+          </article>
+          <article class="mo-kpi">
+            <p class="mo-kpi__label">Stock valorizado</p>
+            <p class="mo-kpi__value" data-home-stock style="font-variant-numeric: tabular-nums;">—</p>
+          </article>
+          <button type="button" class="mo-btn mo-btn--ghost ojito" data-home-ojito aria-pressed="false" aria-label="Ocultar montos">
+            Ojo
+          </button>
+          <span class="sr-only" aria-live="polite" data-home-ojito-msg></span>
         </section>
 
-        <section id="launcher">
-          <h2 class="mo-tenant__h2">Launcher — {tenant.name} (tiles {tiles.length})</h2>
-          {launcherError ? <p class="mo-tenant__error">{launcherError}</p> : tiles.length === 0 ? <p class="mo-tenant__empty">Sin tiles visibles para este usuario en este tenant.</p> : (
-            <div class="mo-app__grid">
+        <section class="panel-block" aria-label="Atajos operativos">
+          <div class="tiles">
+            <button type="button" class="mo-tile" data-sheet="caja1">
+              <span>
+                <p class="mo-tile__label">Abrir caja 1</p>
+                <p class="mo-tile__hint">Turno en curso · listo para cobrar</p>
+              </span>
+              <span class="mo-btn mo-btn--primary">Abrir</span>
+            </button>
+            <button type="button" class="mo-tile" data-sheet="caja2">
+              <span>
+                <p class="mo-tile__label">Abrir caja 2</p>
+                <p class="mo-tile__hint">Cerrada · listo para arrancar</p>
+              </span>
+              <span class="mo-btn">Abrir</span>
+            </button>
+            <button type="button" class="mo-tile" data-sheet="stock">
+              <span>
+                <p class="mo-tile__label">Consultar stock</p>
+                <p class="mo-tile__hint">Por código o nombre</p>
+              </span>
+              <span class="mo-btn">Buscar</span>
+            </button>
+            <button type="button" class="mo-tile" data-sheet="cobrar">
+              <span>
+                <p class="mo-tile__label">Cobrar una OT</p>
+                <p class="mo-tile__hint">Monto + efectivo/transferencia</p>
+              </span>
+              <span class="mo-btn mo-btn--primary">Cobrar</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="panel-block mo-panel" id="launcher" aria-label="Módulos del launcher">
+          <h2 class="section-title">Launcher · {tiles.length} tiles</h2>
+          {launcherError ? <p class="mo-banner mo-banner--danger" role="status">{launcherError}</p> : null}
+          {tiles.length === 0 && !launcherError ? (
+            <p class="mo-empty__text">Sin tiles visibles para este usuario en este tenant.</p>
+          ) : (
+            <div class="launcher-grid">
               {tiles.map((t) => (
-                <div class="mo-tile sg-glass" data-accent={t.accent_key} style={`--tile-accent: ${accentVar(t.accent_key)}`}>
-                  <span class="mo-tile__icon">{t.label.trim().slice(0,1).toUpperCase()}</span>
-                  <span class="mo-tile__copy"><span class="mo-tile__label">{t.label}</span><span class="mo-tile__hint">{t.hint}</span></span>
-                  <span class="mo-tile__kpi"><span class="mo-tile__value">{t.value ?? "—"}</span></span>
-                  <span class="mo-tile__enter">{t.enter_label || "Abrir"} →</span>
+                <div class="mo-tile launcher-tile">
+                  <span>
+                    <p class="mo-tile__label">{t.label}</p>
+                    <p class="mo-tile__hint">{t.hint}</p>
+                  </span>
+                  <span class="mo-tile__value">{t.value ?? '—'}</span>
                 </div>
               ))}
             </div>
           )}
         </section>
 
-        <nav aria-label="Principal" class="mo-bottomnav">
-          <a href={`/tenant/${slug}/app`} aria-current="page"><span aria-hidden="true">◉</span><span>Cuenta</span></a>
-          <a href="#launcher"><span aria-hidden="true">▦</span><span>Módulos</span></a>
-          <a href="/oficina" aria-label="Oficina: armar borrador"><span class="mo-qr" aria-hidden="true">⌂</span></a>
-          <a href="/admin/leads"><span aria-hidden="true">✉</span><span>Leads</span></a>
-          <a href="/admin/tenants"><span aria-hidden="true">⋯</span><span>Más</span></a>
-        </nav>
+        <section class="panel-block mo-panel">
+          <h2 class="section-title">Armar sistema</h2>
+          <p class="mo-empty__text">Instalá o quitá módulos para <code>{tenant.db_name}</code>.</p>
+          <div id="tenant-install-root" data-tenant-id={tenant.id} data-db={tenant.db_name} data-installed={tenant.modules_installed ?? ''}></div>
+          <div class="actions" style="margin-top:0.75rem">
+            <button type="button" id="tenant-install-open" class="mo-btn mo-btn--primary">Gestionar módulos</button>
+            <span class="mo-count">{tenant.modules_installed ? `Instalados: ${tenant.modules_installed}` : '0 módulos'}</span>
+          </div>
+          {hasIA ? (
+            <div class="chat" id="ia-chat-root" data-db={tenant.db_name}>
+              <h3 class="section-title">Chat IA</h3>
+              <div id="ia-chat-log" class="chat-log" aria-live="polite"></div>
+              <form id="ia-chat-form" class="chat-form">
+                <label class="sr-only" for="ia-chat-input">Mensaje</label>
+                <input class="mo-field__control" id="ia-chat-input" name="message" placeholder="Ej: stock producto 42" autocomplete="off" />
+                <button type="submit" class="mo-btn mo-btn--primary">Enviar</button>
+              </form>
+              <pre id="ia-chat-debug" class="chat-debug"></pre>
+            </div>
+          ) : (
+            <p class="mo-empty__text">IA no instalada — tildala en Gestionar módulos.</p>
+          )}
+        </section>
       </>
     ) : null}
-  </main>
-</BaseLayout>
+  </div>
 
-<script>
-  import { CATALOGO_LABELS } from "../../../lib/catalogo.generated.ts";
-  import { describeJobState, shouldPollJob } from "../../../lib/bff/install-job.ts";
-  const CATALOGO = Object.entries(CATALOGO_LABELS) as unknown as readonly (readonly [string, string])[];
+  <div class="mo-toast-region" id="toast-region"></div>
 
-  const root = document.getElementById("tenant-install-root") as HTMLDivElement | null;
-  const dlg = document.getElementById("tenant-install-dialog") as HTMLDialogElement | null;
-  const grid = document.getElementById("tenant-install-grid") as HTMLDivElement | null;
-  const previewEl = document.getElementById("tenant-install-preview") as HTMLPreElement | null;
-  const msgEl = document.getElementById("tenant-install-msg") as HTMLSpanElement | null;
-  const form = document.getElementById("tenant-install-form") as HTMLFormElement | null;
-  const openBtn = document.getElementById("tenant-install-open") as HTMLButtonElement | null;
-  const cancelBtn = document.getElementById("tenant-install-cancel") as HTMLButtonElement | null;
+  <!-- FlowSheets -->
+  <div class="mo-sheet-backdrop" id="sheet-cobrar" hidden>
+    <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-cobrar-title">
+      <div class="mo-sheet__top">
+        <h2 class="mo-sheet__title" id="sheet-cobrar-title">Cobrar una OT</h2>
+        <button type="button" class="mo-btn" data-sheet-close>Cerrar</button>
+      </div>
+      <p class="mo-sheet__hint">Registrá el cobro con monto en USD.</p>
+      <form class="mo-sheet__body" id="form-cobrar">
+        <div class="mo-field" id="field-ot">
+          <label class="mo-field__label" for="ot-num">Número de OT</label>
+          <input class="mo-field__control" id="ot-num" name="ot" inputmode="numeric" autocomplete="off" />
+          <p class="mo-field__error" id="err-ot" hidden></p>
+        </div>
+        <div class="mo-field" id="field-monto">
+          <label class="mo-field__label" for="ot-monto">Monto (USD)</label>
+          <input class="mo-field__control" id="ot-monto" name="monto" inputmode="decimal" autocomplete="off" />
+          <p class="mo-field__error" id="err-monto" hidden></p>
+        </div>
+        <fieldset class="mo-field">
+          <legend class="mo-field__label">Medio de pago</legend>
+          <div class="pay-options">
+            <label><input type="radio" name="pago" value="efectivo" checked /> Efectivo</label>
+            <label><input type="radio" name="pago" value="transferencia" /> Transferencia</label>
+          </div>
+        </fieldset>
+        <div class="mo-sheet__actions">
+          <button type="submit" class="mo-btn mo-btn--primary">Registrar cobro</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  const tenantId = root ? Number(root.dataset.tenantId) : NaN;
-  const db = root ? String(root.dataset.db || "modoops_<slug>") : "modoops_<slug>";
+  <div class="mo-sheet-backdrop" id="sheet-caja1" hidden>
+    <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja1-title">
+      <div class="mo-sheet__top">
+        <h2 class="mo-sheet__title" id="sheet-caja1-title">Abrir caja 1</h2>
+        <button type="button" class="mo-btn" data-sheet-close>Cerrar</button>
+      </div>
+      <form class="mo-sheet__body" id="form-caja1">
+        <div class="mo-field" id="field-fondo1">
+          <label class="mo-field__label" for="fondo1">Fondo inicial (USD)</label>
+          <input class="mo-field__control" id="fondo1" name="fondo" inputmode="decimal" />
+          <p class="mo-field__error" id="err-fondo1" hidden></p>
+        </div>
+        <div class="mo-sheet__actions">
+          <button type="submit" class="mo-btn mo-btn--primary">Abrir caja</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  function renderGrid() {
-    if (!grid) return;
-    grid.innerHTML = "";
-    for (const [key, label] of CATALOGO) {
-      const lbl = document.createElement("label");
-      lbl.className = "mo-check";
-      lbl.innerHTML = `<input type="checkbox" value="${key}" data-mod /> ${label} <code>${key}</code>`;
-      grid.appendChild(lbl);
+  <div class="mo-sheet-backdrop" id="sheet-caja2" hidden>
+    <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja2-title">
+      <div class="mo-sheet__top">
+        <h2 class="mo-sheet__title" id="sheet-caja2-title">Abrir caja 2</h2>
+        <button type="button" class="mo-btn" data-sheet-close>Cerrar</button>
+      </div>
+      <form class="mo-sheet__body" id="form-caja2">
+        <div class="mo-field" id="field-fondo2">
+          <label class="mo-field__label" for="fondo2">Fondo inicial (USD)</label>
+          <input class="mo-field__control" id="fondo2" name="fondo" inputmode="decimal" />
+          <p class="mo-field__error" id="err-fondo2" hidden></p>
+        </div>
+        <div class="mo-sheet__actions">
+          <button type="submit" class="mo-btn mo-btn--primary">Abrir caja</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="mo-sheet-backdrop" id="sheet-stock" hidden>
+    <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-stock-title">
+      <div class="mo-sheet__top">
+        <h2 class="mo-sheet__title" id="sheet-stock-title">Consultar stock</h2>
+        <button type="button" class="mo-btn" data-sheet-close>Cerrar</button>
+      </div>
+      <form class="mo-sheet__body" id="form-stock">
+        <div class="mo-field" id="field-sku">
+          <label class="mo-field__label" for="sku-q">Código o nombre</label>
+          <input class="mo-field__control" id="sku-q" name="q" autocomplete="off" />
+          <p class="mo-field__error" id="err-sku" hidden></p>
+        </div>
+        <div class="sheet-result" id="stock-result" hidden>
+          <strong id="stock-name"></strong>
+          <span id="stock-meta" class="mo-empty__text"></span>
+        </div>
+        <div class="mo-sheet__actions">
+          <button type="submit" class="mo-btn mo-btn--primary">Buscar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <dialog id="tenant-install-dialog" class="mo-install-dialog">
+    <form method="dialog" id="tenant-install-form">
+      <h3 class="mo-dialog__title">Gestionar módulos — {tenant?.name}</h3>
+      <p class="db">{tenant?.db_name}</p>
+      <div class="mo-dialog__grid" id="tenant-install-grid"></div>
+      <div class="mo-field">
+        <label class="mo-field__label" for="tenant-notes">Notas</label>
+        <input class="mo-field__control" id="tenant-notes" name="notes" placeholder="ticket, motivo" />
+      </div>
+      <div class="mo-dialog__actions">
+        <label class="mo-field__label">
+          Acción
+          <select class="mo-field__control" name="action">
+            <option value="install">Instalar</option>
+            <option value="remove">Quitar</option>
+          </select>
+        </label>
+        <button type="submit" class="mo-btn mo-btn--primary">Confirmar</button>
+        <button type="button" class="mo-btn" id="tenant-install-cancel">Cancelar</button>
+      </div>
+      <pre id="tenant-install-preview" class="mo-install-preview"></pre>
+      <span id="tenant-install-msg" class="mo-field__hint"></span>
+    </form>
+  </dialog>
+
+  <style>
+    .page { max-width: 70rem; margin: 0 auto; padding: 0 1.25rem 2.75rem; }
+    .top {
+      display: flex; flex-wrap: wrap; justify-content: space-between;
+      gap: 1rem; align-items: flex-start; padding: 1.25rem 0 0.75rem;
     }
-  }
-  renderGrid();
-
-  function updatePreview() {
-    if (!grid || !previewEl || !form) return;
-    const mods = [...grid.querySelectorAll<HTMLInputElement>("[data-mod]:checked")].map(i=>i.value);
-    const action = (form.querySelector('select[name="action"]') as HTMLSelectElement)?.value || "install";
-    const flag = action === "install" ? "-i" : "-u";
-    previewEl.textContent = mods.length ? `odoo-bin -d ${db} ${flag} ${mods.join(", ")}  # batch ${mods.length}` : "— seleccioná módulos —";
-  }
-  grid?.addEventListener("change", updatePreview);
-  form?.querySelector('select[name="action"]')?.addEventListener("change", updatePreview);
-  openBtn?.addEventListener("click", () => {
-    if (!dlg || !grid || !previewEl || !msgEl) return;
-    msgEl.textContent = "";
-    previewEl.textContent = "— seleccioná módulos —";
-    grid.querySelectorAll<HTMLInputElement>("[data-mod]").forEach(i=>i.checked=false);
-    dlg.showModal();
-  });
-  let pollActiva = false;
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!Number.isFinite(tenantId) || !grid || !msgEl || !previewEl || !form) return;
-    const mods = [...grid.querySelectorAll<HTMLInputElement>("[data-mod]:checked")].map(i=>i.value);
-    if (!mods.length) { msgEl.textContent = "Seleccioná al menos un módulo"; return; }
-    const fd = new FormData(form);
-    const action = String(fd.get("action")||"install");
-    const notes = String(fd.get("notes")||"");
-    msgEl.textContent = "Ejecutando…";
-    const res = await fetch(`/api/admin/tenants/${tenantId}/install`, { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ modules: mods, action, notes }) });
-    const data = await res.json().catch(()=>({})) as { preview_command?: string; job_id?: number | null; job_state?: string; error?: { message?: string } };
-    if (!res.ok) { msgEl.textContent = data?.error?.message || "Error"; return; }
-    previewEl.textContent = data.preview_command || previewEl.textContent;
-    // G7: install real = job async; remove mock recarga directo
-    if (typeof data.job_id !== "number") {
-      msgEl.textContent = "OK — recargando…";
-      setTimeout(()=> window.location.reload(), 700);
-      return;
+    .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .tenant-name { margin: 0.15rem 0 0; font-size: 0.95rem; font-weight: 650; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+    .db { font-size: 0.75rem; font-weight: 500; color: var(--mo-muted); }
+    .meta { margin: 0.25rem 0 0; font-size: 0.85rem; color: var(--mo-muted); }
+    .tabs { margin: 0.5rem 0 0.75rem; }
+    .widgets {
+      display: grid; gap: 0.55rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
     }
-    const jobId = data.job_id;
-    pollActiva = true;
-    msgEl.textContent = describeJobState(data.job_state || "pendiente");
-    while (pollActiva) {
-      await new Promise((r) => setTimeout(r, 5000));
-      if (!pollActiva) return;
-      try {
-        const jr = await fetch(`/api/admin/tenants/${tenantId}/install/${jobId}`);
-        const jd = await jr.json().catch(()=>({})) as { state?: string; output?: string };
-        if (!jr.ok) { msgEl.textContent = "No se pudo leer el job"; return; }
-        const estado = String(jd.state || "");
-        msgEl.textContent = describeJobState(estado);
-        if (jd.output) previewEl.textContent = String(jd.output).slice(-1500);
-        if (!shouldPollJob(estado)) {
-          if (estado === "hecho") {
-            msgEl.textContent = describeJobState(estado) + " Recargando…";
-            setTimeout(()=> window.location.reload(), 900);
-          }
+    @media (min-width: 720px) {
+      .widgets { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
+    }
+    .ojito { justify-self: start; }
+    .panel-block { margin-top: 1.05rem; }
+    .tiles { display: grid; gap: 0.65rem; grid-template-columns: 1fr; }
+    @media (min-width: 640px) {
+      .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .section-title {
+      margin: 0 0 0.5rem;
+      font-family: var(--mo-display);
+      font-size: 1.15rem;
+      font-weight: 650;
+    }
+    .launcher-grid {
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    }
+    .launcher-tile { min-height: 4.5rem; }
+    .pay-options { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .sheet-result {
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius-sm);
+      background: var(--mo-card);
+      padding: 0.75rem 0.9rem;
+      display: grid; gap: 0.25rem;
+    }
+    .sheet-result[hidden] { display: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .mo-install-dialog {
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius);
+      padding: 1.2rem;
+      background: var(--mo-canvas);
+      color: var(--mo-ink);
+      max-width: 36rem;
+      width: 90%;
+    }
+    .mo-install-dialog::backdrop { background: color-mix(in srgb, var(--mo-ink) 45%, transparent); }
+    .mo-dialog__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin: 0.5rem 0; }
+    .mo-install-preview {
+      background: var(--mo-field);
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius-sm);
+      padding: 0.6rem;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+    }
+    .chat { margin-top: 1rem; display: grid; gap: 0.5rem; }
+    .chat-log {
+      min-height: 6rem; max-height: 14rem; overflow: auto;
+      border: 1px solid var(--mo-line); border-radius: var(--mo-radius-sm);
+      padding: 0.6rem; background: var(--mo-field);
+    }
+    .chat-form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .chat-form .mo-field__control { flex: 1 1 12rem; }
+    .chat-debug {
+      background: var(--mo-field); border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius-sm); padding: 0.5rem; font-size: 0.7rem;
+      white-space: pre-wrap; min-height: 2rem;
+    }
+    .mo-check {
+      display: flex; gap: 0.35rem; align-items: center; font-size: 0.85rem;
+      border: 1px solid var(--mo-line); border-radius: var(--mo-radius-sm);
+      padding: 0.4rem 0.5rem; background: var(--mo-field);
+    }
+    .mo-check code { font-size: 0.7rem; color: var(--mo-muted); margin-left: auto; }
+  </style>
+
+  <script>
+    import { CATALOGO_LABELS } from '../../../lib/catalogo.generated.ts';
+    import { describeJobState, shouldPollJob } from '../../../lib/bff/install-job.ts';
+    import {
+      resolveLeaveMs,
+      openWithEnter,
+      closeWithLeave,
+      showToast as mountToast,
+      trapTabKey,
+    } from '../../../scripts/light-app-chrome.ts';
+
+    const CATALOGO = Object.entries(CATALOGO_LABELS) as unknown as readonly (readonly [string, string])[];
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const LEAVE_MS = resolveLeaveMs(reduceMotion, 140);
+    const live = document.getElementById('live-polite');
+    const toastRegion = document.getElementById('toast-region');
+    let lastFocus: HTMLElement | null = null;
+    let openSheetEl: HTMLElement | null = null;
+
+    if (!sessionStorage.getItem('mo-tile-staggered') && !reduceMotion) {
+      document.documentElement.classList.add('mo-tiles-stagger');
+      sessionStorage.setItem('mo-tile-staggered', '1');
+    }
+
+    const STOCK = [
+      { q: ['latex', 'blanco', 'ltx'], name: 'Látex interior blanco 20L', stock: 24, ubi: 'A-12' },
+      { q: ['esmalte', 'negro'], name: 'Esmalte sintético negro 4L', stock: 7, ubi: 'B-03' },
+      { q: ['rodillo'], name: 'Rodillo lanilla 22cm', stock: 41, ubi: 'C-01' },
+    ];
+
+    function announce(msg: string) {
+      if (!live) return;
+      live.textContent = '';
+      requestAnimationFrame(() => {
+        live.textContent = msg;
+      });
+    }
+
+    function showToast(title: string, text: string, kind: 'ok' | 'danger' = 'ok') {
+      if (!toastRegion) return;
+      mountToast({ region: toastRegion, title, text, kind, leaveMs: LEAVE_MS, announce });
+    }
+
+    function openSheet(id: string) {
+      const el = document.getElementById(`sheet-${id}`);
+      if (!el) return;
+      closeSheet(true);
+      lastFocus = document.activeElement as HTMLElement | null;
+      openSheetEl = el;
+      openWithEnter(el);
+      const focusable =
+        el.querySelector('input:not([type="radio"]):not([type="hidden"]), select, textarea') ||
+        el.querySelector('button.mo-btn--primary') ||
+        el.querySelector('[data-sheet-close]');
+      (focusable as HTMLElement | null)?.focus();
+      announce(`Flujo ${id} abierto`);
+    }
+
+    function closeSheet(immediate?: boolean) {
+      if (!openSheetEl) return;
+      const el = openSheetEl;
+      openSheetEl = null;
+      const restore = !immediate;
+      closeWithLeave(el, {
+        leaveMs: immediate ? 0 : LEAVE_MS,
+        onDone: () => {
+          if (restore) lastFocus?.focus?.();
+        },
+      });
+    }
+
+    document.querySelectorAll('[data-sheet]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-sheet');
+        if (id) openSheet(id);
+      });
+    });
+    document.querySelectorAll('[data-sheet-close]').forEach((btn) => {
+      btn.addEventListener('click', () => closeSheet());
+    });
+    document.querySelectorAll('.mo-sheet-backdrop').forEach((el) => {
+      el.addEventListener('click', (ev) => {
+        if (ev.target === el) closeSheet();
+      });
+      el.addEventListener('keydown', (ev) => {
+        if ((ev as KeyboardEvent).key === 'Escape') return;
+        trapTabKey(el as HTMLElement, ev as KeyboardEvent);
+      });
+    });
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Escape') return;
+      if (openSheetEl) {
+        ev.preventDefault();
+        closeSheet();
+      }
+    });
+
+    function clearErr(fieldId: string, errId: string) {
+      document.getElementById(fieldId)?.classList.remove('is-invalid');
+      const err = document.getElementById(errId);
+      if (err) {
+        err.hidden = true;
+        err.textContent = '';
+      }
+    }
+    function setErr(fieldId: string, errId: string, msg: string, input?: HTMLElement | null) {
+      document.getElementById(fieldId)?.classList.add('is-invalid');
+      const err = document.getElementById(errId);
+      if (err) {
+        err.hidden = false;
+        err.textContent = msg;
+      }
+      input?.focus();
+    }
+
+    document.getElementById('form-cobrar')?.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      clearErr('field-ot', 'err-ot');
+      clearErr('field-monto', 'err-monto');
+      const ot = document.getElementById('ot-num') as HTMLInputElement | null;
+      const monto = document.getElementById('ot-monto') as HTMLInputElement | null;
+      const pago = document.querySelector('input[name="pago"]:checked') as HTMLInputElement | null;
+      if (!ot?.value.trim()) {
+        setErr('field-ot', 'err-ot', 'Escribí el número de OT.', ot);
+        return;
+      }
+      if (!monto?.value.trim()) {
+        setErr('field-monto', 'err-monto', 'Escribí el monto.', monto);
+        return;
+      }
+      closeSheet();
+      showToast('Cobro registrado', `OT ${ot.value.trim()} · USD ${monto.value.trim()} · ${pago?.value || 'efectivo'}`);
+    });
+
+    function bindCaja(formId: string, fieldId: string, errId: string, inputId: string, label: string) {
+      document.getElementById(formId)?.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        clearErr(fieldId, errId);
+        const fondo = document.getElementById(inputId) as HTMLInputElement | null;
+        if (!fondo?.value.trim()) {
+          setErr(fieldId, errId, 'Indicá el fondo inicial.', fondo);
           return;
         }
-      } catch { msgEl.textContent = "Sin conexión — reintentando…"; }
-    }
-  });
-  cancelBtn?.addEventListener("click", () => { pollActiva = false; dlg?.close(); });
-  document.querySelector("[data-logout]")?.addEventListener("click", async()=>{ await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login"); });
-
-  // Home viva (spec home-hub, slice 4): montos desde GET home del tenant,
-  // toggle ocultar en memoria (nunca se persiste el oculto).
-  {
-    const estadoEl = document.querySelector("[data-home-estado]");
-    const cajaEl = document.querySelector("[data-home-caja]");
-    const porCobrarEl = document.querySelector("[data-home-porcobrar]");
-    const stockEl = document.querySelector("[data-home-stock]");
-    const vsEl = document.querySelector("[data-home-vs]");
-      const ojoBtn = document.querySelector("[data-home-ojito]");
-      const ojoMsg = document.querySelector("[data-home-ojito-msg]");
-    if (estadoEl && cajaEl && ojoBtn instanceof HTMLButtonElement) {
-      const slugM = window.location.pathname.match(/^\/tenant\/([^/]+)\/app/);
-      const homeSlug = slugM ? slugM[1] : "";
-      const homeTab = new URLSearchParams(window.location.search).get("tab") || "";
-      const fmtARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
-      let montos: { cajaHoy: number; porCobrar: number; stockValorizado: number; vsAyerPct: number } | null = null;
-      let oculto = false;
-      const pinta = () => {
-        const txt = (v: number) => (oculto ? "$ ∗∗∗" : fmtARS.format(v));
-        cajaEl.textContent = montos ? txt(montos.cajaHoy) : "—";
-        if (porCobrarEl) porCobrarEl.textContent = montos ? txt(montos.porCobrar) : "—";
-        if (stockEl) stockEl.textContent = montos ? txt(montos.stockValorizado) : "—";
-        if (vsEl instanceof HTMLElement && montos) {
-          const p = montos.vsAyerPct;
-          vsEl.textContent = p === 0 ? "" : `${p > 0 ? "↑" : "↓"} ${Math.abs(p)}% vs ayer en ventas`;
-          vsEl.classList.toggle("is-neg", p < 0);
-        }
-      };
-      ojoBtn.addEventListener("click", () => {
-        oculto = !oculto;
-        ojoBtn.setAttribute("aria-pressed", String(oculto));
-        ojoBtn.setAttribute("aria-label", oculto ? "Mostrar montos" : "Ocultar montos");
-        if (ojoMsg) ojoMsg.textContent = oculto ? "Montos ocultos." : "Montos visibles.";
-        pinta();
+        closeSheet();
+        showToast(`${label} abierta`, `Fondo inicial USD ${fondo.value.trim()}.`);
       });
-      (async () => {
-        try {
-          const res = await fetch(`/api/tenant/${homeSlug}/home?tab=${encodeURIComponent(homeTab)}`);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = (await res.json()) as { home?: typeof montos };
-          if (!data.home) throw new Error("sin home");
-          montos = data.home;
-          estadoEl.textContent = "Números al día.";
-          pinta();
-        } catch {
-          estadoEl.textContent = "No se pudieron cargar los números.";
-        }
-      })();
     }
-  }
+    bindCaja('form-caja1', 'field-fondo1', 'err-fondo1', 'fondo1', 'Caja 1');
+    bindCaja('form-caja2', 'field-fondo2', 'err-fondo2', 'fondo2', 'Caja 2');
 
-  // Chat IA herramental — hidrata BFF /api/modoops/:db/agent/run con {message, requestId}
-  const chatRoot = document.getElementById("ia-chat-root") as HTMLDivElement | null;
-  const chatLog = document.getElementById("ia-chat-log") as HTMLDivElement | null;
-  const chatForm = document.getElementById("ia-chat-form") as HTMLFormElement | null;
-  const chatInput = document.getElementById("ia-chat-input") as HTMLInputElement | null;
-  const chatDebug = document.getElementById("ia-chat-debug") as HTMLPreElement | null;
-  const chatDb = chatRoot?.dataset.db || db;
-  function uuidv4(){ return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c=>{ const r=Math.random()*16|0, v=c==="x"?r:(r&0x3|0x8); return v.toString(16); }); }
-  function appendChat(role: string, text: string){
-    if(!chatLog) return;
-    const div=document.createElement("div");
-    div.className=`mo-chat__msg is-${role}`;
-    div.textContent=`${role}: ${text}`;
-    chatLog.appendChild(div);
-    chatLog.scrollTop=chatLog.scrollHeight;
-  }
-  chatForm?.addEventListener("submit", async(e)=>{
-    e.preventDefault();
-    const msg=(chatInput?.value||"").trim();
-    if(!msg) return;
-    appendChat("user", msg);
-    if(chatInput) chatInput.value="";
-    if(chatDebug) chatDebug.textContent="pensando…";
-    const requestId=uuidv4();
-    try{
-      const res=await fetch(`/api/modoops/${chatDb}/agent/run`, {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({message: msg, requestId})});
-      const data=await res.json() as {status?:string; output?:{tool?:string; echo?:unknown; llmSource?:string}; llmSource?:string; error?:string};
-      if(!res.ok){ appendChat("error", data.error || `HTTP ${res.status}`); if(chatDebug) chatDebug.textContent=JSON.stringify(data,null,2); return; }
-      const tool=data.output?.tool || (data as {tool?:string}).tool || "—";
-      const src=data.llmSource || data.output?.llmSource || "—";
-      appendChat("agent", `tool=${tool} (llm:${src}) → ${JSON.stringify(data.output?.echo ?? data.output)}`);
-      if(chatDebug) chatDebug.textContent=JSON.stringify(data,null,2);
-    }catch(err){ appendChat("error", String(err)); if(chatDebug) chatDebug.textContent=String(err); }
-  });
-</script>
+    document.getElementById('form-stock')?.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      clearErr('field-sku', 'err-sku');
+      const qEl = document.getElementById('sku-q') as HTMLInputElement | null;
+      const q = (qEl?.value || '').trim().toLowerCase();
+      if (!q) {
+        setErr('field-sku', 'err-sku', 'Escribí un código o nombre.', qEl);
+        return;
+      }
+      const hit = STOCK.find((s) => s.q.some((k) => q.includes(k)) || s.name.toLowerCase().includes(q));
+      const result = document.getElementById('stock-result');
+      const nameEl = document.getElementById('stock-name');
+      const metaEl = document.getElementById('stock-meta');
+      if (!hit) {
+        if (result) result.hidden = true;
+        setErr('field-sku', 'err-sku', 'No encontramos ese ítem en el demo.', qEl);
+        return;
+      }
+      if (nameEl) nameEl.textContent = hit.name;
+      if (metaEl) metaEl.textContent = `${hit.stock} u. · ubicación ${hit.ubi}`;
+      if (result) result.hidden = false;
+      announce(`${hit.name}: ${hit.stock} unidades`);
+    });
 
-<style>
-  .mo-tenant { max-width:78rem; margin:0 auto; padding:2rem 1rem 3rem; }
-  .with-nav { padding-bottom:6rem; }
-  .mo-home { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1.1rem; background:var(--sg-glass-fill); margin-bottom:1.25rem; }
-  .mo-home__saludo { margin:0 0 .6rem; color:var(--sg-text-muted-dark); font-size:.9rem; }
-  .mo-home__saludo strong { color:var(--color-core-cream); }
-  .mo-tabs { display:flex; gap:.4rem; flex-wrap:wrap; }
-  .mo-tab { display:inline-flex; align-items:center; min-height:44px; padding:.5rem 1rem; border-radius:999px; font-size:.85rem; color:var(--sg-text-muted-dark); text-decoration:none; transition:color .15s ease, background-color .15s ease; }
-  .mo-tab.is-active { background:var(--color-brand-accent); color:var(--color-space-void); font-weight:600; }
-  .mo-home__tab { font-size:.85rem; color:var(--sg-text-muted-dark); margin:.6rem 0 0; }
-  .mo-home__saldo { margin-top:.8rem; }
-  .mo-home__caja-line { display:flex; align-items:center; gap:.6rem; margin:0; }
-  .mo-home__caja { font-size:2rem; font-weight:700; letter-spacing:-.02em; }
-  .mo-home__ojito { display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; font-size:1.3rem; background:transparent; border:0; cursor:pointer; }
-  .mo-home__vs { margin:.2rem 0 0; font-size:.85rem; font-weight:600; color:#4ade80; }
-  .mo-home__vs.is-neg { color:#f87171; }
-  .mo-home__cards { display:grid; gap:.6rem; grid-template-columns:1fr 1fr; margin-top:.8rem; }
-  .mo-home__card { border:1px solid var(--sg-glass-border); border-radius:.9rem; padding:.8rem; background:rgba(0,0,0,.18); }
-  .mo-home__card h3 { margin:0 0 .3rem; font-size:.8rem; font-weight:500; color:var(--sg-text-muted-dark); }
-  .mo-home__card p { margin:0; font-size:1.25rem; font-weight:700; }
-  .mo-home__acciones { display:flex; gap:.6rem; flex-wrap:wrap; margin-top:.9rem; }
-  .mo-bottomnav { position:fixed; bottom:0; left:0; right:0; z-index:40; display:grid; grid-template-columns:repeat(5,1fr); background:rgb(0 0 0/.92); border-top:1px solid var(--sg-glass-border); padding-bottom:env(safe-area-inset-bottom); }
-  .mo-bottomnav a { display:flex; flex-direction:column; align-items:center; gap:2px; padding:.6rem .25rem; font-size:.7rem; color:var(--sg-text-muted-dark); text-decoration:none; min-height:44px; }
-  .mo-bottomnav a[aria-current="page"] { color:var(--color-brand-accent); font-weight:600; }
-  .mo-qr { width:2.6rem; height:2.6rem; margin-top:-1.2rem; border-radius:50%; background:var(--color-brand-accent); color:#000; display:flex; align-items:center; justify-content:center; font-size:1.2rem; border:4px solid #000; }
-  .mo-tenant__topbar { display:flex; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap; }
-  .mo-tenant__eyebrow { color:var(--sg-flame-orange); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0; font-weight:700; }
-  .mo-tenant__db { font-size:.75rem; color:var(--sg-text-muted-dark); }
-  .mo-tenant__meta { color:var(--sg-text-muted-dark); margin:.25rem 0 0; font-size:.85rem; }
-  .mo-tenant__user { margin:.25rem 0 0; font-size:.85rem; }
-  .mo-tenant__panel { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1.1rem; background:var(--sg-glass-fill); backdrop-filter:blur(10px); margin-bottom:1.25rem; }
-  .mo-tenant__panel h2 { margin:0 0 .4rem; font-size:1.05rem; }
-  .mo-tenant__hint { color:var(--sg-text-muted-dark); font-size:.85rem; margin:.25rem 0 .75rem; }
-  .mo-tenant__cta { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; margin-top:.5rem; }
-  .mo-btn-primary { border-radius:999px; padding:.55rem .95rem; background:#fff; color:#111; border:0; cursor:pointer; font-weight:600; }
-  .mo-btn-ghost { border:1px solid var(--sg-glass-border); border-radius:999px; padding:.5rem .9rem; background:var(--sg-glass-fill); color:var(--sg-text-on-dark); text-decoration:none; cursor:pointer; }
-  .mo-tenant__modules { font-size:.8rem; color:var(--sg-text-muted-dark); }
-  .mo-tenant__ia-cta, .mo-tenant__ia-ok { font-size:.85rem; margin:.6rem 0 0; }
-  .mo-tenant__h2 { font-size:1rem; margin:1rem 0 .5rem; }
-  .mo-app__grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(18rem,1fr)); gap:1rem; }
-  .mo-tile { position:relative; display:grid; min-height:12rem; grid-template-columns:1fr auto; grid-template-rows:auto 1fr auto; gap:1rem; overflow:hidden; border-radius:var(--sg-radius-card); padding:1.2rem; color:var(--sg-text-on-dark); background:var(--sg-glass-fill); border:1px solid var(--sg-glass-border); backdrop-filter:blur(10px); }
-  .mo-tile__icon { display:grid; width:2.75rem; height:2.75rem; place-items:center; border-radius:.9rem; background:color-mix(in srgb, var(--tile-accent), transparent 54%); border:1px solid color-mix(in srgb, var(--tile-accent), white 22%); font-weight:700; }
-  .mo-tile__label { display:block; font-weight:650; }
-  .mo-tile__hint { display:block; color:var(--sg-text-muted-dark); font-size:.84rem; }
-  .mo-tile__kpi { justify-self:end; background:rgba(0,0,0,.28); border:1px solid color-mix(in srgb, var(--tile-accent), white 18%); border-radius:.9rem; padding:.5rem .7rem; min-width:4rem; display:grid; justify-items:end; }
-  .mo-tile__value { font-weight:700; }
-  .mo-tile__enter { grid-column:1/-1; border-top:1px solid var(--sg-glass-border); padding-top:.9rem; font-size:.8rem; font-weight:600; display:flex; justify-content:space-between; }
-  .mo-tenant__error { color:#f87171; } .mo-tenant__empty { color:var(--sg-text-muted-dark); }
-  .mo-dialog { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1.2rem; background:#111; color:#fff; max-width:36rem; width:90%; }
-  .mo-dialog::backdrop { background:rgba(0,0,0,.6); backdrop-filter:blur(4px); }
-  .mo-dialog__db { color:var(--sg-flame-orange); font-family:monospace; }
-  .mo-dialog__grid { display:grid; grid-template-columns:1fr 1fr; gap:.4rem; margin:.5rem 0; }
-  .mo-check { display:flex; gap:.35rem; align-items:center; font-size:.85rem; border:1px solid #2b2b2b; border-radius:.5rem; padding:.4rem .5rem; background:#0a0a0a; }
-  .mo-check code { font-size:.7rem; color:#aaa; margin-left:auto; }
-  .mo-dialog__notes { display:flex; flex-direction:column; gap:.25rem; font-size:.85rem; }
-  .mo-dialog__notes input { border:1px solid #2b2b2b; border-radius:.5rem; padding:.45rem .6rem; background:#0a0a0a; color:#fff; }
-  .mo-dialog__actions { display:flex; gap:.5rem; align-items:end; margin:.5rem 0; }
-  .mo-dialog__preview { background:#0a0a0a; border:1px solid #2b2b2b; border-radius:.5rem; padding:.6rem; font-size:.75rem; white-space:pre-wrap; }
-  .mo-badge { border-radius:999px; padding:.15rem .5rem; font-size:.75rem; font-weight:600; }
-  .mo-badge.is-activo { background:#16a34a; color:#fff; } .mo-badge.is-suspendido { background:#dc2626; color:#fff; } .mo-badge.is-baja { background:#6b7280; color:#fff; }
-  .mo-badge.is-ia { background:#7c3aed; color:#fff; margin-left:.35rem; } .mo-badge.is-ia-off { background:#2b2b2b; color:#aaa; margin-left:.35rem; }
-  .mo-tenant__chat { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1rem; margin-top:1rem; background:rgba(0,0,0,.18); }
-  .mo-tenant__chat h3 { margin:0 0 .3rem; font-size:1rem; }
-  .mo-chat__log { min-height:6rem; max-height:14rem; overflow:auto; border:1px solid #2b2b2b; border-radius:.6rem; padding:.6rem; background:#0a0a0a; margin:.5rem 0; }
-  .mo-chat__msg { font-size:.85rem; margin:.25rem 0; white-space:pre-wrap; }
-  .mo-chat__msg.is-user { color:#93c5fd; } .mo-chat__msg.is-agent { color:#86efac; } .mo-chat__msg.is-error { color:#f87171; }
-  .mo-chat__form { display:flex; gap:.5rem; }
-  .mo-chat__form input { flex:1; border:1px solid #2b2b2b; border-radius:999px; padding:.5rem .8rem; background:#0a0a0a; color:#fff; font-size:1rem; }
-  .mo-chat__debug { background:#0a0a0a; border:1px solid #2b2b2b; border-radius:.5rem; padding:.5rem; font-size:.7rem; white-space:pre-wrap; min-height:2rem; }
-</style>
+    document.querySelector('[data-logout]')?.addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.assign('/login');
+    });
+
+    // Install modules (BFF)
+    const root = document.getElementById('tenant-install-root') as HTMLDivElement | null;
+    const dlg = document.getElementById('tenant-install-dialog') as HTMLDialogElement | null;
+    const grid = document.getElementById('tenant-install-grid') as HTMLDivElement | null;
+    const previewEl = document.getElementById('tenant-install-preview') as HTMLPreElement | null;
+    const msgEl = document.getElementById('tenant-install-msg') as HTMLSpanElement | null;
+    const form = document.getElementById('tenant-install-form') as HTMLFormElement | null;
+    const openBtn = document.getElementById('tenant-install-open') as HTMLButtonElement | null;
+    const cancelBtn = document.getElementById('tenant-install-cancel') as HTMLButtonElement | null;
+    const tenantId = root ? Number(root.dataset.tenantId) : NaN;
+    const db = root ? String(root.dataset.db || 'modoops_<slug>') : 'modoops_<slug>';
+
+    function renderGrid() {
+      if (!grid) return;
+      grid.innerHTML = '';
+      for (const [key, label] of CATALOGO) {
+        const lbl = document.createElement('label');
+        lbl.className = 'mo-check';
+        lbl.innerHTML = `<input type="checkbox" value="${key}" data-mod /> ${label} <code>${key}</code>`;
+        grid.appendChild(lbl);
+      }
+    }
+    renderGrid();
+
+    function updatePreview() {
+      if (!grid || !previewEl || !form) return;
+      const mods = [...grid.querySelectorAll<HTMLInputElement>('[data-mod]:checked')].map((i) => i.value);
+      const action = (form.querySelector('select[name="action"]') as HTMLSelectElement)?.value || 'install';
+      const flag = action === 'install' ? '-i' : '-u';
+      previewEl.textContent = mods.length
+        ? `odoo-bin -d ${db} ${flag} ${mods.join(', ')}  # batch ${mods.length}`
+        : '— seleccioná módulos —';
+    }
+    grid?.addEventListener('change', updatePreview);
+    form?.querySelector('select[name="action"]')?.addEventListener('change', updatePreview);
+    openBtn?.addEventListener('click', () => {
+      if (!dlg || !grid || !previewEl || !msgEl) return;
+      msgEl.textContent = '';
+      previewEl.textContent = '— seleccioná módulos —';
+      grid.querySelectorAll<HTMLInputElement>('[data-mod]').forEach((i) => (i.checked = false));
+      dlg.showModal();
+    });
+    let pollActiva = false;
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!Number.isFinite(tenantId) || !grid || !msgEl || !previewEl || !form) return;
+      const mods = [...grid.querySelectorAll<HTMLInputElement>('[data-mod]:checked')].map((i) => i.value);
+      if (!mods.length) {
+        msgEl.textContent = 'Seleccioná al menos un módulo';
+        return;
+      }
+      const fd = new FormData(form);
+      const action = String(fd.get('action') || 'install');
+      const notes = String(fd.get('notes') || '');
+      msgEl.textContent = 'Ejecutando…';
+      const res = await fetch(`/api/admin/tenants/${tenantId}/install`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ modules: mods, action, notes }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        preview_command?: string;
+        job_id?: number | null;
+        job_state?: string;
+        error?: { message?: string };
+      };
+      if (!res.ok) {
+        msgEl.textContent = data?.error?.message || 'Error';
+        return;
+      }
+      previewEl.textContent = data.preview_command || previewEl.textContent;
+      if (typeof data.job_id !== 'number') {
+        msgEl.textContent = 'OK — recargando…';
+        setTimeout(() => window.location.reload(), 700);
+        return;
+      }
+      const jobId = data.job_id;
+      pollActiva = true;
+      msgEl.textContent = describeJobState(data.job_state || 'pendiente');
+      while (pollActiva) {
+        await new Promise((r) => setTimeout(r, 5000));
+        if (!pollActiva) return;
+        try {
+          const jr = await fetch(`/api/admin/tenants/${tenantId}/install/${jobId}`);
+          const jd = (await jr.json().catch(() => ({}))) as { state?: string; output?: string };
+          if (!jr.ok) {
+            msgEl.textContent = 'No se pudo leer el job';
+            return;
+          }
+          const estado = String(jd.state || '');
+          msgEl.textContent = describeJobState(estado);
+          if (jd.output) previewEl.textContent = String(jd.output).slice(-1500);
+          if (!shouldPollJob(estado)) {
+            if (estado === 'hecho') {
+              msgEl.textContent = describeJobState(estado) + ' Recargando…';
+              setTimeout(() => window.location.reload(), 900);
+            }
+            return;
+          }
+        } catch {
+          msgEl.textContent = 'Sin conexión — reintentando…';
+        }
+      }
+    });
+    cancelBtn?.addEventListener('click', () => {
+      pollActiva = false;
+      dlg?.close();
+    });
+
+    // Home viva
+    {
+      const estadoEl = document.querySelector('[data-home-estado]');
+      const cajaEl = document.querySelector('[data-home-caja]');
+      const porCobrarEl = document.querySelector('[data-home-porcobrar]');
+      const stockEl = document.querySelector('[data-home-stock]');
+      const vsEl = document.querySelector('[data-home-vs]');
+      const ojoBtn = document.querySelector('[data-home-ojito]');
+      const ojoMsg = document.querySelector('[data-home-ojito-msg]');
+      if (estadoEl && cajaEl && ojoBtn instanceof HTMLButtonElement) {
+        const slugM = window.location.pathname.match(/^\/tenant\/([^/]+)\/app/);
+        const homeSlug = slugM ? slugM[1] : '';
+        const homeTab = new URLSearchParams(window.location.search).get('tab') || '';
+        const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+        let montos: { cajaHoy: number; porCobrar: number; stockValorizado: number; vsAyerPct: number } | null = null;
+        let oculto = false;
+        const pinta = () => {
+          const txt = (v: number) => (oculto ? 'USD ∗∗∗' : fmt.format(v));
+          cajaEl.textContent = montos ? txt(montos.cajaHoy) : '—';
+          if (porCobrarEl) porCobrarEl.textContent = montos ? txt(montos.porCobrar) : '—';
+          if (stockEl) stockEl.textContent = montos ? txt(montos.stockValorizado) : '—';
+          if (vsEl instanceof HTMLElement && montos) {
+            const p = montos.vsAyerPct;
+            vsEl.textContent = p === 0 ? '' : `${p > 0 ? '↑' : '↓'} ${Math.abs(p)}% vs ayer`;
+          }
+        };
+        ojoBtn.addEventListener('click', () => {
+          oculto = !oculto;
+          ojoBtn.setAttribute('aria-pressed', String(oculto));
+          ojoBtn.setAttribute('aria-label', oculto ? 'Mostrar montos' : 'Ocultar montos');
+          if (ojoMsg) ojoMsg.textContent = oculto ? 'Montos ocultos.' : 'Montos visibles.';
+          pinta();
+        });
+        (async () => {
+          try {
+            const res = await fetch(`/api/tenant/${homeSlug}/home?tab=${encodeURIComponent(homeTab)}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = (await res.json()) as { home?: typeof montos };
+            if (!data.home) throw new Error('sin home');
+            montos = data.home;
+            estadoEl.textContent = 'Números al día.';
+            pinta();
+          } catch {
+            estadoEl.textContent = 'No se pudieron cargar los números.';
+          }
+        })();
+      }
+    }
+
+    // Chat IA
+    const chatRoot = document.getElementById('ia-chat-root') as HTMLDivElement | null;
+    const chatLog = document.getElementById('ia-chat-log') as HTMLDivElement | null;
+    const chatForm = document.getElementById('ia-chat-form') as HTMLFormElement | null;
+    const chatInput = document.getElementById('ia-chat-input') as HTMLInputElement | null;
+    const chatDebug = document.getElementById('ia-chat-debug') as HTMLPreElement | null;
+    const chatDb = chatRoot?.dataset.db || db;
+    function uuidv4() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+    }
+    function appendChat(role: string, text: string) {
+      if (!chatLog) return;
+      const div = document.createElement('div');
+      div.className = `chat-msg is-${role}`;
+      div.textContent = `${role}: ${text}`;
+      chatLog.appendChild(div);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+    chatForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = (chatInput?.value || '').trim();
+      if (!msg) return;
+      appendChat('user', msg);
+      if (chatInput) chatInput.value = '';
+      if (chatDebug) chatDebug.textContent = 'pensando…';
+      const requestId = uuidv4();
+      try {
+        const res = await fetch(`/api/modoops/${chatDb}/agent/run`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ message: msg, requestId }),
+        });
+        const data = (await res.json()) as {
+          status?: string;
+          output?: { tool?: string; echo?: unknown; llmSource?: string };
+          llmSource?: string;
+          error?: string;
+          tool?: string;
+        };
+        if (!res.ok) {
+          appendChat('error', data.error || `HTTP ${res.status}`);
+          if (chatDebug) chatDebug.textContent = JSON.stringify(data, null, 2);
+          return;
+        }
+        const tool = data.output?.tool || data.tool || '—';
+        const src = data.llmSource || data.output?.llmSource || '—';
+        appendChat('agent', `tool=${tool} (llm:${src}) → ${JSON.stringify(data.output?.echo ?? data.output)}`);
+        if (chatDebug) chatDebug.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        appendChat('error', String(err));
+        if (chatDebug) chatDebug.textContent = String(err);
+      }
+    });
+  </script>
+</LightAppLayout>
