@@ -9,99 +9,105 @@
  *   focus / line-strong / row-hover = interacción (G3)
  * Ver docs/research/color-systems-mo-map-2026.md
  */
-/* Default = papel (ganadora humana #190) */
+/* Default = papel — alt C.2: Olive + Jade (capas más claras, hero tintado, ok=jade) */
 :root,
 [data-theme="papel"] {
-  --mo-wash: #f3efe6;
-  --mo-canvas: #faf7f0;
-  --mo-card: #ebe6da;
-  --mo-ink: #211922;
-  --mo-muted: #6b6570;
-  --mo-line: #d8d0c2;
-  --mo-line-strong: #b8ae9c;
-  --mo-accent: #2f5d50;
-  --mo-accent-ink: #faf7f0;
-  --mo-accent-soft: #e2ece8;
-  --mo-danger: #a10214;
-  --mo-warn: #7c4b01;
-  /* ok ≠ accent: éxito semántico (más “vivo”), CTA queda en accent */
-  --mo-ok: #1f6b45;
-  --mo-ok-soft: #e3f0e8;
-  --mo-hero: #2a2430;
-  --mo-on-hero: #faf7f0;
-  --mo-focus: #2f5d50;
-  --mo-row-hover: #e8f0ec;
-  --mo-field: #faf7f0;
+  --mo-wash: #f7faf7;
+  --mo-canvas: #fbfcfb;
+  --mo-card: #e7e9e7;
+  --mo-ink: #1a221e;
+  --mo-muted: #5c625c;
+  --mo-line: #d0d4d0;
+  --mo-line-strong: #b9bcb8;
+  /* Brand CTA = Jade 9; soft = Jade 4 (más presente) */
+  --mo-accent: #29a383;
+  --mo-accent-ink: #ffffff;
+  --mo-accent-soft: #d6f1e3;
+  --mo-danger: #e5484d;
+  --mo-warn: #ab6400;
+  /* ok misma familia que accent, step más profundo (texto/badge) */
+  --mo-ok: #208368;
+  --mo-ok-soft: #e6f7ed;
+  --mo-hero: #1d3b31;
+  --mo-on-hero: #f7faf7;
+  --mo-focus: #26997b;
+  --mo-row-hover: #d6f1e3;
+  --mo-field: #fbfcfb;
   --mo-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --mo-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --mo-radius: 12px;
-  --mo-radius-sm: 8px;
-  --mo-font: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --mo-radius: 14px;
+  --mo-radius-sm: 9px;
+  --mo-font: "Source Sans 3", "Source Sans Pro", ui-sans-serif, sans-serif;
   --mo-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --mo-atmosphere:
     repeating-linear-gradient(
       0deg,
       transparent,
       transparent 2px,
-      rgba(33, 25, 34, 0.015) 2px,
-      rgba(33, 25, 34, 0.015) 3px
+      rgba(26, 34, 30, 0.018) 2px,
+      rgba(26, 34, 30, 0.018) 3px
     ),
-    radial-gradient(800px 380px at 80% -20%, rgba(47, 93, 80, 0.1), transparent 60%),
+    radial-gradient(980px 460px at 85% -12%, rgba(41, 163, 131, 0.14), transparent 55%),
+    radial-gradient(640px 340px at 5% 110%, rgba(29, 59, 49, 0.05), transparent 48%),
     var(--mo-wash);
 }
 
 [data-theme="warm"] {
-  --mo-wash: #f7f3ef;
-  --mo-canvas: #fffcfa;
-  --mo-card: #f0ebe4;
-  --mo-ink: #1a1412;
+  --mo-wash: #f8f1ea;
+  --mo-canvas: #fffaf6;
+  --mo-card: #f2e9e1;
+  --mo-ink: #1f1714;
   --mo-muted: #6e645c;
-  --mo-line: #ddd4cb;
+  --mo-line: #e0d4ca;
   --mo-line-strong: #c4b8ac;
   --mo-accent: #c05a42;
-  --mo-accent-ink: #1a1412;
+  --mo-accent-ink: #1f1714;
   --mo-accent-soft: #f6e8e3;
   --mo-danger: #8f1d1d;
   --mo-warn: #7c4b01;
   --mo-ok: #2f6b4f;
   --mo-ok-soft: #e6f0ea;
-  --mo-hero: #1a1412;
-  --mo-on-hero: #f7f3ef;
+  --mo-hero: #1f1714;
+  --mo-on-hero: #f8f1ea;
   --mo-focus: #c05a42;
   --mo-row-hover: #f6e8e3;
-  --mo-field: #fffcfa;
+  --mo-field: #fffaf6;
   --mo-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --mo-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --mo-font: "Source Sans 3", "Source Sans Pro", ui-sans-serif, sans-serif;
+  --mo-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --mo-atmosphere:
-    radial-gradient(1200px 500px at 10% -10%, rgba(192, 90, 66, 0.12), transparent 55%),
-    radial-gradient(900px 400px at 90% 0%, rgba(26, 20, 18, 0.05), transparent 50%),
+    radial-gradient(1200px 500px at 10% -10%, rgba(192, 90, 66, 0.13), transparent 55%),
+    radial-gradient(900px 400px at 90% 0%, rgba(31, 23, 20, 0.05), transparent 50%),
     var(--mo-wash);
 }
 
 [data-theme="denso"] {
-  --mo-wash: #f4f5f7;
-  --mo-canvas: #ffffff;
+  --mo-wash: #f3f4f6;
+  --mo-canvas: #fafbfc;
   --mo-card: #eef0f3;
-  --mo-ink: #0e1116;
+  --mo-ink: #12151a;
   --mo-muted: #5c6573;
   --mo-line: #d5dae2;
   --mo-line-strong: #aeb6c2;
-  --mo-accent: #0e1116;
+  --mo-accent: #12151a;
   --mo-accent-ink: #ffffff;
   --mo-accent-soft: #e8ebf0;
   --mo-danger: #a10214;
   --mo-warn: #7c4b01;
   --mo-ok: #0a7a4b;
   --mo-ok-soft: #e6f4ec;
-  --mo-hero: #0e1116;
-  --mo-on-hero: #f4f5f7;
-  --mo-focus: #0e1116;
+  --mo-hero: #12151a;
+  --mo-on-hero: #f3f4f6;
+  --mo-focus: #12151a;
   --mo-row-hover: #eef2f7;
-  --mo-field: #ffffff;
+  --mo-field: #fafbfc;
   --mo-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --mo-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --mo-radius: 6px;
   --mo-radius-sm: 4px;
+  --mo-font: "Source Sans 3", "Source Sans Pro", ui-sans-serif, sans-serif;
+  --mo-display: "Source Sans 3", "Source Sans Pro", ui-sans-serif, sans-serif;
   --mo-atmosphere: var(--mo-wash);
 }
 
@@ -121,8 +127,10 @@ body {
   font-family: var(--mo-font);
   color: var(--mo-ink);
   background: var(--mo-atmosphere);
-  font-size: 0.9375rem;
-  line-height: 1.45;
+  font-size: 0.975rem;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
+  font-optical-sizing: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -192,22 +200,31 @@ a {
 
 .mo-brand {
   margin: 0;
-  font-weight: 700;
+  font-family: var(--mo-display);
+  font-weight: 650;
   letter-spacing: -0.03em;
+}
+
+.mo-brand--eyebrow {
+  font-size: 0.85rem;
+  color: var(--mo-muted);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .mo-brand--display {
   font-family: var(--mo-display);
-  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-size: clamp(1.75rem, 3.2vw, 2.35rem);
   font-weight: 650;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
 }
 
 .mo-promise {
-  margin: 0.25rem 0 0;
-  font-size: 0.9rem;
+  margin: 0.3rem 0 0;
+  font-size: 0.92rem;
   color: var(--mo-muted);
+  letter-spacing: -0.01em;
 }
 
 .mo-btn {
@@ -515,10 +532,11 @@ a {
 .mo-saludo {
   margin: 0 0 0.35rem;
   font-family: var(--mo-display);
-  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  font-size: clamp(1.5rem, 2.8vw, 2rem);
   font-weight: 650;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  text-wrap: balance;
 }
 
 [data-theme="denso"] .mo-saludo {
@@ -1343,8 +1361,17 @@ a {
 
 .mo-tile__label {
   margin: 0;
+  font-family: var(--mo-display);
   font-weight: 650;
+  font-size: 1.12rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+[data-theme="denso"] .mo-tile__label {
+  font-family: var(--mo-font);
   font-size: 1rem;
+  letter-spacing: -0.01em;
 }
 
 .mo-tile__hint {
