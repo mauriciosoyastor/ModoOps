@@ -49,12 +49,6 @@ const activos = TENANTS.filter((t) => t.state === 'activo').length;
 const mora = TENANTS.filter((t) => t.state === 'moroso').length;
 const susp = TENANTS.filter((t) => t.state === 'suspendido').length;
 
-const BLURB: Record<string, string> = {
-  warm: 'Warm · acento marca (star-warm) + atmósfera',
-  papel: 'Papel · tono humano PYME, menos “dashboard”',
-  denso: 'Denso · editorial ops, tabs underline, radios chicos',
-};
-
 const STATE_LABEL: Record<string, string> = {
   activo: 'activo',
   moroso: 'moroso',
@@ -94,6 +88,7 @@ const ESTAD_CHIP: Record<string, string> = {
         display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center;
         padding: 0.85rem 1.35rem 0.45rem; max-width: 72rem;
       }
+      .tools #btn-export { margin-left: auto; flex-shrink: 0; }
       .search {
         display: flex; align-items: center;
         flex: 1 1 14rem; max-width: 20rem;
@@ -120,6 +115,15 @@ const ESTAD_CHIP: Record<string, string> = {
         display: grid;
         gap: 0.75rem;
         max-width: 28rem;
+        opacity: 0;
+        transform: scale(0.97);
+        transition:
+          opacity 200ms var(--mo-ease-out),
+          transform 200ms var(--mo-ease-out);
+      }
+      .create-panel.is-in {
+        opacity: 1;
+        transform: scale(1);
       }
       .create-panel[hidden] { display: none; }
       .create-panel__actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
@@ -133,7 +137,6 @@ const ESTAD_CHIP: Record<string, string> = {
     <div class="mo-live" id="live-assertive" aria-live="assertive" aria-atomic="true"></div>
 
     <div class="proto-banner" translate="no">
-      <span>{BLURB[variant]}</span>
       <span class="variant-switch" role="navigation" aria-label="Variante de diseño">
         <a href={qs('warm', estado, qRaw)} aria-current={variant === 'warm' ? 'true' : undefined}>warm</a>
         <a href={qs('papel', estado, qRaw)} aria-current={variant === 'papel' ? 'true' : undefined}>papel</a>
@@ -468,6 +471,8 @@ const ESTAD_CHIP: Record<string, string> = {
 
       let pendingAction = null;
       let lastFocus = null;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const LEAVE_MS = reduceMotion ? 0 : 120;
 
       function announce(msg, assertive = false) {
         const el = assertive ? liveAssertive : livePolite;
@@ -504,20 +509,32 @@ const ESTAD_CHIP: Record<string, string> = {
         confirmText.textContent = text;
         confirmOk.textContent = okLabel;
         confirmOk.className = danger ? 'mo-btn mo-btn--danger' : 'mo-btn mo-btn--primary';
+        backdrop.classList.remove('is-leaving');
         backdrop.hidden = false;
+        void backdrop.offsetWidth;
+        backdrop.classList.add('is-open');
         confirmOk.focus();
       }
 
       function closeConfirm() {
         if (!backdrop) return;
-        backdrop.hidden = true;
-        pendingAction = null;
-        if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+        backdrop.classList.remove('is-open');
+        backdrop.classList.add('is-leaving');
+        const finish = () => {
+          backdrop.hidden = true;
+          backdrop.classList.remove('is-leaving');
+          pendingAction = null;
+          if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+        };
+        if (LEAVE_MS === 0) finish();
+        else window.setTimeout(finish, LEAVE_MS);
       }
 
       function openNuevo() {
         if (!panelNuevo || !btnNuevo) return;
         panelNuevo.hidden = false;
+        void panelNuevo.offsetWidth;
+        panelNuevo.classList.add('is-in');
         btnNuevo.setAttribute('aria-expanded', 'true');
         document.getElementById('tenant-nombre')?.focus();
         announce('Formulario de nuevo tenant abierto');
@@ -525,6 +542,7 @@ const ESTAD_CHIP: Record<string, string> = {
 
       function closeNuevo() {
         if (!panelNuevo || !btnNuevo || !formNuevo) return;
+        panelNuevo.classList.remove('is-in');
         panelNuevo.hidden = true;
         btnNuevo.setAttribute('aria-expanded', 'false');
         formNuevo.reset();
@@ -581,7 +599,10 @@ const ESTAD_CHIP: Record<string, string> = {
           if (except && wrap === except) return;
           const menu = wrap.querySelector('.mo-overflow__menu');
           const toggle = wrap.querySelector('[data-overflow-toggle]');
-          if (menu) menu.hidden = true;
+          if (menu) {
+            menu.classList.remove('is-in');
+            menu.hidden = true;
+          }
           toggle?.setAttribute('aria-expanded', 'false');
         });
       }
@@ -643,8 +664,16 @@ const ESTAD_CHIP: Record<string, string> = {
           const open = menu && menu.hidden;
           closeAllOverflow(wrap || undefined);
           if (menu) {
-            menu.hidden = !open;
-            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (open) {
+              menu.hidden = false;
+              void menu.offsetWidth;
+              menu.classList.add('is-in');
+              toggle.setAttribute('aria-expanded', 'true');
+            } else {
+              menu.classList.remove('is-in');
+              menu.hidden = true;
+              toggle.setAttribute('aria-expanded', 'false');
+            }
           }
           return;
         }

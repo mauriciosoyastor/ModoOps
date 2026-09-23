@@ -34,12 +34,6 @@ const TILES = [
 
 const href = (v: string, t: string) => `/prototype/shell-empleado?variant=${v}&tab=${t}`;
 
-const BLURB: Record<string, string> = {
-  warm: 'Warm · marca + saludo humano',
-  papel: 'Papel · misma paleta que Control Plane',
-  denso: 'Denso · atajos primero',
-};
-
 const SALUDO: Record<string, string> = {
   warm: 'Buenas. La operación ya está en modo.',
   papel: 'Así viene tu día en Pinturería Centro.',
@@ -106,7 +100,6 @@ const SALUDO: Record<string, string> = {
     <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
 
     <div class="proto-banner" translate="no">
-      <span>{BLURB[variant]}</span>
       <span class="variant-switch" role="navigation" aria-label="Variante de diseño">
         <a href={href('warm', tab)} aria-current={variant === 'warm' ? 'true' : undefined}>warm</a>
         <a href={href('papel', tab)} aria-current={variant === 'papel' ? 'true' : undefined}>papel</a>
@@ -308,6 +301,8 @@ const SALUDO: Record<string, string> = {
       const confirmCancel = document.getElementById('confirm-cancel');
       let lastFocus = null;
       let openSheetEl = null;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const LEAVE_MS = reduceMotion ? 0 : 140;
 
       const STOCK = [
         { q: ['latex', 'blanco', 'ltx'], name: 'Látex interior blanco 20L', stock: 24, ubi: 'A-12' },
@@ -344,23 +339,36 @@ const SALUDO: Record<string, string> = {
       function openConfirm() {
         if (!backdrop) return;
         lastFocus = document.activeElement;
+        backdrop.classList.remove('is-leaving');
         backdrop.hidden = false;
+        void backdrop.offsetWidth;
+        backdrop.classList.add('is-open');
         confirmOk?.focus();
       }
 
       function closeConfirm() {
         if (!backdrop) return;
-        backdrop.hidden = true;
-        if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+        backdrop.classList.remove('is-open');
+        backdrop.classList.add('is-leaving');
+        const finish = () => {
+          backdrop.hidden = true;
+          backdrop.classList.remove('is-leaving');
+          if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+        };
+        if (LEAVE_MS === 0) finish();
+        else window.setTimeout(finish, LEAVE_MS);
       }
 
       function openSheet(id) {
         const el = document.getElementById(`sheet-${id}`);
         if (!el) return;
-        closeSheet();
+        closeSheet(true);
         lastFocus = document.activeElement;
         openSheetEl = el;
+        el.classList.remove('is-leaving');
         el.hidden = false;
+        void el.offsetWidth;
+        el.classList.add('is-open');
         const focusable =
           el.querySelector('input:not([type="radio"]):not([type="hidden"]), select, textarea') ||
           el.querySelector('button.mo-btn--primary') ||
@@ -369,11 +377,19 @@ const SALUDO: Record<string, string> = {
         announce(`Flujo ${id} abierto`);
       }
 
-      function closeSheet() {
+      function closeSheet(immediate) {
         if (!openSheetEl) return;
-        openSheetEl.hidden = true;
+        const el = openSheetEl;
         openSheetEl = null;
-        if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+        el.classList.remove('is-open');
+        el.classList.add('is-leaving');
+        const finish = () => {
+          el.hidden = true;
+          el.classList.remove('is-leaving');
+          if (!immediate && lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+        };
+        if (immediate || LEAVE_MS === 0) finish();
+        else window.setTimeout(finish, LEAVE_MS);
       }
 
       function clearErr(fieldId, errId) {
