@@ -1,0 +1,58 @@
+[
+  {
+    "id": "grill-with-docs",
+    "blurb": "Idea aún borrosa EN UN REPO: entrevista y deja rastro en CONTEXT/ADRs. NO para bugs ni tickets listos ni mapas enormes."
+  },
+  {
+    "id": "grill-me",
+    "blurb": "Entrevista SIN directorio de trabajo / sin repo. Solo si no hay carpeta de proyecto."
+  },
+  {
+    "id": "wayfinder",
+    "blurb": "Esfuerzo GRANDE con NIEBLA multi-sesión: chartar mapa de decisiones. Ej: mejorar tooling Laya sin saber el camino."
+  },
+  {
+    "id": "triage",
+    "blurb": "Cola de issues/requests QUE LLEGARON DE AFUERA (mail, usuarios). NO tickets que vos/to-tickets crearon."
+  },
+  {
+    "id": "implement",
+    "blurb": "Ticket YA listo (ready-for-agent/spec): codear ahora con TDD. NO explorar ni mapear."
+  },
+  {
+    "id": "research",
+    "blurb": "Hace falta LEER docs/SDK/APIs externas y dejar nota citada. Ej: keep-warm Laya en HF/SDK."
+  },
+  {
+    "id": "prototype",
+    "blurb": "Necesitás un artefacto throwaway para SENTIR lógica/UI antes de decidir."
+  },
+  {
+    "id": "diagnosing-bugs",
+    "blurb": "Algo ESTÁ ROTO o es intermitente: armar loop rojo reproducible primero."
+  },
+  {
+    "id": "to-spec",
+    "blurb": "El grilling ya cerró: volcar a SPEC buildable."
+  },
+  {
+    "id": "to-tickets",
+    "blurb": "La SPEC existe: partir en tickets con blockers."
+  },
+  {
+    "id": "tdd",
+    "blurb": "Un comportamiento chico test-first sin spec completa."
+  },
+  {
+    "id": "code-review",
+    "blurb": "Revisar un DIFF/PR ya escrito."
+  },
+  {
+    "id": "domain-modeling",
+    "blurb": "El problema es VOCABULARIO/glosario overload, no el feature."
+  },
+  {
+    "id": "improve-codebase-architecture",
+    "blurb": "Survey de arquitectura/deepening; no implementar el feature ahora."
+  }
+]

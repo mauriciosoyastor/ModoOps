@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "pedido": "El recortador Laya no se siente más rápido y no sé si ahorra tokens; el esfuerzo es grande y con niebla",
+    "contexto": "repo ModoOps, ya hay mapa cerrado #192 del harness",
+    "gold": "wayfinder"
+  },
+  {
+    "id": 2,
+    "pedido": "El login del tenant a veces da 403 y a veces no; necesito un loop rojo reproducible",
+    "contexto": "BFF Astro + Odoo",
+    "gold": "diagnosing-bugs"
+  },
+  {
+    "id": 3,
+    "pedido": "Implementá el ticket ready-for-agent del botón Suspender en admin/tenants",
+    "contexto": "issue etiquetado ready-for-agent, spec corta",
+    "gold": "implement"
+  },
+  {
+    "id": 4,
+    "pedido": "Llegaron 4 feature requests de prospectos por mail; hay que clasificarlos",
+    "contexto": "no los creamos nosotros",
+    "gold": "triage"
+  },
+  {
+    "id": 5,
+    "pedido": "Investigá cómo hacer keep-warm de Laya en Windows citando el SDK y HF",
+    "contexto": "tooling Cursor, no producto",
+    "gold": "research"
+  }
+]

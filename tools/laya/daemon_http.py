@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""PROTOTYPE (#202): Laya keep-warm HTTP on loopback.
+"""PROTOTYPE (#202/#203): Laya keep-warm HTTP on loopback.
 
-Throwaway. Load checkpoint once; POST /v1/recortar with pre-built candidates
-(no GitNexus inside). See docs/research/daemon-laya-keepwarm-200.md.
+Throwaway. Load checkpoint once.
+  POST /v1/recortar     — candidates from GitNexus (#202)
+  POST /v1/seleccionar  — one Matt skill from catalog (#203)
 
   $env:USE_TF='0'
   $env:LAYA_MODEL_PATH="$PWD\\.models\\laya-multilingual"
@@ -90,6 +91,56 @@ def pick_from_candidates(goal: str, query: str, cands: list[dict]) -> dict:
     }
 
 
+def select_skill(pedido: str, skills: list[dict], contexto: str = "") -> dict:
+    """Pick exactly one skill id. skills: [{id, blurb}, ...]."""
+    if not skills:
+        return {
+            "pedido": pedido,
+            "choice": None,
+            "skipped": True,
+            "wall_ms": 0.0,
+            "n_options": 0,
+        }
+    criteria = {s["id"]: (s.get("blurb") or s["id"])[:200] for s in skills}
+    lines = [f"pedido: {pedido}"]
+    if contexto:
+        lines.append(f"contexto: {contexto[:400]}")
+    lines.append("opciones:")
+    for s in skills:
+        lines.append(f"- {s['id']}: {(s.get('blurb') or '')[:120]}")
+    state = "\n".join(lines)
+    questions = {
+        "skill": {
+            "type": "choice",
+            "instructions": (
+                "Elegí EXACTAMENTE una opción. "
+                "Si el contexto menciona repo/ModoOps/carpeta de proyecto, NUNCA elijas grill-me. "
+                "Bugs rotos/intermitentes → diagnosing-bugs. "
+                "Ticket ready-for-agent / 'implementá el ticket' → implement. "
+                "Issues que llegaron de afuera → triage. "
+                "Investigar SDK/docs/fuentes → research. "
+                "Esfuerzo grande con niebla / mapa de decisiones → wayfinder. "
+                "Idea borrosa con repo → grill-with-docs. "
+                "Sin repo → grill-me."
+            ),
+            "criteria": criteria,
+        }
+    }
+    t0 = time.perf_counter()
+    result = _agent.predict(state, questions)
+    wall_ms = (time.perf_counter() - t0) * 1000.0
+    ans = (result.get("answers") or {}).get("skill") or {}
+    choice = ans.get("choice")
+    return {
+        "pedido": pedido,
+        "choice": choice,
+        "skipped": choice is None or choice not in criteria,
+        "wall_ms": round(wall_ms, 2),
+        "n_options": len(skills),
+        "probabilities": ans.get("probabilities"),
+    }
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args) -> None:  # quieter
         sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % args))
@@ -120,15 +171,30 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
-        if path not in ("/v1/recortar", "/recortar"):
-            self._json(404, {"error": "not_found"})
-            return
         n = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(n) if n else b"{}"
         try:
             req = json.loads(raw.decode("utf-8"))
         except json.JSONDecodeError as e:
             self._json(400, {"error": f"bad_json: {e}"})
+            return
+
+        if path in ("/v1/seleccionar", "/seleccionar"):
+            pedido = (req.get("pedido") or "").strip()
+            skills = req.get("skills")
+            if not pedido or not isinstance(skills, list):
+                self._json(400, {"error": "need pedido + skills[]"})
+                return
+            try:
+                out = select_skill(pedido, skills, req.get("contexto") or "")
+            except Exception as e:  # noqa: BLE001 — prototype
+                self._json(500, {"error": str(e)})
+                return
+            self._json(200, out)
+            return
+
+        if path not in ("/v1/recortar", "/recortar"):
+            self._json(404, {"error": "not_found"})
             return
         goal = (req.get("goal") or "").strip()
         cands = req.get("candidates")
