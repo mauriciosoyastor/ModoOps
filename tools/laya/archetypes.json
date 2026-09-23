@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "query": "mockLLM MockLLM callLLM orquestador",
+    "goal": "Dónde el agente usa mockLLM en vez del LLM real",
+    "gold_symbol": "mockLLM",
+    "gold_file": "web/src/lib/orquestador/llm.ts"
+  },
+  {
+    "id": 2,
+    "query": "esAncla construirBorrador borradorV1 oficina-mapping",
+    "goal": "Proceso construirBorrador que llega a esAncla (no horasDe)",
+    "gold_symbol": "esAncla",
+    "gold_file": "web/src/lib/oficina-mapping.ts"
+  },
+  {
+    "id": 3,
+    "query": "validar borrador API oficina",
+    "goal": "Cómo se valida o envía el borrador al API",
+    "gold_symbol": "validarBorrador",
+    "gold_file": "web/src/lib/oficina-mapping.ts"
+  },
+  {
+    "id": 4,
+    "query": "FetchTenantState estado tenant",
+    "goal": "Cómo se resuelve el estado de un tenant",
+    "gold_symbol": "fetchTenantState",
+    "gold_file": "web/src/lib/bff/tenant-status.ts"
+  },
+  {
+    "id": 5,
+    "query": "apply_sales_hub_copy SgHubCard hub ventas",
+    "goal": "Dónde apply_sales_hub_copy arma el copy del hub de ventas",
+    "gold_symbol": "apply_sales_hub_copy",
+    "gold_file": "modoops_core/models/mo_hub_card.py"
+  }
+]

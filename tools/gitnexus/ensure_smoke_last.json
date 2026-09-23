@@ -1,0 +1,35 @@
+{
+  "prototype": "tools/gitnexus/ensure_smoke.mjs",
+  "ticket": 211,
+  "map": 207,
+  "mode": "notify",
+  "doAnalyze": false,
+  "analyzed": false,
+  "analyzeInvokedFromNotify": false,
+  "steps": {
+    "freshness": {
+      "head": "31d991471f48af620f11831f36fcd00e111de755",
+      "lastCommit": "f8cfea89b0eeca561b414e7c371950201f65e3cd",
+      "stale": true,
+      "commitsBehind": 1,
+      "meta": {
+        "lastCommit": "f8cfea89b0eeca561b414e7c371950201f65e3cd",
+        "embeddings": 3063,
+        "embeddingDims": 384,
+        "indexedAt": "2026-09-23T02:28:48.452Z"
+      }
+    },
+    "notify": {
+      "pass": true,
+      "stale": true,
+      "message": "GitNexus index STALE: HEAD 31d9914 ≠ lastCommit f8cfea8 (~1 commits behind). Run in terminal (NOT inside a hook): `node .gitnexus/run.cjs analyze --embeddings`. Never spawn analyze from Cursor/git hooks (timeout / Ladybug WAL risk).",
+      "analyze_spawned": false
+    }
+  },
+  "path_pass": true,
+  "pack": {
+    "path_demonstrated": true,
+    "smoke_attach": null,
+    "note": "Path PASS = notify/ensure no spawnean analyze en hot path. Smoke attach es gate aparte (#210)."
+  }
+}

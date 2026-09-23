@@ -46,13 +46,18 @@ This project is indexed by GitNexus as **ModoOps** (2789 symbols, 5327 relations
 
 ## ModoOps — Grafo GitNexus paritario (384d)
 
-> **Spec:** `docs/spec-grafo-gitnexus-modoops.md:1` · **Glosario:** `CONTEXT.md:276` · **Checklist:** `npx gitnexus doctor` → `graph: available, fts: available, vector: available, Semantic mode: vector` + `embeddingDims==384`
+> **Spec:** `docs/spec-grafo-gitnexus-modoops.md:1` · **Glosario:** `CONTEXT.md:276` · **Checklist:** `npx gitnexus doctor` → `graph: available, fts: available, vector: available, Semantic mode: vector` + `embeddingDims==384`  
+> **Automatización (mapa #207 / #212):** notify-only + ensure opcional — nunca `analyze` en hooks ni en cada save.
 
 - **Dónde vive:** `.gitnexus/` local por dev, `.gitignore`d no versionado (no `.git/info/exclude` solo). Reindex: `npx gitnexus analyze --force --embeddings` (primera vez `GITNEXUS_LBUG_EXTENSION_INSTALL=auto` con red 15s+ por extensión) o `npx gitnexus analyze --embeddings` incremental; luego `load-only` offline. Dueño: dev que toca código.
+- **Notify:** `.cursor/hooks.json` → `node tools/gitnexus/hook_notify_stale.mjs` tras `git commit|merge|rebase|cherry-pick|pull` (solo `additional_context`). También avisá si MCP/`status` reporta stale al empezar exploración.
+- **Ensure / smoke (opcional):** `node tools/gitnexus/ensure_smoke.mjs` — freshness + doctor + attach-rate warn (≥80% en 3 queries; attach bajo fresco = dedupe [#213](https://github.com/mauriciosoyastor/ModoOps/issues/213), no reindex ciego). `--analyze` solo con `--mode ensure`, fuera del hook.
 - **Contrato primario:** MCP directo `npx gitnexus mcp` → `query`/`context`/`impact`/`cypher`/`trace`/`detect_changes` (skill `gitnexus-guide` es solo prompt). Ver `docs/research/consumo-agente-tokens.md`.
 - **Árbol determinista (obligatorio, no opcional):**
-  ```
-  exploratorio / "¿dónde está X?" → query({search_query, goal})
+ ```
+ exploratorio / "¿dónde está X?" → query({search_query, goal})
+   ModoOps si ≥3 processes → skill laya-recortador / recortar_client.py → context solo de expand[]
+   (mitiga attach vacío por dedupe #209; no sustituye analyze ni impact)
   nombre conocido / "¿quién usa X?" → context({name})
   previo a editar / "¿qué rompo?" → impact({target, direction:"upstream", summaryOnly:true}) primero
   A→B / "¿cómo se conectan?" → trace({from, to})

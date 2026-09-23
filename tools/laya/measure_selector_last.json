@@ -1,0 +1,146 @@
+{
+  "prototype": "tools/laya/measure_selector.py",
+  "ticket": 203,
+  "hits": 0,
+  "n": 5,
+  "skipped_rate": 0.0,
+  "median_rtt_s": 1.545,
+  "save_A": 0.8565,
+  "tokens": {
+    "A": 2042,
+    "B": 461,
+    "Laya": 293
+  },
+  "calls": {
+    "B": 10,
+    "Laya": 5
+  },
+  "pass": {
+    "wall": true,
+    "tokens": true,
+    "accuracy": false,
+    "verdict": false
+  },
+  "rows": [
+    {
+      "id": 1,
+      "gold": "wayfinder",
+      "choice": "to-spec",
+      "hit": false,
+      "skipped": false,
+      "rtt_ms": 1613.02,
+      "daemon_wall_ms": 1610.2,
+      "tokens": {
+        "A": 419,
+        "B": 112,
+        "Laya": 65,
+        "save_A": 0.8449
+      },
+      "calls": {
+        "A": 14,
+        "B": 2,
+        "Laya": 1
+      },
+      "b_ids": [
+        "wayfinder",
+        "grill-me"
+      ]
+    },
+    {
+      "id": 2,
+      "gold": "diagnosing-bugs",
+      "choice": "grill-with-docs",
+      "hit": false,
+      "skipped": false,
+      "rtt_ms": 1529.9,
+      "daemon_wall_ms": 1527.61,
+      "tokens": {
+        "A": 405,
+        "B": 76,
+        "Laya": 72,
+        "save_A": 0.8222
+      },
+      "calls": {
+        "A": 14,
+        "B": 2,
+        "Laya": 1
+      },
+      "b_ids": [
+        "diagnosing-bugs",
+        "code-review"
+      ]
+    },
+    {
+      "id": 3,
+      "gold": "implement",
+      "choice": "to-spec",
+      "hit": false,
+      "skipped": false,
+      "rtt_ms": 1631.86,
+      "daemon_wall_ms": 1629.41,
+      "tokens": {
+        "A": 410,
+        "B": 86,
+        "Laya": 56,
+        "save_A": 0.8634
+      },
+      "calls": {
+        "A": 14,
+        "B": 2,
+        "Laya": 1
+      },
+      "b_ids": [
+        "implement",
+        "tdd"
+      ]
+    },
+    {
+      "id": 4,
+      "gold": "triage",
+      "choice": "to-spec",
+      "hit": false,
+      "skipped": false,
+      "rtt_ms": 1545.03,
+      "daemon_wall_ms": 1542.5,
+      "tokens": {
+        "A": 404,
+        "B": 89,
+        "Laya": 50,
+        "save_A": 0.8762
+      },
+      "calls": {
+        "A": 14,
+        "B": 2,
+        "Laya": 1
+      },
+      "b_ids": [
+        "triage",
+        "domain-modeling"
+      ]
+    },
+    {
+      "id": 5,
+      "gold": "research",
+      "choice": "to-spec",
+      "hit": false,
+      "skipped": false,
+      "rtt_ms": 1513.55,
+      "daemon_wall_ms": 1510.98,
+      "tokens": {
+        "A": 404,
+        "B": 98,
+        "Laya": 50,
+        "save_A": 0.8762
+      },
+      "calls": {
+        "A": 14,
+        "B": 2,
+        "Laya": 1
+      },
+      "b_ids": [
+        "research",
+        "wayfinder"
+      ]
+    }
+  ]
+}
