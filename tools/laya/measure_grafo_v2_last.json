@@ -1,0 +1,149 @@
+{
+  "prototype": "tools/laya/measure_grafo_v2.py",
+  "ticket": 202,
+  "daemon_url": "http://127.0.0.1:8765/v1/recortar",
+  "hits": 5,
+  "n": 5,
+  "skipped_rate": 0.4,
+  "median_rtt_s": 1.4968,
+  "save_A": 0.4777,
+  "tokens": {
+    "A": 11281,
+    "B": 6553,
+    "Laya": 5892
+  },
+  "calls": {
+    "B": 12,
+    "Laya": 11
+  },
+  "thresholds": {
+    "wall_overhead_s": 2.0,
+    "save_A_ge": 0.4,
+    "b_chars_slack": 1.05,
+    "hits_ge": 4,
+    "skipped_rate_le": 0.2
+  },
+  "pass": {
+    "wall": true,
+    "tokens": true,
+    "accuracy": false,
+    "verdict": false
+  },
+  "rows": [
+    {
+      "id": 1,
+      "hit": true,
+      "rtt_ms": 472.55,
+      "daemon_wall_ms": 447.01,
+      "expand_ids": [
+        "proc_58_post",
+        "proc_59_post"
+      ],
+      "hybrid_reason": "prob_tie:0.0326",
+      "tokens": {
+        "query": 239,
+        "A": 870,
+        "B": 870,
+        "Laya": 870,
+        "save_A": 0.0
+      },
+      "calls": {
+        "A": 2,
+        "B": 2,
+        "Laya": 2
+      }
+    },
+    {
+      "id": 2,
+      "hit": true,
+      "rtt_ms": 1603.36,
+      "daemon_wall_ms": 1583.25,
+      "expand_ids": [
+        "proc_54_construirborrador",
+        "proc_55_construirborrador"
+      ],
+      "hybrid_reason": "prio_tie:0.0000",
+      "tokens": {
+        "query": 852,
+        "A": 2937,
+        "B": 1303,
+        "Laya": 1303,
+        "save_A": 0.5564
+      },
+      "calls": {
+        "A": 6,
+        "B": 2,
+        "Laya": 2
+      }
+    },
+    {
+      "id": 3,
+      "hit": true,
+      "rtt_ms": 590.48,
+      "daemon_wall_ms": 572.17,
+      "expand_ids": [
+        "proc_61_post",
+        "proc_55_construirborrador"
+      ],
+      "hybrid_reason": "prio_tie:0.0000",
+      "tokens": {
+        "query": 355,
+        "A": 1122,
+        "B": 806,
+        "Laya": 671,
+        "save_A": 0.402
+      },
+      "calls": {
+        "A": 3,
+        "B": 2,
+        "Laya": 2
+      }
+    },
+    {
+      "id": 4,
+      "hit": true,
+      "rtt_ms": 1496.75,
+      "daemon_wall_ms": 1482.12,
+      "expand_ids": [
+        "proc_123_fetchtenantstate",
+        "proc_31_get"
+      ],
+      "hybrid_reason": "prio_tie:0.0050",
+      "tokens": {
+        "query": 867,
+        "A": 2558,
+        "B": 1625,
+        "Laya": 1139,
+        "save_A": 0.5547
+      },
+      "calls": {
+        "A": 6,
+        "B": 3,
+        "Laya": 2
+      }
+    },
+    {
+      "id": 5,
+      "hit": true,
+      "rtt_ms": 2320.63,
+      "daemon_wall_ms": 2306.79,
+      "expand_ids": [
+        "proc_70_setup_all_hub_card_a",
+        "proc_67_setup_all_hub_card_a"
+      ],
+      "hybrid_reason": "prob_tie:0.0324",
+      "tokens": {
+        "query": 1135,
+        "A": 3794,
+        "B": 1949,
+        "Laya": 1909,
+        "save_A": 0.4968
+      },
+      "calls": {
+        "A": 8,
+        "B": 3,
+        "Laya": 3
+      }
+    }
+  ]
+}

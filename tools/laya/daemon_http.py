@@ -1,0 +1,169 @@
+#!/usr/bin/env python3
+"""PROTOTYPE (#202): Laya keep-warm HTTP on loopback.
+
+Throwaway. Load checkpoint once; POST /v1/recortar with pre-built candidates
+(no GitNexus inside). See docs/research/daemon-laya-keepwarm-200.md.
+
+  $env:USE_TF='0'
+  $env:LAYA_MODEL_PATH="$PWD\\.models\\laya-multilingual"
+  .\\.venv-win\\Scripts\\python.exe tools\\laya\\daemon_http.py
+"""
+from __future__ import annotations
+
+import json
+import os
+import sys
+import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import urlparse
+
+_DIR = Path(__file__).resolve().parent
+if str(_DIR) not in sys.path:
+    sys.path.insert(0, str(_DIR))
+
+import harness_recortador as H  # noqa: E402
+
+HOST = os.environ.get("LAYA_DAEMON_HOST", "127.0.0.1")
+PORT = int(os.environ.get("LAYA_DAEMON_PORT", "8765"))
+
+_agent = None
+_loaded_at: float | None = None
+
+
+def pick_from_candidates(goal: str, query: str, cands: list[dict]) -> dict:
+    """Laya + hybrid only — caller already ran GitNexus query."""
+    if not cands:
+        return {
+            "goal": goal,
+            "query": query,
+            "n_candidates": 0,
+            "laya_choice": None,
+            "hybrid_reason": "empty",
+            "expand": [],
+            "wall_ms": 0.0,
+            "skipped_all": True,
+        }
+    state = H.serialize_state(cands, goal, query or "")
+    t0 = time.perf_counter()
+    chosen, laya_raw = H.laya_pick(_agent, state, cands)
+    expand_ids, reason = H.hybrid_expand_ids(cands, chosen, laya_raw)
+    wall_ms = (time.perf_counter() - t0) * 1000.0
+    by_id = {c["id"]: c for c in cands}
+    expands = []
+    for pid in expand_ids:
+        c = by_id.get(pid) or {"id": pid, "symbols": []}
+        syms = c.get("symbols") or []
+        if not syms:
+            expands.append(
+                {
+                    "process_id": pid,
+                    "symbol": None,
+                    "file": None,
+                    "skipped": True,
+                    "summary": c.get("summary"),
+                    "priority": c.get("priority"),
+                }
+            )
+            continue
+        s0 = syms[0]
+        expands.append(
+            {
+                "process_id": pid,
+                "symbol": s0.get("name"),
+                "file": s0.get("file"),
+                "skipped": False,
+                "summary": c.get("summary"),
+                "priority": c.get("priority"),
+            }
+        )
+    return {
+        "goal": goal,
+        "query": query,
+        "n_candidates": len(cands),
+        "laya_choice": chosen,
+        "hybrid_reason": reason,
+        "expand_ids": expand_ids,
+        "expand": expands,
+        "wall_ms": round(wall_ms, 2),
+        "state_chars": len(state),
+    }
+
+
+class Handler(BaseHTTPRequestHandler):
+    def log_message(self, fmt: str, *args) -> None:  # quieter
+        sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % args))
+
+    def _json(self, code: int, obj: dict) -> None:
+        body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self) -> None:  # noqa: N802
+        path = urlparse(self.path).path
+        if path in ("/health", "/v1/health"):
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "loaded": _agent is not None,
+                    "loaded_at": _loaded_at,
+                    "host": HOST,
+                    "port": PORT,
+                },
+            )
+            return
+        self._json(404, {"error": "not_found"})
+
+    def do_POST(self) -> None:  # noqa: N802
+        path = urlparse(self.path).path
+        if path not in ("/v1/recortar", "/recortar"):
+            self._json(404, {"error": "not_found"})
+            return
+        n = int(self.headers.get("Content-Length") or 0)
+        raw = self.rfile.read(n) if n else b"{}"
+        try:
+            req = json.loads(raw.decode("utf-8"))
+        except json.JSONDecodeError as e:
+            self._json(400, {"error": f"bad_json: {e}"})
+            return
+        goal = (req.get("goal") or "").strip()
+        cands = req.get("candidates")
+        if not goal or not isinstance(cands, list):
+            self._json(
+                400,
+                {
+                    "error": "need goal + candidates[] (no GitNexus in daemon — #202)",
+                },
+            )
+            return
+        query = req.get("query") or ""
+        try:
+            out = pick_from_candidates(goal, query, cands)
+        except Exception as e:  # noqa: BLE001 — prototype
+            self._json(500, {"error": str(e)})
+            return
+        self._json(200, out)
+
+
+def main() -> int:
+    global _agent, _loaded_at
+    print(f"PROTOTYPE daemon_http — loading Laya on {HOST}:{PORT}…", flush=True)
+    t0 = time.perf_counter()
+    _agent = H.load_laya()
+    _loaded_at = time.time()
+    print(f"Laya ready in {time.perf_counter() - t0:.1f}s (cold once).", flush=True)
+    httpd = ThreadingHTTPServer((HOST, PORT), Handler)
+    print(f"Listening http://{HOST}:{PORT}/v1/recortar  GET /health", flush=True)
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nBye.", flush=True)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
