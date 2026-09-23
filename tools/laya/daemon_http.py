@@ -50,45 +50,71 @@ def pick_from_candidates(goal: str, query: str, cands: list[dict]) -> dict:
     chosen, laya_raw = H.laya_pick(_agent, state, cands)
     expand_ids, reason = H.hybrid_expand_ids(cands, chosen, laya_raw)
     wall_ms = (time.perf_counter() - t0) * 1000.0
-    by_id = {c["id"]: c for c in cands}
-    expands = []
-    for pid in expand_ids:
-        c = by_id.get(pid) or {"id": pid, "symbols": []}
-        syms = c.get("symbols") or []
-        if not syms:
-            expands.append(
-                {
-                    "process_id": pid,
-                    "symbol": None,
-                    "file": None,
-                    "skipped": True,
-                    "summary": c.get("summary"),
-                    "priority": c.get("priority"),
-                }
-            )
-            continue
-        s0 = syms[0]
-        expands.append(
-            {
-                "process_id": pid,
-                "symbol": s0.get("name"),
-                "file": s0.get("file"),
-                "skipped": False,
-                "summary": c.get("summary"),
-                "priority": c.get("priority"),
-            }
-        )
+    expands, reason2 = _expand_with_symbol_fill(cands, expand_ids, reason)
     return {
         "goal": goal,
         "query": query,
         "n_candidates": len(cands),
         "laya_choice": chosen,
-        "hybrid_reason": reason,
-        "expand_ids": expand_ids,
+        "hybrid_reason": reason2,
+        "expand_ids": [e["process_id"] for e in expands],
         "expand": expands,
         "wall_ms": round(wall_ms, 2),
         "state_chars": len(state),
     }
+
+
+def _expand_with_symbol_fill(
+    cands: list[dict], expand_ids: list[str], reason: str
+) -> tuple[list[dict], str]:
+    """Prefer rows with symbol+file; replace empty peers from ranked (#206)."""
+    by_id = {c["id"]: c for c in cands}
+    ranked = sorted(cands, key=lambda c: float(c.get("priority") or 0), reverse=True)
+    with_sym = [c for c in ranked if c.get("symbols")]
+    expands: list[dict] = []
+    used: set[str] = set()
+    filled = 0
+
+    def row_ok(c: dict) -> dict:
+        s0 = c["symbols"][0]
+        return {
+            "process_id": c["id"],
+            "symbol": s0.get("name"),
+            "file": s0.get("file") or None,
+            "skipped": False,
+            "summary": c.get("summary"),
+            "priority": c.get("priority"),
+        }
+
+    def row_skip(pid: str, c: dict | None) -> dict:
+        return {
+            "process_id": pid,
+            "symbol": None,
+            "file": None,
+            "skipped": True,
+            "summary": (c or {}).get("summary"),
+            "priority": (c or {}).get("priority"),
+        }
+
+    for pid in expand_ids:
+        if len(expands) >= 2:
+            break
+        c = by_id.get(pid)
+        if c and c.get("symbols") and pid not in used:
+            expands.append(row_ok(c))
+            used.add(pid)
+            continue
+        alt = next((x for x in with_sym if x["id"] not in used), None)
+        if alt:
+            expands.append(row_ok(alt))
+            used.add(alt["id"])
+            filled += 1
+        else:
+            expands.append(row_skip(pid, c))
+            used.add(pid)
+
+    reason2 = reason if not filled else f"{reason}+fill_sym:{filled}"
+    return expands, reason2
 
 
 def select_skill(pedido: str, skills: list[dict], contexto: str = "") -> dict:
