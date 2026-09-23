@@ -1,62 +1,48 @@
 ---
 name: laya-recortador
-description: >-
-  Recorta candidatos de GitNexus query a 1–2 context con Laya keep-warm
-  (ensure_daemon + tools/laya/recortar_client.py). Use when exploring ModoOps with
-  GitNexus query→context, many processes, or the user mentions recortador/Laya.
-  NEVER use tools/laya/recortar.py one-shot (cold ~33s; deprecated mapa #198/#205).
-  Not for impact-before-edit, commits, or the tenant Agente.
+description: "Recorta candidatos del working tree (status+diff) con Laya keep-warm a ≤2 paths para Read. Use when exploring local changes in ModoOps without depending on a stale GitNexus index."
 ---
 
-# Laya recortador (ModoOps)
+# Laya recortador (ModoOps) — sesión git
 
 Throwaway tooling del agente de Cursor. **No** es el **Agente** / **Techo IA** del producto.
 
-> **Veredicto mapa [#198](https://github.com/mauriciosoyastor/ModoOps/issues/198) / task [#205](https://github.com/mauriciosoyastor/ModoOps/issues/205):**  
-> el camino canónico es **daemon keep-warm + cliente thin**.  
-> **`tools/laya/recortar.py` (one-shot) está deprecado** — no lo invoques (cold-load ~33 s por Shell).
+> **Canónico:** working tree **status+diff** → daemon `/v1/recortar-git` → ≤2 paths → **Read**.  
+> El path grafo→Laya queda **soft-deprecated** (harness offline puede vivir; la sesión no lo usa).
+> ADR: `docs/adr/0010-laya-recortador-git-not-grafo.md`.
 
 ## When
 
-- Vas a explorar con `query` GitNexus y después abrir `context` de varios procesos.
-- El usuario pide entender un flujo / “cómo funciona X” en este repo.
-- El usuario nombra recortador, Laya, o quiere explorar el grafo con menos tokens.
+- Vas a explorar código tocado en el working tree y querés elegir qué leer primero.
+- El usuario pide entender un cambio local / “qué miro del diff”.
+- El usuario nombra recortador, Laya, o quiere menos tokens sin depender del índice GitNexus.
 
 ## When NOT
 
 - `impact` previo a editar un símbolo (sigue el árbol GitNexus).
 - Commits, PRs, UI, Odoo runtime.
-- Sustituir `query` / `context` MCP: el recortador **elige**; vos igual abrís context.
-- Selector de skills Matt (falló; no uses Laya para ruteo de flujos).
+- Sustituir `impact` / `context` cuando necesitás callers tipados — eso sigue siendo grafo.
+- Tree limpio: la skill **aborta** (no cae al grafo).
 
 ## Workflow (obligatorio)
 
 ```
-1. Armá query + goal (ES-AR; nombres de símbolo ayudan)
-2. Corré recortar_client.py (abajo) — auto-ensure del daemon en el 1er uso
-3. Abrí context SOLO de los 1–2 expand
-4. Recién ahí leé código / respondé
+1. Armá goal (ES-AR; nombres de símbolo/path ayudan)
+2. Corré recortar_client.py (ensure daemon; status+diff automático)
+3. Si abort (clean_tree): avisá; no inventes paths ni abras grafo-Laya
+4. Abrí Read SOLO de expand[].path (≤2)
+5. Recién ahí respondé
 ```
 
-**Nunca** expandas todos los candidatos del `query` si el cliente devolvió `expand`.  
-**Nunca** corras `recortar.py` one-shot.
+**Nunca** expandas todos los archivos sucios si el cliente devolvió `expand`.  
+**Nunca** corras `recortar.py` one-shot.  
+**Nunca** uses `--grafo` en sesión salvo diagnóstico legacy explícito.
 
 ## Daemon keep-warm (automático)
 
-`recortar_client.py` llama `ensure_daemon.py` al inicio (salvo `--no-ensure`):
+`recortar_client.py` llama `ensure_daemon.py` al inicio (salvo `--no-ensure`).
 
-| Estado | Qué pasa |
-|--------|----------|
-| `/health` con `loaded: true` | Instantáneo — ya caliente |
-| Daemon caído | Abre **consola nueva** con `daemon_http.py`, espera cold ~30–40s, sigue |
-| Cerrar esa consola | Apaga el daemon (siguiente llamada vuelve a cold 1×) |
-
-Solo ensure a mano (opcional):
-
-```powershell
-.\.venv-win\Scripts\python.exe tools\laya\ensure_daemon.py
-.\.venv-win\Scripts\python.exe tools\laya\ensure_daemon.py --check
-```
+Si el daemon es viejo (404 en `/v1/recortar-git`): cerrá su consola y volvé a ensure.
 
 ## Command — cliente thin (PowerShell, raíz del repo)
 
@@ -65,61 +51,60 @@ $env:USE_TF='0'
 $env:LAYA_MODEL_PATH="$PWD\.models\laya-multilingual"
 $env:PYTHONIOENCODING='utf-8'
 .\.venv-win\Scripts\python.exe tools\laya\recortar_client.py `
-  --query "<conceptos / símbolos>" `
   --goal "<qué querés entender>" `
   --json
 ```
 
-El cliente: **ensure daemon** → **un** `query` GitNexus → POST a `http://127.0.0.1:8765/v1/recortar`.  
-Alternativa sin segundo query: MCP `query` + `--candidates-json` (sigue haciendo ensure).
+Opcional: `--query` con palabras clave; `--candidates-json` para fixtures.
 
-Con `--json`, leé `expand[]` y `attach_mitigation` / `session_ok`:
+Con `--json`, leé `expand[]` y `session_ok` / `abort`:
 
 | Campo | Uso |
 |-------|-----|
-| `symbol` + `file` | `context({name, file_path, repo: "ModoOps"})` |
-| `process_id` | referencia; no alcanza solo el id |
-| `skipped: true` | no hay símbolo en payload → no inventes; seguí al siguiente o un `query` más fino (#206) |
-| `attach_mitigation` | raw vs compact: cuántos procesos vacíos recuperó #206 (tapa que miente) |
-| `session_ok` | `true` si ambos expand tienen símbolo+file (listo para context) |
+| `expand[].path` / `file` | `Read` de ese path |
+| `abort: true` + `abort_reason: clean_tree` | no hay candidatos — no inventes |
+| `session_ok` | `true` si expand tiene paths legibles |
 
-### Attach estructural (no es stale)
+### Legacy (soft-deprecated)
 
-Si el índice está **fresco** y doctor en paridad pero muchos procesos llegan con `symbols: []` / `skipped` altos: suele ser **dedupe** de `process_symbols` por `symbol.id` (#209 / [#213](https://github.com/mauriciosoyastor/ModoOps/issues/213)). **No** corras `analyze` otra vez esperando curarlo. Usá recovery/fill del daemon (#206) o un `query` más fino. Smoke: `node tools/gitnexus/ensure_smoke.mjs --mode smoke` (warn, no bloquea).
+```powershell
+.\.venv-win\Scripts\python.exe tools\laya\recortar_client.py `
+  --grafo -q "<query grafo>" -g "<goal>" --json
+```
 
-Repo MCP siempre: `"ModoOps"` si hay varios indexados.
+Solo harness/diagnóstico. Preferí git.
 
 ## Fallback
 
-Si ensure/cliente falla (sin pesos, sin venv, timeout):
+Si ensure/cliente falla (sin pesos, sin venv, timeout, 404 de endpoint viejo):
 
-1. Avisá una línea (no caigas a `recortar.py` one-shot).
-2. `query` + abrí **como máximo 2** `context` (mejor summary / símbolo en el goal).
+1. Avisá una línea (no caigas a `recortar.py` one-shot ni a grafo-Laya).
+2. `Read` como máximo 2 paths del `git status` elegidos a mano.
 3. No abras el resto.
 
 ## Checklist
 
 ```
 - [ ] Repo = ModoOps (raíz)
-- [ ] Corrí recortar_client.py (ensure automático; NO recortar.py)
-- [ ] Context solo de expand (≤2)
-- [ ] No expandí todos los candidatos del query
-- [ ] Dejé la consola del daemon abierta si la abrió ensure (keep-warm)
+- [ ] Corrí recortar_client.py sin --grafo
+- [ ] Read solo de expand (≤2) o abort limpio
+- [ ] No expandí todos los archivos sucios
+- [ ] Dejé la consola del daemon abierta si la abrió ensure
 ```
 
-## Deprecado
+## Harness
 
-| Artefacto | Estado |
-|-----------|--------|
-| `tools/laya/recortar.py` | **Deprecated** — cold por invocación |
-| Skill workflow one-shot | **Reemplazado** por ensure + `recortar_client.py` |
-| `tools/laya/harness_recortador.py` | **Vigente** — regresión offline; no es UX de sesión |
+```powershell
+.\.venv-win\Scripts\python.exe tools\laya\harness_recortador_git.py
+```
+
+Umbrales: hits ≥4/5, ahorro vs A ≥40%, wall mediana ≤2s, no peor que B.
 
 ## Refs
 
 - Ensure: `tools/laya/ensure_daemon.py`
 - Cliente: `tools/laya/recortar_client.py`
-- Daemon: `tools/laya/daemon_http.py`
-- Guía v2: `tools/laya/PROTOTYPE_GRAFO_V2.md`
-- Harness / umbrales offline: `tools/laya/PROTOTYPE.md`
-- Veredicto: mapa #198 / issue #204
+- Módulo git: `tools/laya/recortar_git.py`
+- Daemon: `tools/laya/daemon_http.py` (`/v1/recortar-git`)
+- PROTOTYPE: `tools/laya/PROTOTYPE_GIT.md`
+- ADR: `docs/adr/0010-laya-recortador-git-not-grafo.md`

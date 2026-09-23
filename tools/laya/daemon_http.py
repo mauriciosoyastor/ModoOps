@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""PROTOTYPE (#202/#203): Laya keep-warm HTTP on loopback.
+"""PROTOTYPE (#202/#203 + recortador-git): Laya keep-warm HTTP on loopback.
 
 Throwaway. Load checkpoint once.
-  POST /v1/recortar     — candidates from GitNexus (#202)
-  POST /v1/seleccionar  — one Matt skill from catalog (#203)
+  POST /v1/recortar      — candidates from GitNexus (#202; soft-deprecated in session)
+  POST /v1/recortar-git  — candidates from status+diff (session canonical)
+  POST /v1/seleccionar   — one Matt skill from catalog (#203)
 
   $env:USE_TF='0'
   $env:LAYA_MODEL_PATH="$PWD\\.models\\laya-multilingual"
@@ -24,6 +25,7 @@ if str(_DIR) not in sys.path:
     sys.path.insert(0, str(_DIR))
 
 import harness_recortador as H  # noqa: E402
+import recortar_git as RG  # noqa: E402
 
 HOST = os.environ.get("LAYA_DAEMON_HOST", "127.0.0.1")
 PORT = int(os.environ.get("LAYA_DAEMON_PORT", "8765"))
@@ -219,6 +221,25 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, out)
             return
 
+        if path in ("/v1/recortar-git", "/recortar-git"):
+            goal = (req.get("goal") or "").strip()
+            cands = req.get("candidates")
+            if not goal or not isinstance(cands, list):
+                self._json(
+                    400,
+                    {"error": "need goal + candidates[] (git paths — no GitNexus)"},
+                )
+                return
+            query = req.get("query") or ""
+            try:
+                ranked = RG.filter_and_rank(cands)
+                out = RG.pick_from_git_candidates(_agent, goal, query, ranked)
+            except Exception as e:  # noqa: BLE001 — prototype
+                self._json(500, {"error": str(e)})
+                return
+            self._json(200, out)
+            return
+
         if path not in ("/v1/recortar", "/recortar"):
             self._json(404, {"error": "not_found"})
             return
@@ -249,7 +270,10 @@ def main() -> int:
     _loaded_at = time.time()
     print(f"Laya ready in {time.perf_counter() - t0:.1f}s (cold once).", flush=True)
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"Listening http://{HOST}:{PORT}/v1/recortar  GET /health", flush=True)
+    print(
+        f"Listening http://{HOST}:{PORT}/v1/recortar-git  /v1/recortar  GET /health",
+        flush=True,
+    )
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

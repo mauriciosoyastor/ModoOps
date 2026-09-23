@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **ModoOps** (2789 symbols, 5327 relationships, 225 execution flows).
+This project is indexed by GitNexus as **ModoOps** (4715 symbols, 8905 relationships, 341 execution flows).
 
 > Index stale? Run `node .gitnexus/run.cjs analyze --index-only` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? Bootstrap with `npx`, `bunx`, or `pnpm dlx` — e.g. `bunx gitnexus@latest analyze` (npm 11 npx crash; #1939).
 
@@ -55,9 +55,10 @@ This project is indexed by GitNexus as **ModoOps** (2789 symbols, 5327 relations
 - **Contrato primario:** MCP directo `npx gitnexus mcp` → `query`/`context`/`impact`/`cypher`/`trace`/`detect_changes` (skill `gitnexus-guide` es solo prompt). Ver `docs/research/consumo-agente-tokens.md`.
 - **Árbol determinista (obligatorio, no opcional):**
  ```
- exploratorio / "¿dónde está X?" → query({search_query, goal})
-   ModoOps si ≥3 processes → skill laya-recortador / recortar_client.py → context solo de expand[]
-   (mitiga attach vacío por dedupe #209; no sustituye analyze ni impact)
+ exploratorio / "¿dónde está X?" → query({search_query, goal}) → ≤2 context a mano
+   (Laya sobre procesos del grafo soft-deprecated; no sustituye analyze ni impact)
+ working tree / "¿qué miro del diff?" → skill laya-recortador / recortar_client.py
+   → Read solo de expand[].path (status+diff → /v1/recortar-git; ADR 0010)
   nombre conocido / "¿quién usa X?" → context({name})
   previo a editar / "¿qué rompo?" → impact({target, direction:"upstream", summaryOnly:true}) primero
   A→B / "¿cómo se conectan?" → trace({from, to})

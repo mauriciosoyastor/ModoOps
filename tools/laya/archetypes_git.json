@@ -1,0 +1,217 @@
+[
+  {
+    "id": 1,
+    "goal": "Dónde el agente usa mockLLM en vez del LLM real",
+    "query": "mockLLM",
+    "gold_path": "web/src/lib/orquestador/llm.ts",
+    "candidates": [
+      {
+        "path": "web/src/lib/orquestador/llm.ts",
+        "status": "M",
+        "diff_summary": "function mockLLM(message); callLLM fallback a mockLLM"
+      },
+      {
+        "path": "web/src/lib/orquestador/decide.ts",
+        "status": "M",
+        "diff_summary": "decide orquestador"
+      },
+      {
+        "path": "web/src/lib/orquestador/adapters.ts",
+        "status": "M",
+        "diff_summary": "adapters env api key"
+      },
+      {
+        "path": "web/src/lib/orquestador/prospecto.ts",
+        "status": "M",
+        "diff_summary": "respuestaEcho"
+      },
+      {
+        "path": "web/src/pages/api/modoops/[db]/agent/run.ts",
+        "status": "M",
+        "diff_summary": "POST agent run callLLM"
+      },
+      {
+        "path": "web/src/pages/api/oficina/chat.ts",
+        "status": "M",
+        "diff_summary": "POST chat oficina"
+      },
+      {
+        "path": "docs/research/arquitectura-llm-prospect-sin-tenant-139.md",
+        "status": "M",
+        "diff_summary": "menciona mockLLM en research"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "goal": "Cómo se resuelve el estado de un tenant",
+    "query": "fetchTenantState",
+    "gold_path": "web/src/lib/bff/tenant-status.ts",
+    "candidates": [
+      {
+        "path": "web/src/lib/bff/tenant-status.ts",
+        "status": "M",
+        "diff_summary": "export async function fetchTenantState(slug)"
+      },
+      {
+        "path": "web/src/lib/orquestador/decide.ts",
+        "status": "M",
+        "diff_summary": "gate tenant activo"
+      },
+      {
+        "path": "web/src/lib/orquestador/adapters.ts",
+        "status": "M",
+        "diff_summary": "createEnvSuspensionChecker"
+      },
+      {
+        "path": "web/src/lib/oficina-mapping.ts",
+        "status": "M",
+        "diff_summary": "oficina mapping borrador"
+      },
+      {
+        "path": "web/src/pages/api/oficina/chat.ts",
+        "status": "M",
+        "diff_summary": "POST chat"
+      },
+      {
+        "path": "tools/laya/recortar_client.py",
+        "status": "M",
+        "diff_summary": "client thin"
+      },
+      {
+        "path": "docs/research/arquitectura-llm-prospect-sin-tenant-139.md",
+        "status": "M",
+        "diff_summary": "tabla fetchTenantState"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "goal": "Dónde apply_sales_hub_copy arma el copy del hub de ventas",
+    "query": "apply_sales_hub_copy",
+    "gold_path": "modoops_core/models/mo_hub_card.py",
+    "candidates": [
+      {
+        "path": "modoops_core/models/mo_hub_card.py",
+        "status": "M",
+        "diff_summary": "def apply_sales_hub_copy(self, card): arma copy hub ventas SgHubCard"
+      },
+      {
+        "path": "modoops_core/models/mo_work_order.py",
+        "status": "M",
+        "diff_summary": "work order report brand mark"
+      },
+      {
+        "path": "modoops_core/models/__init__.py",
+        "status": "M",
+        "diff_summary": "models init"
+      },
+      {
+        "path": "web/src/lib/oficina-mapping.ts",
+        "status": "M",
+        "diff_summary": "oficina mapping"
+      },
+      {
+        "path": "web/src/lib/orquestador/llm.ts",
+        "status": "M",
+        "diff_summary": "llm mock"
+      },
+      {
+        "path": "tools/laya/archetypes.json",
+        "status": "A",
+        "diff_summary": "gold apply_sales_hub_copy list"
+      },
+      {
+        "path": "tools/laya/daemon_http.py",
+        "status": "M",
+        "diff_summary": "daemon handler"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "goal": "Cómo se valida o envía el borrador al API de oficina",
+    "query": "validarBorrador",
+    "gold_path": "web/src/lib/oficina-mapping.ts",
+    "candidates": [
+      {
+        "path": "web/src/lib/oficina-mapping.ts",
+        "status": "M",
+        "diff_summary": "export function validarBorrador(input); construirBorrador"
+      },
+      {
+        "path": "web/src/pages/api/oficina/chat.ts",
+        "status": "M",
+        "diff_summary": "POST chat oficina"
+      },
+      {
+        "path": "web/src/lib/orquestador/prospecto.ts",
+        "status": "M",
+        "diff_summary": "respuestaEcho prospecto"
+      },
+      {
+        "path": "web/src/lib/orquestador/decide.ts",
+        "status": "M",
+        "diff_summary": "decide"
+      },
+      {
+        "path": "web/src/lib/bff/tenant-status.ts",
+        "status": "M",
+        "diff_summary": "tenant status"
+      },
+      {
+        "path": "web/src/scripts/oficina-scene.ts",
+        "status": "M",
+        "diff_summary": "mountOficinaScene"
+      },
+      {
+        "path": "tools/laya/recortar_git.py",
+        "status": "A",
+        "diff_summary": "recortar git module"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "goal": "Proceso construirBorrador que llega a esAncla no horasDe",
+    "query": "esAncla construirBorrador",
+    "gold_path": "web/src/lib/oficina-mapping.ts",
+    "candidates": [
+      {
+        "path": "web/src/lib/oficina-mapping.ts",
+        "status": "M",
+        "diff_summary": "function esAncla(...); construirBorrador usa esAncla no horasDe"
+      },
+      {
+        "path": "web/src/scripts/oficina-scene.ts",
+        "status": "M",
+        "diff_summary": "mountOficinaScene texPantalla"
+      },
+      {
+        "path": "web/src/lib/orquestador/llm.ts",
+        "status": "M",
+        "diff_summary": "llm"
+      },
+      {
+        "path": "web/src/lib/orquestador/decide.ts",
+        "status": "M",
+        "diff_summary": "decide"
+      },
+      {
+        "path": "web/src/lib/bff/tenant-status.ts",
+        "status": "M",
+        "diff_summary": "tenant"
+      },
+      {
+        "path": "web/src/pages/api/oficina/chat.ts",
+        "status": "M",
+        "diff_summary": "chat api"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "status": "M",
+        "diff_summary": "lockfile noise"
+      }
+    ]
+  }
+]

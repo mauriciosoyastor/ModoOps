@@ -1,0 +1,168 @@
+{
+  "prototype": "tools/laya/harness_recortador_git.py",
+  "mode": "fixtures_status_diff",
+  "use_daemon": true,
+  "hits": 5,
+  "n": 5,
+  "accuracy": 1.0,
+  "median_rtt_s": 1.3915,
+  "save_A": 0.6649,
+  "tokens": {
+    "A": 53086,
+    "B": 17794,
+    "Laya": 17791
+  },
+  "calls": {
+    "B": 15,
+    "Laya": 15
+  },
+  "thresholds": {
+    "hits_ge": 4,
+    "save_A_ge": 0.4,
+    "wall_overhead_s": 2.0,
+    "b_chars_slack": 1.05
+  },
+  "pass": {
+    "wall": true,
+    "tokens": true,
+    "accuracy": true,
+    "verdict": true
+  },
+  "rows": [
+    {
+      "id": 1,
+      "goal": "Dónde el agente usa mockLLM en vez del LLM real",
+      "gold_path": "web/src/lib/orquestador/llm.ts",
+      "hit": true,
+      "gold_in_candidates": true,
+      "n_candidates": 7,
+      "expand_paths": [
+        "web/src/pages/api/oficina/chat.ts",
+        "web/src/lib/orquestador/llm.ts"
+      ],
+      "hybrid_reason": "prio_tie:0.0000",
+      "rtt_ms": 2167.04,
+      "daemon_wall_ms": 2163.54,
+      "tokens": {
+        "query": 413,
+        "A": 10108,
+        "B": 2510,
+        "Laya": 3072,
+        "save_A": 0.6961
+      },
+      "calls": {
+        "A": 8,
+        "B": 3,
+        "Laya": 3
+      }
+    },
+    {
+      "id": 2,
+      "goal": "Cómo se resuelve el estado de un tenant",
+      "gold_path": "web/src/lib/bff/tenant-status.ts",
+      "hit": true,
+      "gold_in_candidates": true,
+      "n_candidates": 7,
+      "expand_paths": [
+        "web/src/pages/api/oficina/chat.ts",
+        "web/src/lib/bff/tenant-status.ts"
+      ],
+      "hybrid_reason": "prio_tie:0.0000",
+      "rtt_ms": 1427.44,
+      "daemon_wall_ms": 1424.36,
+      "tokens": {
+        "query": 393,
+        "A": 11724,
+        "B": 2962,
+        "Laya": 3524,
+        "save_A": 0.6994
+      },
+      "calls": {
+        "A": 8,
+        "B": 3,
+        "Laya": 3
+      }
+    },
+    {
+      "id": 3,
+      "goal": "Dónde apply_sales_hub_copy arma el copy del hub de ventas",
+      "gold_path": "modoops_core/models/mo_hub_card.py",
+      "hit": true,
+      "gold_in_candidates": true,
+      "n_candidates": 7,
+      "expand_paths": [
+        "modoops_core/models/__init__.py",
+        "modoops_core/models/mo_hub_card.py"
+      ],
+      "hybrid_reason": "prio_tie:0.0000",
+      "rtt_ms": 1391.47,
+      "daemon_wall_ms": 1387.81,
+      "tokens": {
+        "query": 375,
+        "A": 9772,
+        "B": 4165,
+        "Laya": 2497,
+        "save_A": 0.7445
+      },
+      "calls": {
+        "A": 8,
+        "B": 3,
+        "Laya": 3
+      }
+    },
+    {
+      "id": 4,
+      "goal": "Cómo se valida o envía el borrador al API de oficina",
+      "gold_path": "web/src/lib/oficina-mapping.ts",
+      "hit": true,
+      "gold_in_candidates": true,
+      "n_candidates": 7,
+      "expand_paths": [
+        "web/src/scripts/oficina-scene.ts",
+        "web/src/lib/oficina-mapping.ts"
+      ],
+      "hybrid_reason": "prio_tie:0.0000",
+      "rtt_ms": 1289.7,
+      "daemon_wall_ms": 1286.93,
+      "tokens": {
+        "query": 376,
+        "A": 11932,
+        "B": 3835,
+        "Laya": 4376,
+        "save_A": 0.6333
+      },
+      "calls": {
+        "A": 8,
+        "B": 3,
+        "Laya": 3
+      }
+    },
+    {
+      "id": 5,
+      "goal": "Proceso construirBorrador que llega a esAncla no horasDe",
+      "gold_path": "web/src/lib/oficina-mapping.ts",
+      "hit": true,
+      "gold_in_candidates": true,
+      "n_candidates": 6,
+      "expand_paths": [
+        "web/src/scripts/oficina-scene.ts",
+        "web/src/lib/oficina-mapping.ts"
+      ],
+      "hybrid_reason": "prio_tie:0.0000",
+      "rtt_ms": 936.84,
+      "daemon_wall_ms": 933.68,
+      "tokens": {
+        "query": 322,
+        "A": 9550,
+        "B": 4322,
+        "Laya": 4322,
+        "save_A": 0.5474
+      },
+      "calls": {
+        "A": 7,
+        "B": 3,
+        "Laya": 3
+      }
+    }
+  ]
+}
