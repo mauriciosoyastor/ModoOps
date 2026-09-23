@@ -1,0 +1,504 @@
+---
+// PROTOTYPE — Shell hub light; FlowSheets operables (#187 / Emil craft)
+import '../../styles/light-app.css';
+
+const variant = ['warm', 'papel', 'denso'].includes(Astro.url.searchParams.get('variant') || '')
+  ? (Astro.url.searchParams.get('variant') as string)
+  : 'papel';
+const tab = ['mostrador', 'deposito', 'compras', 'fiscal'].includes(Astro.url.searchParams.get('tab') || '')
+  ? (Astro.url.searchParams.get('tab') as string)
+  : 'mostrador';
+
+const TABS = [
+  { id: 'mostrador', label: 'Mostrador' },
+  { id: 'deposito', label: 'Depósito' },
+  { id: 'compras', label: 'Compras' },
+  { id: 'fiscal', label: 'Fiscal' },
+] as const;
+
+const WIDGETS: Record<string, { a: string; b: string; la: string; lb: string }> = {
+  mostrador: { a: 'USD 48.500', b: '12', la: 'Caja del día', lb: 'Tickets' },
+  deposito: { a: '842', b: '3', la: 'SKU', lb: 'Bajo mínimo' },
+  compras: { a: '4', b: 'USD 2.1k', la: 'OC abiertas', lb: 'Pendiente' },
+  fiscal: { a: '18', b: '0', la: 'FC hoy', lb: 'Rechazos' },
+};
+
+const w = WIDGETS[tab] ?? WIDGETS.mostrador;
+
+const TILES = [
+  { id: 'caja1', label: 'Abrir caja 1', hint: 'Turno en curso · listo para cobrar', value: 'Abrir' },
+  { id: 'caja2', label: 'Abrir caja 2', hint: 'Cerrada · listo para arrancar', value: 'Abrir' },
+  { id: 'stock', label: 'Consultar stock', hint: 'Por código o nombre', value: 'Buscar' },
+  { id: 'cobrar', label: 'Cobrar una OT', hint: 'Monto + efectivo/transferencia', value: 'Cobrar' },
+] as const;
+
+const href = (v: string, t: string) => `/prototype/shell-empleado?variant=${v}&tab=${t}`;
+
+const BLURB: Record<string, string> = {
+  warm: 'Warm · marca + saludo humano',
+  papel: 'Papel · misma paleta que Control Plane',
+  denso: 'Denso · atajos primero',
+};
+
+const SALUDO: Record<string, string> = {
+  warm: 'Buenas. La operación ya está en modo.',
+  papel: 'Así viene tu día en Pinturería Centro.',
+  denso: 'Mostrador · listo para operar',
+};
+---
+
+<!doctype html>
+<html lang="es-AR" data-theme={variant}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f3efe6" />
+    <meta name="robots" content="noindex" />
+    <title>PROTOTYPE — Shell ({variant})</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      .page { max-width: 70rem; margin: 0 auto; padding: 0 1.25rem 2.75rem; }
+      .top {
+        display: flex; flex-wrap: wrap; justify-content: space-between;
+        gap: 1rem; align-items: flex-start;
+        padding: 1.25rem 0 0.75rem;
+      }
+      .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+      .panel-block { margin-top: 1.05rem; }
+      .widgets {
+        display: grid; gap: 0.55rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .tiles {
+        display: grid; gap: 0.65rem; grid-template-columns: 1fr;
+      }
+      @media (min-width: 640px) {
+        .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      .tenant-name {
+        margin: 0.15rem 0 0; font-size: 0.95rem; font-weight: 650;
+      }
+      .db { font-size: 0.75rem; font-weight: 500; color: var(--mo-muted); margin-left: 0.35rem; }
+      .sheet-field-row {
+        display: grid; gap: 0.65rem;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 480px) {
+        .sheet-field-row { grid-template-columns: 1fr 1fr; }
+      }
+      .sheet-result {
+        border: 1px solid var(--mo-line);
+        border-radius: var(--mo-radius-sm);
+        background: var(--mo-card);
+        padding: 0.75rem 0.9rem;
+        display: grid; gap: 0.25rem;
+      }
+      .sheet-result[hidden] { display: none; }
+      .pay-options {
+        display: flex; flex-wrap: wrap; gap: 0.35rem;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="mo-skip" href="#contenido">Saltar al contenido</a>
+    <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="proto-banner" translate="no">
+      <span>{BLURB[variant]}</span>
+      <span class="variant-switch" role="navigation" aria-label="Variante de diseño">
+        <a href={href('warm', tab)} aria-current={variant === 'warm' ? 'true' : undefined}>warm</a>
+        <a href={href('papel', tab)} aria-current={variant === 'papel' ? 'true' : undefined}>papel</a>
+        <a href={href('denso', tab)} aria-current={variant === 'denso' ? 'true' : undefined}>denso</a>
+      </span>
+      <a href={`/prototype/control-plane-light?variant=${variant}`}>← Control Plane</a>
+    </div>
+
+    <div class="page" id="contenido">
+      <header class="top">
+        <div>
+          <p class="mo-brand" translate="no" style="font-size:0.85rem;color:var(--mo-muted)">ModoOps</p>
+          <p class="mo-saludo">{SALUDO[variant]}</p>
+          <p class="tenant-name">
+            Pinturería Centro
+            <code class="db">modoops_pintureria_centro</code>
+          </p>
+        </div>
+        <div class="actions">
+          <a class="mo-btn mo-btn--ghost" href={`/prototype/control-plane-light?variant=${variant}`}>← Tenants</a>
+          <button type="button" class="mo-btn" id="btn-cerrar">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <nav class="mo-tabs" role="tablist" aria-label="Módulos">
+        {TABS.map((t) => (
+          <a role="tab" href={href(variant, t.id)} aria-selected={tab === t.id ? 'true' : 'false'}>{t.label}</a>
+        ))}
+      </nav>
+
+      <section class="panel-block" aria-label="Atajos">
+        <p class="mo-section-label">Empezá por acá</p>
+        <div class="tiles">
+          {TILES.map((tile) => (
+            <button type="button" class="mo-tile" data-sheet={tile.id}>
+              <div>
+                <p class="mo-tile__label">{tile.label}</p>
+                <p class="mo-tile__hint">{tile.hint}</p>
+              </div>
+              <span class="mo-pill mo-pill--accent">{tile.value} →</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section class="panel-block" aria-label="Resumen del día">
+        <p class="mo-section-label">Hoy</p>
+        <div class="widgets">
+          <article class="mo-kpi">
+            <p class="mo-kpi__label">{w.la}</p>
+            <p class="mo-kpi__value">{w.a}</p>
+          </article>
+          <article class="mo-kpi">
+            <p class="mo-kpi__label">{w.lb}</p>
+            <p class="mo-kpi__value">{w.b}</p>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <div class="mo-toast-region" id="toast-region"></div>
+
+    {/* FlowSheet: Cobrar OT */}
+    <div class="mo-sheet-backdrop" id="sheet-cobrar" hidden>
+      <div
+        class="mo-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sheet-cobrar-title"
+        aria-describedby="sheet-cobrar-hint"
+      >
+        <div class="mo-sheet__top">
+          <h2 class="mo-sheet__title" id="sheet-cobrar-title">Cobrar una OT</h2>
+          <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+        </div>
+        <p class="mo-sheet__hint" id="sheet-cobrar-hint">Ingresá el número de OT y el monto. Demo: no cobra de verdad.</p>
+        <form class="mo-sheet__body" id="form-cobrar" novalidate>
+          <div class="sheet-field-row">
+            <div class="mo-field" id="field-ot">
+              <label class="mo-field__label" for="ot-num">Nº de OT</label>
+              <input class="mo-field__control" id="ot-num" name="ot" type="text" inputmode="numeric" autocomplete="off" required placeholder="1042" />
+              <p class="mo-field__error" id="err-ot" role="alert" hidden></p>
+            </div>
+            <div class="mo-field" id="field-monto">
+              <label class="mo-field__label" for="ot-monto">Monto (USD)</label>
+              <input class="mo-field__control" id="ot-monto" name="monto" type="text" inputmode="decimal" autocomplete="off" required placeholder="50" />
+              <p class="mo-field__error" id="err-monto" role="alert" hidden></p>
+            </div>
+          </div>
+          <fieldset class="mo-field" style="border:0;padding:0;margin:0">
+            <legend class="mo-field__label">Medio de pago</legend>
+            <div class="pay-options mo-pill-group" role="radiogroup" aria-label="Medio de pago">
+              <label class="mo-pill"><input type="radio" name="pago" value="efectivo" checked style="margin-right:0.35rem" />Efectivo</label>
+              <label class="mo-pill"><input type="radio" name="pago" value="transferencia" style="margin-right:0.35rem" />Transferencia</label>
+              <label class="mo-pill"><input type="radio" name="pago" value="tarjeta" style="margin-right:0.35rem" />Tarjeta</label>
+            </div>
+          </fieldset>
+          <div class="mo-sheet__actions">
+            <button type="submit" class="mo-btn mo-btn--primary">Cobrar</button>
+            <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {/* FlowSheet: Caja 1 */}
+    <div class="mo-sheet-backdrop" id="sheet-caja1" hidden>
+      <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja1-title">
+        <div class="mo-sheet__top">
+          <h2 class="mo-sheet__title" id="sheet-caja1-title">Abrir caja 1</h2>
+          <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+        </div>
+        <p class="mo-sheet__hint">Turno en curso. Confirmá el fondo inicial para seguir cobrando.</p>
+        <form class="mo-sheet__body" id="form-caja1" novalidate>
+          <div class="mo-field" id="field-fondo1">
+            <label class="mo-field__label" for="fondo1">Fondo inicial (USD)</label>
+            <input class="mo-field__control" id="fondo1" name="fondo" type="text" inputmode="decimal" required placeholder="100" value="100" />
+            <p class="mo-field__error" id="err-fondo1" role="alert" hidden></p>
+          </div>
+          <div class="mo-sheet__actions">
+            <button type="submit" class="mo-btn mo-btn--primary">Abrir turno</button>
+            <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {/* FlowSheet: Caja 2 */}
+    <div class="mo-sheet-backdrop" id="sheet-caja2" hidden>
+      <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja2-title">
+        <div class="mo-sheet__top">
+          <h2 class="mo-sheet__title" id="sheet-caja2-title">Abrir caja 2</h2>
+          <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+        </div>
+        <p class="mo-sheet__hint">Caja cerrada. Arrancá el turno con el fondo que tengas en el cajón.</p>
+        <form class="mo-sheet__body" id="form-caja2" novalidate>
+          <div class="mo-field" id="field-fondo2">
+            <label class="mo-field__label" for="fondo2">Fondo inicial (USD)</label>
+            <input class="mo-field__control" id="fondo2" name="fondo" type="text" inputmode="decimal" required placeholder="0" />
+            <p class="mo-field__error" id="err-fondo2" role="alert" hidden></p>
+          </div>
+          <div class="mo-sheet__actions">
+            <button type="submit" class="mo-btn mo-btn--primary">Abrir turno</button>
+            <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {/* FlowSheet: Stock */}
+    <div class="mo-sheet-backdrop" id="sheet-stock" hidden>
+      <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-stock-title">
+        <div class="mo-sheet__top">
+          <h2 class="mo-sheet__title" id="sheet-stock-title">Consultar stock</h2>
+          <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+        </div>
+        <p class="mo-sheet__hint">Buscá por código o nombre. Demo con catálogo chico.</p>
+        <form class="mo-sheet__body" id="form-stock" novalidate>
+          <div class="mo-field" id="field-sku">
+            <label class="mo-field__label" for="sku-q">Código o nombre</label>
+            <input class="mo-field__control" id="sku-q" name="q" type="search" inputmode="search" autocomplete="off" required placeholder="Látex blanco…" />
+            <p class="mo-field__error" id="err-sku" role="alert" hidden></p>
+          </div>
+          <div class="sheet-result" id="stock-result" hidden role="status">
+            <strong id="stock-name"></strong>
+            <span id="stock-meta" style="color:var(--mo-muted);font-size:0.88rem"></span>
+          </div>
+          <div class="mo-sheet__actions">
+            <button type="submit" class="mo-btn mo-btn--primary">Buscar</button>
+            <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="mo-dialog-backdrop" id="confirm-backdrop" hidden>
+      <div
+        class="mo-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-title"
+        aria-describedby="confirm-text"
+      >
+        <h2 class="mo-dialog__title" id="confirm-title">¿Cerrar sesión?</h2>
+        <p class="mo-dialog__text" id="confirm-text">Vas a salir del hub de Pinturería Centro. La caja abierta sigue en el servidor.</p>
+        <div class="mo-dialog__actions">
+          <button type="button" class="mo-btn mo-btn--ghost" id="confirm-cancel">Seguir acá</button>
+          <button type="button" class="mo-btn mo-btn--primary" id="confirm-ok">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const live = document.getElementById('live-polite');
+      const toastRegion = document.getElementById('toast-region');
+      const backdrop = document.getElementById('confirm-backdrop');
+      const btnCerrar = document.getElementById('btn-cerrar');
+      const confirmOk = document.getElementById('confirm-ok');
+      const confirmCancel = document.getElementById('confirm-cancel');
+      let lastFocus = null;
+      let openSheetEl = null;
+
+      const STOCK = [
+        { q: ['latex', 'blanco', 'ltx'], name: 'Látex interior blanco 20L', stock: 24, ubi: 'A-12' },
+        { q: ['esmalte', 'negro'], name: 'Esmalte sintético negro 4L', stock: 7, ubi: 'B-03' },
+        { q: ['rodillo'], name: 'Rodillo lanilla 22cm', stock: 41, ubi: 'C-01' },
+      ];
+
+      function announce(msg) {
+        if (!live) return;
+        live.textContent = '';
+        requestAnimationFrame(() => {
+          live.textContent = msg;
+        });
+      }
+
+      function showToast(title, text, kind = 'ok') {
+        if (!toastRegion) return;
+        const node = document.createElement('div');
+        node.className = `mo-toast mo-toast--${kind}`;
+        node.setAttribute('role', 'status');
+        node.innerHTML = `<p class="mo-toast__title"></p><p class="mo-toast__text"></p>`;
+        node.querySelector('.mo-toast__title').textContent = title;
+        node.querySelector('.mo-toast__text').textContent = text;
+        toastRegion.appendChild(node);
+        requestAnimationFrame(() => node.classList.add('is-in'));
+        announce(`${title}. ${text}`);
+        window.setTimeout(() => {
+          node.classList.remove('is-in');
+          node.classList.add('is-out');
+          window.setTimeout(() => node.remove(), 140);
+        }, 2800);
+      }
+
+      function openConfirm() {
+        if (!backdrop) return;
+        lastFocus = document.activeElement;
+        backdrop.hidden = false;
+        confirmOk?.focus();
+      }
+
+      function closeConfirm() {
+        if (!backdrop) return;
+        backdrop.hidden = true;
+        if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+      }
+
+      function openSheet(id) {
+        const el = document.getElementById(`sheet-${id}`);
+        if (!el) return;
+        closeSheet();
+        lastFocus = document.activeElement;
+        openSheetEl = el;
+        el.hidden = false;
+        const focusable =
+          el.querySelector('input:not([type="radio"]):not([type="hidden"]), select, textarea') ||
+          el.querySelector('button.mo-btn--primary') ||
+          el.querySelector('[data-sheet-close]');
+        focusable?.focus();
+        announce(`Flujo ${id} abierto`);
+      }
+
+      function closeSheet() {
+        if (!openSheetEl) return;
+        openSheetEl.hidden = true;
+        openSheetEl = null;
+        if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+      }
+
+      function clearErr(fieldId, errId) {
+        document.getElementById(fieldId)?.classList.remove('is-invalid');
+        const err = document.getElementById(errId);
+        if (err) {
+          err.hidden = true;
+          err.textContent = '';
+        }
+      }
+
+      function setErr(fieldId, errId, msg, input) {
+        document.getElementById(fieldId)?.classList.add('is-invalid');
+        const err = document.getElementById(errId);
+        if (err) {
+          err.hidden = false;
+          err.textContent = msg;
+        }
+        input?.focus();
+      }
+
+      document.querySelectorAll('[data-sheet]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-sheet');
+          if (id) openSheet(id);
+        });
+      });
+
+      document.querySelectorAll('[data-sheet-close]').forEach((btn) => {
+        btn.addEventListener('click', closeSheet);
+      });
+
+      document.querySelectorAll('.mo-sheet-backdrop').forEach((el) => {
+        el.addEventListener('click', (ev) => {
+          if (ev.target === el) closeSheet();
+        });
+      });
+
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key !== 'Escape') return;
+        if (openSheetEl) {
+          ev.preventDefault();
+          closeSheet();
+          return;
+        }
+        if (backdrop && !backdrop.hidden) {
+          ev.preventDefault();
+          closeConfirm();
+        }
+      });
+
+      document.getElementById('form-cobrar')?.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        clearErr('field-ot', 'err-ot');
+        clearErr('field-monto', 'err-monto');
+        const ot = /** @type {HTMLInputElement} */ (document.getElementById('ot-num'));
+        const monto = /** @type {HTMLInputElement} */ (document.getElementById('ot-monto'));
+        const pago = /** @type {HTMLInputElement} */ (document.querySelector('input[name="pago"]:checked'));
+        if (!ot?.value.trim()) {
+          setErr('field-ot', 'err-ot', 'Escribí el número de OT.', ot);
+          return;
+        }
+        if (!monto?.value.trim()) {
+          setErr('field-monto', 'err-monto', 'Escribí el monto.', monto);
+          return;
+        }
+        closeSheet();
+        showToast('Cobro registrado', `OT ${ot.value.trim()} · USD ${monto.value.trim()} · ${pago?.value || 'efectivo'}`);
+      });
+
+      function bindCajaForm(formId, fieldId, errId, inputId, label) {
+        document.getElementById(formId)?.addEventListener('submit', (ev) => {
+          ev.preventDefault();
+          clearErr(fieldId, errId);
+          const fondo = /** @type {HTMLInputElement} */ (document.getElementById(inputId));
+          if (!fondo?.value.trim()) {
+            setErr(fieldId, errId, 'Indicá el fondo inicial.', fondo);
+            return;
+          }
+          closeSheet();
+          showToast(`${label} abierta`, `Fondo inicial USD ${fondo.value.trim()}.`);
+        });
+      }
+      bindCajaForm('form-caja1', 'field-fondo1', 'err-fondo1', 'fondo1', 'Caja 1');
+      bindCajaForm('form-caja2', 'field-fondo2', 'err-fondo2', 'fondo2', 'Caja 2');
+
+      document.getElementById('form-stock')?.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        clearErr('field-sku', 'err-sku');
+        const qEl = /** @type {HTMLInputElement} */ (document.getElementById('sku-q'));
+        const q = (qEl?.value || '').trim().toLowerCase();
+        if (!q) {
+          setErr('field-sku', 'err-sku', 'Escribí un código o nombre.', qEl);
+          return;
+        }
+        const hit = STOCK.find((s) => s.q.some((k) => q.includes(k)) || s.name.toLowerCase().includes(q));
+        const result = document.getElementById('stock-result');
+        const nameEl = document.getElementById('stock-name');
+        const metaEl = document.getElementById('stock-meta');
+        if (!hit) {
+          if (result) result.hidden = true;
+          setErr('field-sku', 'err-sku', 'No encontramos ese ítem en el demo.', qEl);
+          return;
+        }
+        if (nameEl) nameEl.textContent = hit.name;
+        if (metaEl) metaEl.textContent = `${hit.stock} u. · ubicación ${hit.ubi}`;
+        if (result) result.hidden = false;
+        announce(`${hit.name}: ${hit.stock} unidades`);
+      });
+
+      btnCerrar?.addEventListener('click', openConfirm);
+      confirmCancel?.addEventListener('click', closeConfirm);
+      confirmOk?.addEventListener('click', () => {
+        closeConfirm();
+        showToast('Sesión cerrada', 'Volvé cuando quieras operar.');
+      });
+      backdrop?.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape') {
+          ev.preventDefault();
+          closeConfirm();
+        }
+      });
+      backdrop?.addEventListener('click', (ev) => {
+        if (ev.target === backdrop) closeConfirm();
+      });
+    </script>
+  </body>
+</html>
