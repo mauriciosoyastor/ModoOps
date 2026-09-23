@@ -11,6 +11,7 @@ const estado = ['todos', 'activo', 'suspendido', 'moroso'].includes(Astro.url.se
 const qRaw = (Astro.url.searchParams.get('q') || '').trim();
 const q = qRaw.toLowerCase();
 const paint = Astro.url.searchParams.get('paint') === 'skeleton';
+const isDev = Astro.url.searchParams.get('dev') === '1';
 
 const TENANTS = [
   { name: 'Pinturería Centro', slug: 'pintureria_centro', state: 'activo', modules: 4, due: '2026-10-01', saldo: 50 },
@@ -34,6 +35,7 @@ const qs = (v: string, e: string, query: string, extra?: Record<string, string>)
   p.set('variant', v);
   p.set('estado', e);
   if (query) p.set('q', query);
+  if (isDev) p.set('dev', '1');
   if (extra) {
     for (const [k, val] of Object.entries(extra)) {
       if (val) p.set(k, val);
@@ -125,10 +127,24 @@ const ESTAD_CHIP: Record<string, string> = {
         opacity: 1;
         transform: scale(1);
       }
+      .create-panel.is-out {
+        opacity: 0;
+        transform: scale(0.97);
+        transition-duration: 120ms;
+      }
       .create-panel[hidden] { display: none; }
       .create-panel__actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
       .paint-toggle { font-size: 0.75rem; }
       .mo-panel { position: relative; }
+      @media (prefers-reduced-motion: reduce) {
+        .create-panel {
+          transition-duration: 0.01ms !important;
+        }
+        .create-panel.is-in {
+          opacity: 1;
+          transform: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -136,6 +152,7 @@ const ESTAD_CHIP: Record<string, string> = {
     <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
     <div class="mo-live" id="live-assertive" aria-live="assertive" aria-atomic="true"></div>
 
+    {isDev && (
     <div class="proto-banner" translate="no">
       <span class="variant-switch" role="navigation" aria-label="Variante de diseño">
         <a href={qs('warm', estado, qRaw)} aria-current={variant === 'warm' ? 'true' : undefined}>warm</a>
@@ -145,8 +162,9 @@ const ESTAD_CHIP: Record<string, string> = {
       <a class="paint-toggle" href={paint ? qs(variant, estado, qRaw) : qs(variant, estado, qRaw, { paint: 'skeleton' })}>
         {paint ? 'Ver datos' : 'Ver skeleton'}
       </a>
-      <a href={`/prototype/shell-empleado?variant=${variant}`}>Shell →</a>
+      <a href={`/prototype/shell-empleado?variant=${variant}&dev=1`}>Shell →</a>
     </div>
+    )}
 
     <div class="shell">
       <header class="hero-band">
@@ -450,6 +468,15 @@ const ESTAD_CHIP: Record<string, string> = {
     </div>
 
     <script>
+      import {
+        resolveLeaveMs,
+        openWithEnter,
+        closeWithLeave,
+        showToast as mountToast,
+        setFadedVisible,
+        trapTabKey,
+      } from '../../scripts/light-app-chrome.ts';
+
       const livePolite = document.getElementById('live-polite');
       const liveAssertive = document.getElementById('live-assertive');
       const toastRegion = document.getElementById('toast-region');
@@ -472,7 +499,8 @@ const ESTAD_CHIP: Record<string, string> = {
       let pendingAction = null;
       let lastFocus = null;
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const LEAVE_MS = reduceMotion ? 0 : 120;
+      const LEAVE_MS = resolveLeaveMs(reduceMotion, 120);
+      const BULK_MS = resolveLeaveMs(reduceMotion, 150);
 
       function announce(msg, assertive = false) {
         const el = assertive ? liveAssertive : livePolite;
@@ -485,20 +513,15 @@ const ESTAD_CHIP: Record<string, string> = {
 
       function showToast(title, text, kind = 'ok') {
         if (!toastRegion) return;
-        const node = document.createElement('div');
-        node.className = `mo-toast mo-toast--${kind}`;
-        node.setAttribute('role', 'status');
-        node.innerHTML = `<p class="mo-toast__title"></p><p class="mo-toast__text"></p>`;
-        node.querySelector('.mo-toast__title').textContent = title;
-        node.querySelector('.mo-toast__text').textContent = text;
-        toastRegion.appendChild(node);
-        requestAnimationFrame(() => node.classList.add('is-in'));
-        announce(`${title}. ${text}`);
-        window.setTimeout(() => {
-          node.classList.remove('is-in');
-          node.classList.add('is-out');
-          window.setTimeout(() => node.remove(), 140);
-        }, 3200);
+        mountToast({
+          region: toastRegion,
+          title,
+          text,
+          kind,
+          holdMs: 3200,
+          leaveMs: LEAVE_MS,
+          announce,
+        });
       }
 
       function openConfirm({ title, text, okLabel, danger, onConfirm }) {
@@ -509,32 +532,24 @@ const ESTAD_CHIP: Record<string, string> = {
         confirmText.textContent = text;
         confirmOk.textContent = okLabel;
         confirmOk.className = danger ? 'mo-btn mo-btn--danger' : 'mo-btn mo-btn--primary';
-        backdrop.classList.remove('is-leaving');
-        backdrop.hidden = false;
-        void backdrop.offsetWidth;
-        backdrop.classList.add('is-open');
+        openWithEnter(backdrop);
         confirmOk.focus();
       }
 
       function closeConfirm() {
         if (!backdrop) return;
-        backdrop.classList.remove('is-open');
-        backdrop.classList.add('is-leaving');
-        const finish = () => {
-          backdrop.hidden = true;
-          backdrop.classList.remove('is-leaving');
-          pendingAction = null;
-          if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
-        };
-        if (LEAVE_MS === 0) finish();
-        else window.setTimeout(finish, LEAVE_MS);
+        closeWithLeave(backdrop, {
+          leaveMs: LEAVE_MS,
+          onDone: () => {
+            pendingAction = null;
+            if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+          },
+        });
       }
 
       function openNuevo() {
         if (!panelNuevo || !btnNuevo) return;
-        panelNuevo.hidden = false;
-        void panelNuevo.offsetWidth;
-        panelNuevo.classList.add('is-in');
+        openWithEnter(panelNuevo, { inClass: 'is-in' });
         btnNuevo.setAttribute('aria-expanded', 'true');
         document.getElementById('tenant-nombre')?.focus();
         announce('Formulario de nuevo tenant abierto');
@@ -542,12 +557,17 @@ const ESTAD_CHIP: Record<string, string> = {
 
       function closeNuevo() {
         if (!panelNuevo || !btnNuevo || !formNuevo) return;
-        panelNuevo.classList.remove('is-in');
-        panelNuevo.hidden = true;
-        btnNuevo.setAttribute('aria-expanded', 'false');
-        formNuevo.reset();
-        clearFieldErrors();
-        btnNuevo.focus();
+        closeWithLeave(panelNuevo, {
+          leaveMs: LEAVE_MS,
+          inClass: 'is-in',
+          leavingClass: 'is-out',
+          onDone: () => {
+            formNuevo.reset();
+            clearFieldErrors();
+            btnNuevo.setAttribute('aria-expanded', 'false');
+            btnNuevo.focus();
+          },
+        });
       }
 
       function clearFieldErrors() {
@@ -584,7 +604,7 @@ const ESTAD_CHIP: Record<string, string> = {
           checkAll.checked = checks.length > 0 && n === checks.length;
           checkAll.indeterminate = n > 0 && n < checks.length;
         }
-        if (bulkBar) bulkBar.hidden = n === 0;
+        if (bulkBar) setFadedVisible(bulkBar, n > 0, BULK_MS);
         if (bulkCount) {
           bulkCount.textContent = n === 1 ? '1 seleccionado' : `${n} seleccionados`;
         }
@@ -599,11 +619,16 @@ const ESTAD_CHIP: Record<string, string> = {
           if (except && wrap === except) return;
           const menu = wrap.querySelector('.mo-overflow__menu');
           const toggle = wrap.querySelector('[data-overflow-toggle]');
-          if (menu) {
-            menu.classList.remove('is-in');
-            menu.hidden = true;
+          if (menu && !menu.hidden) {
+            closeWithLeave(menu, {
+              leaveMs: LEAVE_MS,
+              inClass: 'is-in',
+              leavingClass: 'is-out',
+              onDone: () => toggle?.setAttribute('aria-expanded', 'false'),
+            });
+          } else {
+            toggle?.setAttribute('aria-expanded', 'false');
           }
-          toggle?.setAttribute('aria-expanded', 'false');
         });
       }
 
@@ -665,23 +690,20 @@ const ESTAD_CHIP: Record<string, string> = {
           closeAllOverflow(wrap || undefined);
           if (menu) {
             if (open) {
-              menu.hidden = false;
-              void menu.offsetWidth;
-              menu.classList.add('is-in');
+              openWithEnter(menu, { inClass: 'is-in' });
               toggle.setAttribute('aria-expanded', 'true');
             } else {
-              menu.classList.remove('is-in');
-              menu.hidden = true;
-              toggle.setAttribute('aria-expanded', 'false');
+              closeWithLeave(menu, {
+                leaveMs: LEAVE_MS,
+                inClass: 'is-in',
+                leavingClass: 'is-out',
+                onDone: () => toggle.setAttribute('aria-expanded', 'false'),
+              });
             }
           }
           return;
         }
         if (!target.closest('.mo-overflow')) closeAllOverflow();
-      });
-
-      document.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Escape') closeAllOverflow();
       });
 
       document.querySelectorAll('[data-action]').forEach((btn) => {
@@ -798,11 +820,23 @@ const ESTAD_CHIP: Record<string, string> = {
         if (ev.key === 'Escape') {
           ev.preventDefault();
           closeConfirm();
+          return;
         }
+        trapTabKey(backdrop, ev);
       });
 
       backdrop?.addEventListener('click', (ev) => {
         if (ev.target === backdrop) closeConfirm();
+      });
+
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key !== 'Escape') return;
+        if (panelNuevo && !panelNuevo.hidden) {
+          ev.preventDefault();
+          closeNuevo();
+          return;
+        }
+        closeAllOverflow();
       });
 
       syncBulk();

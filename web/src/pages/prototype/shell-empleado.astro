@@ -32,7 +32,12 @@ const TILES = [
   { id: 'cobrar', label: 'Cobrar una OT', hint: 'Monto + efectivo/transferencia', value: 'Cobrar' },
 ] as const;
 
-const href = (v: string, t: string) => `/prototype/shell-empleado?variant=${v}&tab=${t}`;
+const isDev = Astro.url.searchParams.get('dev') === '1';
+const href = (v: string, t: string) => {
+  const p = new URLSearchParams({ variant: v, tab: t });
+  if (isDev) p.set('dev', '1');
+  return `/prototype/shell-empleado?${p.toString()}`;
+};
 
 const SALUDO: Record<string, string> = {
   warm: 'Buenas. La operación ya está en modo.',
@@ -99,14 +104,16 @@ const SALUDO: Record<string, string> = {
     <a class="mo-skip" href="#contenido">Saltar al contenido</a>
     <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
 
+    {isDev && (
     <div class="proto-banner" translate="no">
       <span class="variant-switch" role="navigation" aria-label="Variante de diseño">
         <a href={href('warm', tab)} aria-current={variant === 'warm' ? 'true' : undefined}>warm</a>
         <a href={href('papel', tab)} aria-current={variant === 'papel' ? 'true' : undefined}>papel</a>
         <a href={href('denso', tab)} aria-current={variant === 'denso' ? 'true' : undefined}>denso</a>
       </span>
-      <a href={`/prototype/control-plane-light?variant=${variant}`}>← Control Plane</a>
+      <a href={`/prototype/control-plane-light?variant=${variant}&dev=1`}>← Control Plane</a>
     </div>
+    )}
 
     <div class="page" id="contenido">
       <header class="top">
@@ -293,6 +300,14 @@ const SALUDO: Record<string, string> = {
     </div>
 
     <script>
+      import {
+        resolveLeaveMs,
+        openWithEnter,
+        closeWithLeave,
+        showToast as mountToast,
+        trapTabKey,
+      } from '../../scripts/light-app-chrome.ts';
+
       const live = document.getElementById('live-polite');
       const toastRegion = document.getElementById('toast-region');
       const backdrop = document.getElementById('confirm-backdrop');
@@ -302,7 +317,12 @@ const SALUDO: Record<string, string> = {
       let lastFocus = null;
       let openSheetEl = null;
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const LEAVE_MS = reduceMotion ? 0 : 140;
+      const LEAVE_MS = resolveLeaveMs(reduceMotion, 140);
+
+      if (!sessionStorage.getItem('mo-tile-staggered') && !reduceMotion) {
+        document.documentElement.classList.add('mo-tiles-stagger');
+        sessionStorage.setItem('mo-tile-staggered', '1');
+      }
 
       const STOCK = [
         { q: ['latex', 'blanco', 'ltx'], name: 'Látex interior blanco 20L', stock: 24, ubi: 'A-12' },
@@ -320,43 +340,32 @@ const SALUDO: Record<string, string> = {
 
       function showToast(title, text, kind = 'ok') {
         if (!toastRegion) return;
-        const node = document.createElement('div');
-        node.className = `mo-toast mo-toast--${kind}`;
-        node.setAttribute('role', 'status');
-        node.innerHTML = `<p class="mo-toast__title"></p><p class="mo-toast__text"></p>`;
-        node.querySelector('.mo-toast__title').textContent = title;
-        node.querySelector('.mo-toast__text').textContent = text;
-        toastRegion.appendChild(node);
-        requestAnimationFrame(() => node.classList.add('is-in'));
-        announce(`${title}. ${text}`);
-        window.setTimeout(() => {
-          node.classList.remove('is-in');
-          node.classList.add('is-out');
-          window.setTimeout(() => node.remove(), 140);
-        }, 2800);
+        mountToast({
+          region: toastRegion,
+          title,
+          text,
+          kind,
+          holdMs: 2800,
+          leaveMs: LEAVE_MS,
+          announce,
+        });
       }
 
       function openConfirm() {
         if (!backdrop) return;
         lastFocus = document.activeElement;
-        backdrop.classList.remove('is-leaving');
-        backdrop.hidden = false;
-        void backdrop.offsetWidth;
-        backdrop.classList.add('is-open');
+        openWithEnter(backdrop);
         confirmOk?.focus();
       }
 
       function closeConfirm() {
         if (!backdrop) return;
-        backdrop.classList.remove('is-open');
-        backdrop.classList.add('is-leaving');
-        const finish = () => {
-          backdrop.hidden = true;
-          backdrop.classList.remove('is-leaving');
-          if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
-        };
-        if (LEAVE_MS === 0) finish();
-        else window.setTimeout(finish, LEAVE_MS);
+        closeWithLeave(backdrop, {
+          leaveMs: LEAVE_MS,
+          onDone: () => {
+            if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+          },
+        });
       }
 
       function openSheet(id) {
@@ -365,10 +374,7 @@ const SALUDO: Record<string, string> = {
         closeSheet(true);
         lastFocus = document.activeElement;
         openSheetEl = el;
-        el.classList.remove('is-leaving');
-        el.hidden = false;
-        void el.offsetWidth;
-        el.classList.add('is-open');
+        openWithEnter(el);
         const focusable =
           el.querySelector('input:not([type="radio"]):not([type="hidden"]), select, textarea') ||
           el.querySelector('button.mo-btn--primary') ||
@@ -381,15 +387,13 @@ const SALUDO: Record<string, string> = {
         if (!openSheetEl) return;
         const el = openSheetEl;
         openSheetEl = null;
-        el.classList.remove('is-open');
-        el.classList.add('is-leaving');
-        const finish = () => {
-          el.hidden = true;
-          el.classList.remove('is-leaving');
-          if (!immediate && lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
-        };
-        if (immediate || LEAVE_MS === 0) finish();
-        else window.setTimeout(finish, LEAVE_MS);
+        const restore = !immediate;
+        closeWithLeave(el, {
+          leaveMs: immediate ? 0 : LEAVE_MS,
+          onDone: () => {
+            if (restore && lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+          },
+        });
       }
 
       function clearErr(fieldId, errId) {
@@ -419,12 +423,16 @@ const SALUDO: Record<string, string> = {
       });
 
       document.querySelectorAll('[data-sheet-close]').forEach((btn) => {
-        btn.addEventListener('click', closeSheet);
+        btn.addEventListener('click', () => closeSheet());
       });
 
       document.querySelectorAll('.mo-sheet-backdrop').forEach((el) => {
         el.addEventListener('click', (ev) => {
           if (ev.target === el) closeSheet();
+        });
+        el.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Escape') return;
+          trapTabKey(el, ev);
         });
       });
 
@@ -510,7 +518,9 @@ const SALUDO: Record<string, string> = {
         if (ev.key === 'Escape') {
           ev.preventDefault();
           closeConfirm();
+          return;
         }
+        trapTabKey(backdrop, ev);
       });
       backdrop?.addEventListener('click', (ev) => {
         if (ev.target === backdrop) closeConfirm();
