@@ -29,8 +29,7 @@ Puente Factura Web, Taller, IA ModoOps) queda ejecutada contra él. Cambio en el
   código IA nuevo en `modoops.*` (`CONTEXT.md:301`).
 - Skills por sesión: `grilling` + `domain-modeling` en grillings; `prototype` en prototipos; `research` en
   research (AFK); `tdd` si un task toca código.
-- Índice GitNexus 7 commits detrás de HEAD (`b5bce17`); `detect_changes(scope:all)` da 0 símbolos — no es
-  all-clear. Cambios sin commitear: `Contact.astro`, `Hero.astro`, `BaseLayout.astro`, `index.astro` (M) +
+- Cambios sin commitear al chartar: `Contact.astro`, `Hero.astro`, `BaseLayout.astro`, `index.astro` (M) +
   prototipo oficina 3D, `oficina-mapping.ts`, spec portal onboarding (??). La auditoría los cubre.
 - Este mapa **lleva ejecución dentro** (override de "Plan, don't do" en Notes): el destino es un cambio
   en el lugar, no una spec.

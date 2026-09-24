@@ -1,263 +1,614 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import { BffError } from "../../lib/bff/errors.ts";
-import { invalidateBffSession } from "../../lib/bff/http.ts";
-import { getBackend } from "../../lib/bff/get-backend.ts";
-
+import LightAppLayout from '../../layouts/LightAppLayout.astro';
+import { BffError } from '../../lib/bff/errors.ts';
+import { invalidateBffSession } from '../../lib/bff/http.ts';
+import { getBackend } from '../../lib/bff/get-backend.ts';
 
 const _sessA = (Astro.locals as Record<string, unknown>).session as { name?: string; login?: string } | undefined;
 const _odooA = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
-if (!_odooA) return Astro.redirect("/login");
-let odooSessionId: string = _odooA;
-let userName = _sessA?.name || _sessA?.login || "";
+if (!_odooA) return Astro.redirect('/login');
+const odooSessionId: string = _odooA;
+const userName = _sessA?.name || _sessA?.login || '';
 
-let tenants: import("../../lib/bff/backend-client.ts").TenantRow[] = [];
-let loadError = "";
+let tenants: import('../../lib/bff/backend-client.ts').TenantRow[] = [];
+let loadError = '';
 try {
   tenants = await getBackend().getTenants(odooSessionId);
 } catch (cause) {
-  if (cause instanceof BffError && cause.code === "unauthorized") {
+  if (cause instanceof BffError && cause.code === 'unauthorized') {
     invalidateBffSession(Astro.cookies);
-    return Astro.redirect("/login");
+    return Astro.redirect('/login');
   }
-  loadError = (cause as Error)?.message || "No se pudo cargar tenants";
+  loadError = (cause as Error)?.message || 'No se pudo cargar la lista';
 }
+
+const estado = ['todos', 'activo', 'suspendido', 'moroso'].includes(Astro.url.searchParams.get('estado') || '')
+  ? (Astro.url.searchParams.get('estado') as string)
+  : 'todos';
+const qRaw = (Astro.url.searchParams.get('q') || '').trim();
+const q = qRaw.toLowerCase();
+
+const filtered = tenants.filter((t) => {
+  if (estado !== 'todos' && t.state !== estado) return false;
+  if (q && !(`${t.name} ${t.slug} ${t.db_name}`).toLowerCase().includes(q)) return false;
+  return true;
+});
+
+const mora = tenants.filter((t) => t.state === 'moroso').length;
+const susp = tenants.filter((t) => t.state === 'suspendido').length;
+const activos = tenants.filter((t) => t.state === 'activo').length;
+
+const qs = (e: string, query: string) => {
+  const p = new URLSearchParams();
+  p.set('estado', e);
+  if (query) p.set('q', query);
+  const s = p.toString();
+  return s ? `/admin/tenants?${s}` : '/admin/tenants';
+};
 ---
 
-<BaseLayout title="Tenants — ModoOps Admin" description="ModoOps Control Plane — Tenants">
-  <main class="mo-admin">
-    <header class="mo-admin__topbar">
-      <div>
-        <p class="mo-admin__eyebrow">ModoOps Admin · Control Plane</p>
-        <h1>Tenants</h1>
-        <p class="mo-admin__user">{userName} · {tenants.length} tenant{tenants.length===1?"":"s"}</p>
-      </div>
-      <div class="mo-admin__actions">
-        <a href="/admin/leads">Leads</a>
-        <a href="/app">← App</a>
-        <button type="button" data-logout>Cerrar sesión</button>
+<LightAppLayout title="Tenants — ModoOps" description="Control Plane — tenants" theme="papel">
+  <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
+  <div class="shell" id="contenido">
+    <header class="hero-band">
+      <div class="hero-band__row">
+        <div>
+          <p class="mo-brand mo-brand--display" translate="no">ModoOps</p>
+          <p class="mo-promise">Control Plane · tenants</p>
+          <p class="mo-muted-line">{userName}</p>
+        </div>
+        <div class="hero-actions">
+          <a class="mo-btn" href="/admin/leads">Leads</a>
+          <a class="mo-btn" href="/app">← App</a>
+          <button type="button" class="mo-btn mo-btn--primary" id="btn-nuevo" aria-expanded="false" aria-controls="panel-nuevo">
+            + Nuevo tenant
+          </button>
+          <button type="button" class="mo-btn mo-btn--ghost" data-logout>Cerrar sesión</button>
+        </div>
       </div>
     </header>
 
-    <section class="mo-admin__create">
-      <h2>Crear Tenant</h2>
-      <form id="create-tenant-form">
-        <label>Nombre <input name="name" placeholder="Pinturería Centro" required /></label>
-        <label>Slug (opcional) <input name="slug" placeholder="pintureria_centro" pattern="[a-z0-9_]+" /></label>
-        <label>Vertical
-          <select name="vertical">
-            <option value="retail">retail</option>
-            <option value="servicios">servicios</option>
-            <option value="distribucion">distribucion</option>
-          </select>
-        </label>
-        <button type="submit">Crear</button>
-        <span id="create-msg" class="mo-admin__msg"></span>
+    <div class="tools">
+      <form class="search" method="get" action="/admin/tenants" role="search">
+        <input type="hidden" name="estado" value={estado} />
+        <label for="q">Buscar tenant</label>
+        <input
+          id="q"
+          name="q"
+          type="search"
+          inputmode="search"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Buscar por nombre o slug…"
+          value={qRaw}
+        />
       </form>
-    </section>
-
-    {loadError ? <p class="mo-admin__error">{loadError}</p> : null}
-
-    <div class="mo-admin__tablewrap">
-      <table class="mo-admin__table">
-        <thead>
-          <tr><th>Cliente</th><th>DB</th><th>Slug</th><th>Vertical</th><th>Estado</th><th>Situación</th><th>Saldo USD</th><th>Contratos</th><th>Módulos</th><th>Vto abono</th><th>Hub 2</th><th>Acción</th></tr>
-        </thead>
-        <tbody>
-          {tenants.map((t) => (
-            <tr>
-              <td>{t.name}</td>
-              <td><code>{t.db_name}</code></td>
-              <td>{t.slug}</td>
-              <td>{t.vertical}</td>
-              <td><span class:list={["mo-badge", `is-${t.state}`]}>{t.state}</span>{t.modules_installed?.includes("IA ModoOps") ? <span class="mo-badge is-ia">IA</span> : null}</td>
-              <td><code>{t.situacion || "—"}</code></td>
-              <td>{t.saldo_pendiente_usd ? `$${t.saldo_pendiente_usd} USD` : "—"}</td>
-              <td>{t.contrato_count ?? "—"}</td>
-              <td>{t.modules_installed_count} {t.modules_installed ? `· ${t.modules_installed}` : ""}</td>
-              <td>{t.abono_due_date || "—"}</td>
-              <td><a href={`/tenant/${t.slug}/app`} class="mo-btn-sm">Abrir</a></td>
-              <td>
-                <button type="button" class="mo-btn-sm" data-install-open data-tenant-id={t.id} data-db={t.db_name}>Instalar</button>
-                {t.state === "activo" ? (
-                  <button type="button" class="mo-btn-sm" data-state data-tenant-id={t.id} data-action="suspend" data-name={t.name}>Suspender</button>
-                ) : null}
-                {t.state === "suspendido" ? (
-                  <button type="button" class="mo-btn-sm" data-state data-tenant-id={t.id} data-action="reactivate" data-name={t.name}>Reactivar</button>
-                ) : null}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {tenants.length===0 && !loadError ? <p class="mo-admin__empty">0 tenants — creá el primero arriba. Onboarding master.</p> : null}
+      <nav class="filters mo-pill-group" aria-label="Filtro estado">
+        <a class="mo-pill" href={qs('todos', qRaw)} aria-current={estado === 'todos' ? 'true' : undefined}>Todos</a>
+        <a class="mo-pill" href={qs('activo', qRaw)} aria-current={estado === 'activo' ? 'true' : undefined}>Activo</a>
+        <a class="mo-pill" href={qs('moroso', qRaw)} aria-current={estado === 'moroso' ? 'true' : undefined}>Moroso</a>
+        <a class="mo-pill" href={qs('suspendido', qRaw)} aria-current={estado === 'suspendido' ? 'true' : undefined}>Suspendido</a>
+      </nav>
     </div>
 
-    <dialog id="install-dialog" class="mo-dialog">
-      <form method="dialog" id="install-form">
-        <h3 id="install-title">Instalar módulos</h3>
-        <p id="install-db" class="mo-dialog__db"></p>
-        <div class="mo-dialog__grid" id="install-grid"></div>
-        <label class="mo-dialog__notes">Notas <input name="notes" placeholder="ticket, motivo" /></label>
-        <div class="mo-dialog__actions">
-          <label>Acción <select name="action"><option value="install">Instalar</option><option value="remove">Quitar</option></select></label>
-          <button type="submit" id="install-submit">Confirmar</button>
-          <button type="button" id="install-cancel">Cancelar</button>
-        </div>
-        <pre id="install-preview" class="mo-dialog__preview"></pre>
-        <span id="install-msg" class="mo-admin__msg"></span>
-      </form>
-    </dialog>
+    <main class="content">
+      {loadError ? (
+        <p class="mo-banner mo-banner--danger" role="alert">{loadError}</p>
+      ) : mora > 0 && estado === 'todos' ? (
+        <aside class="mo-banner mo-banner--warn" role="status">
+          <span class="mo-banner__mark">Atención</span>
+          <div class="mo-banner__body">
+            <p class="mo-banner__title">{mora === 1 ? '1 tenant en mora' : `${mora} tenants en mora`}</p>
+            <p class="mo-banner__text">Hay abonos vencidos. Priorizá el contacto antes de suspender.</p>
+          </div>
+          <div class="mo-banner__actions">
+            <a class="mo-btn" href={qs('moroso', '')}>Ver mora</a>
+          </div>
+        </aside>
+      ) : susp > 0 && estado === 'todos' && mora === 0 ? (
+        <aside class="mo-banner mo-banner--danger" role="status">
+          <span class="mo-banner__mark">Sistema</span>
+          <div class="mo-banner__body">
+            <p class="mo-banner__title">{susp === 1 ? '1 tenant suspendido' : `${susp} tenants suspendidos`}</p>
+            <p class="mo-banner__text">No operan hasta reactivarlos.</p>
+          </div>
+          <div class="mo-banner__actions">
+            <a class="mo-btn" href={qs('suspendido', '')}>Ver suspendidos</a>
+          </div>
+        </aside>
+      ) : (
+        <section class="kpis" aria-label="Resumen">
+          <article class="mo-kpi mo-kpi--hero">
+            <p class="mo-kpi__label">Activos</p>
+            <p class="mo-kpi__value">{activos}</p>
+            <p class="mo-kpi__hint">de {tenants.length} en total</p>
+          </article>
+        </section>
+      )}
 
-    <p class="mo-admin__foot"><a href="/api/admin/tenants" target="_blank">JSON /api/admin/tenants</a> · <code>modoops_master</code> · Odoo <code>modoops.tenant</code></p>
-  </main>
-</BaseLayout>
+      <div class="create-panel" id="panel-nuevo" hidden>
+        <h2 class="mo-dialog__title">Crear tenant</h2>
+        <form id="create-tenant-form" class="create-grid">
+          <div class="mo-field" id="field-nombre">
+            <label class="mo-field__label" for="tenant-nombre">Nombre</label>
+            <input class="mo-field__control" id="tenant-nombre" name="name" placeholder="Pinturería Centro" required autocomplete="organization" />
+          </div>
+          <div class="mo-field">
+            <label class="mo-field__label" for="tenant-slug">Slug (opcional)</label>
+            <input class="mo-field__control" id="tenant-slug" name="slug" placeholder="pintureria_centro" pattern="[a-z0-9_]+" inputmode="text" />
+          </div>
+          <div class="mo-field">
+            <label class="mo-field__label" for="tenant-vertical">Vertical</label>
+            <select class="mo-field__control" id="tenant-vertical" name="vertical">
+              <option value="retail">retail</option>
+              <option value="servicios">servicios</option>
+              <option value="distribucion">distribucion</option>
+            </select>
+          </div>
+          <div class="create-panel__actions">
+            <button type="submit" class="mo-btn mo-btn--primary" id="btn-crear">Crear tenant</button>
+            <button type="button" class="mo-btn" id="btn-cancelar-nuevo">Cancelar</button>
+            <span id="create-msg" class="mo-field__hint"></span>
+          </div>
+        </form>
+      </div>
 
-<script>
-  import { CATALOGO_LABELS } from "../../lib/catalogo.generated.ts";
-  const CATALOGO = Object.entries(CATALOGO_LABELS) as unknown as readonly (readonly [string, string])[];
+      <section class="mo-panel" aria-label="Lista de tenants">
+        <p class="mo-count">Mostrando {filtered.length} de {tenants.length}</p>
+        {filtered.length === 0 && !loadError ? (
+          <div class="mo-empty">
+            <p class="mo-empty__title">{tenants.length === 0 ? 'Todavía no hay tenants' : 'Sin resultados'}</p>
+            <p class="mo-empty__text">{tenants.length === 0 ? 'Creá el primero para operar.' : 'Probá otro filtro o búsqueda.'}</p>
+            <div class="mo-empty__actions">
+              {tenants.length === 0 ? (
+                <button type="button" class="mo-btn mo-btn--primary" id="btn-empty-nuevo">+ Nuevo tenant</button>
+              ) : (
+                <a class="mo-btn" href="/admin/tenants">Limpiar filtros</a>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div class="table-wrap">
+            <table class="mo-table">
+              <thead>
+                <tr>
+                  <th>Tenant</th>
+                  <th>Estado</th>
+                  <th class="num">Módulos</th>
+                  <th>Vto. abono</th>
+                  <th class="num">USD/mes</th>
+                  <th><span class="sr-only">Acciones</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((t) => (
+                  <tr>
+                    <td>
+                      <strong>{t.name}</strong>
+                      <div class="slug">{t.slug} · <code>{t.db_name}</code></div>
+                    </td>
+                    <td>
+                      <span class:list={['mo-badge', `is-${t.state}`]}>{t.state}</span>
+                    </td>
+                    <td class="num">{t.modules_installed_count}</td>
+                    <td>{t.abono_due_date || '—'}</td>
+                    <td class="num">{t.saldo_pendiente_usd ? t.saldo_pendiente_usd : '—'}</td>
+                    <td>
+                      <div class="mo-row-actions">
+                        <a class="mo-btn" href={`/tenant/${t.slug}/app`}>Abrir</a>
+                        <button
+                          type="button"
+                          class="mo-btn"
+                          data-install-open
+                          data-tenant-id={t.id}
+                          data-db={t.db_name}
+                        >
+                          Instalar
+                        </button>
+                        {t.state === 'activo' ? (
+                          <button
+                            type="button"
+                            class="mo-btn mo-btn--danger"
+                            data-state
+                            data-tenant-id={t.id}
+                            data-action="suspend"
+                            data-name={t.name}
+                          >
+                            Suspender
+                          </button>
+                        ) : null}
+                        {t.state === 'suspendido' ? (
+                          <button
+                            type="button"
+                            class="mo-btn mo-btn--primary"
+                            data-state
+                            data-tenant-id={t.id}
+                            data-action="reactivate"
+                            data-name={t.name}
+                          >
+                            Reactivar
+                          </button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </main>
+  </div>
 
-  const form = document.getElementById("create-tenant-form") as HTMLFormElement;
-  const msg = document.getElementById("create-msg") as HTMLSpanElement;
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    msg.textContent = "Creando…";
-    const fd = new FormData(form);
-    const body = { name: String(fd.get("name")||""), slug: String(fd.get("slug")||"")||undefined, vertical: String(fd.get("vertical")||"retail") };
-    const res = await fetch("/api/admin/tenants", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(body) });
-    const data = await res.json().catch(()=>({}));
-    if (!res.ok) { msg.textContent = (data as {error?:{message?:string}})?.error?.message || "Error"; return; }
-    msg.textContent = `Creado id=${(data as {id?:number})?.id}`;
-    setTimeout(()=> window.location.reload(), 600);
-  });
-  document.querySelector("[data-logout]")?.addEventListener("click", async () => {
-    await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login");
-  });
+  <div class="mo-toast-region" id="toast-region" aria-relevant="additions"></div>
 
-  // T02 install dialog — multi-select batch + preview odoo-bin
-  const dlg = document.getElementById("install-dialog") as HTMLDialogElement;
-  const grid = document.getElementById("install-grid") as HTMLDivElement;
-  const titleEl = document.getElementById("install-title") as HTMLHeadingElement;
-  const dbEl = document.getElementById("install-db") as HTMLParagraphElement;
-  const previewEl = document.getElementById("install-preview") as HTMLPreElement;
-  const msgEl = document.getElementById("install-msg") as HTMLSpanElement;
-  const installForm = document.getElementById("install-form") as HTMLFormElement;
-  let activeTenantId: number | null = null;
-  let activeDb = "";
+  <div class="mo-dialog-backdrop" id="confirm-backdrop" hidden>
+    <div class="mo-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+      <h2 class="mo-dialog__title" id="confirm-title">Confirmar</h2>
+      <p class="mo-dialog__text" id="confirm-text"></p>
+      <div class="mo-dialog__actions">
+        <button type="button" class="mo-btn mo-btn--ghost" id="confirm-cancel">Cancelar</button>
+        <button type="button" class="mo-btn mo-btn--danger" id="confirm-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
 
-  function renderGrid() {
-    grid.innerHTML = "";
-    for (const [key, label] of CATALOGO) {
-      const lbl = document.createElement("label");
-      lbl.className = "mo-check";
-      lbl.innerHTML = `<input type="checkbox" value="${key}" data-mod /> ${label} <code>${key}</code>`;
-      grid.appendChild(lbl);
+  <dialog id="install-dialog" class="mo-install-dialog">
+    <form method="dialog" id="install-form">
+      <h3 id="install-title" class="mo-dialog__title">Instalar módulos</h3>
+      <p id="install-db" class="slug"></p>
+      <div class="mo-dialog__grid" id="install-grid"></div>
+      <div class="mo-field">
+        <label class="mo-field__label" for="install-notes">Notas</label>
+        <input class="mo-field__control" id="install-notes" name="notes" placeholder="ticket, motivo" />
+      </div>
+      <div class="mo-dialog__actions">
+        <label class="mo-field__label">
+          Acción
+          <select class="mo-field__control" name="action">
+            <option value="install">Instalar</option>
+            <option value="remove">Quitar</option>
+          </select>
+        </label>
+        <button type="submit" class="mo-btn mo-btn--primary" id="install-submit">Confirmar</button>
+        <button type="button" class="mo-btn" id="install-cancel">Cancelar</button>
+      </div>
+      <pre id="install-preview" class="mo-install-preview"></pre>
+      <span id="install-msg" class="mo-field__hint"></span>
+    </form>
+  </dialog>
+
+  <style>
+    .shell { min-height: 100dvh; }
+    .hero-band {
+      padding: 1.35rem 1.35rem 1.1rem;
+      border-bottom: 1px solid var(--mo-line);
+      background: color-mix(in srgb, var(--mo-canvas) 88%, transparent);
     }
-  }
-  renderGrid();
+    .hero-band__row {
+      display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
+      justify-content: space-between; max-width: 72rem;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .mo-muted-line { margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--mo-muted); }
+    .tools {
+      display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center;
+      padding: 0.85rem 1.35rem 0.45rem; max-width: 72rem;
+    }
+    .search {
+      display: flex; align-items: center;
+      flex: 1 1 14rem; max-width: 20rem;
+      border: 1px solid var(--mo-line); border-radius: var(--mo-radius-sm);
+      background: var(--mo-canvas); padding: 0 0.7rem; min-height: 44px;
+    }
+    .search label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .search input {
+      border: 0; background: transparent; width: 100%;
+      font: inherit; color: var(--mo-ink); outline: none; min-height: 42px; font-size: 16px;
+    }
+    .content { padding: 0 1.35rem 2rem; display: grid; gap: 1rem; max-width: 72rem; }
+    .kpis { display: grid; gap: 0.7rem; }
+    .filters { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .slug { color: var(--mo-muted); font-size: 0.78rem; }
+    .table-wrap { overflow: auto; }
+    .create-panel {
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius);
+      background: var(--mo-canvas);
+      padding: 1rem 1.1rem;
+      display: grid;
+      gap: 0.75rem;
+      max-width: 32rem;
+      opacity: 0;
+      transform: scale(0.97);
+      transition: opacity 200ms var(--mo-ease-out), transform 200ms var(--mo-ease-out);
+    }
+    .create-panel.is-in { opacity: 1; transform: scale(1); }
+    .create-panel.is-out { opacity: 0; transform: scale(0.97); transition-duration: 120ms; }
+    .create-panel[hidden] { display: none; }
+    .create-grid { display: grid; gap: 0.75rem; }
+    .create-panel__actions { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .mo-install-dialog {
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius);
+      padding: 1.2rem;
+      background: var(--mo-canvas);
+      color: var(--mo-ink);
+      max-width: 36rem;
+      width: 90%;
+    }
+    .mo-install-dialog::backdrop { background: color-mix(in srgb, var(--mo-ink) 45%, transparent); }
+    .mo-dialog__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin: 0.5rem 0; }
+    .mo-install-preview {
+      background: var(--mo-field);
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius-sm);
+      padding: 0.6rem;
+      font-size: 0.75rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      margin: 0.5rem 0;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .create-panel { transition-duration: 0.01ms !important; }
+      .create-panel.is-in { opacity: 1; transform: none; }
+    }
+  </style>
 
-  function updatePreview() {
-    const mods = [...grid.querySelectorAll<HTMLInputElement>("[data-mod]:checked")].map((i) => i.value);
-    const action = (installForm.querySelector('select[name="action"]') as HTMLSelectElement)?.value || "install";
-    const flag = action === "install" ? "-i" : "-u";
-    previewEl.textContent = mods.length ? `odoo-bin -d ${activeDb} ${flag} ${mods.join(", ")}  # batch ${mods.length}` : `— seleccioná módulos —`;
-  }
-  grid.addEventListener("change", updatePreview);
-  installForm.querySelector('select[name="action"]')?.addEventListener("change", updatePreview);
+  <script>
+    import { CATALOGO_LABELS } from '../../lib/catalogo.generated.ts';
+    import {
+      resolveLeaveMs,
+      openWithEnter,
+      closeWithLeave,
+      showToast as mountToast,
+      trapTabKey,
+    } from '../../scripts/light-app-chrome.ts';
 
-  document.querySelectorAll("[data-install-open]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      activeTenantId = Number((btn as HTMLElement).dataset.tenantId);
-      activeDb = (btn as HTMLElement).dataset.db || "modoops_<slug>";
-      titleEl.textContent = `Instalar en #${activeTenantId}`;
-      dbEl.textContent = activeDb;
-      msgEl.textContent = "";
-      previewEl.textContent = "— seleccioná módulos —";
-      grid.querySelectorAll<HTMLInputElement>("[data-mod]").forEach((i) => (i.checked = false));
-      dlg.showModal();
+    const CATALOGO = Object.entries(CATALOGO_LABELS) as unknown as readonly (readonly [string, string])[];
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const LEAVE_MS = resolveLeaveMs(reduceMotion, 120);
+    const toastRegion = document.getElementById('toast-region');
+    const live = document.getElementById('live-polite');
+    const panelNuevo = document.getElementById('panel-nuevo');
+    const btnNuevo = document.getElementById('btn-nuevo');
+    const backdrop = document.getElementById('confirm-backdrop');
+    const confirmTitle = document.getElementById('confirm-title');
+    const confirmText = document.getElementById('confirm-text');
+    const confirmOk = document.getElementById('confirm-ok');
+    const confirmCancel = document.getElementById('confirm-cancel');
+    let pendingAction: null | (() => void) = null;
+    let lastFocus: HTMLElement | null = null;
+
+    function announce(msg: string) {
+      if (!live) return;
+      live.textContent = '';
+      requestAnimationFrame(() => {
+        live.textContent = msg;
+      });
+    }
+
+    function showToast(title: string, text: string, kind: 'ok' | 'danger' = 'ok') {
+      if (!toastRegion) return;
+      mountToast({ region: toastRegion, title, text, kind, leaveMs: LEAVE_MS, announce });
+    }
+
+    function openNuevo() {
+      if (!panelNuevo || !btnNuevo) return;
+      openWithEnter(panelNuevo, { inClass: 'is-in' });
+      btnNuevo.setAttribute('aria-expanded', 'true');
+      document.getElementById('tenant-nombre')?.focus();
+    }
+
+    function closeNuevo() {
+      if (!panelNuevo || !btnNuevo) return;
+      closeWithLeave(panelNuevo, {
+        leaveMs: LEAVE_MS,
+        inClass: 'is-in',
+        leavingClass: 'is-out',
+        onDone: () => {
+          btnNuevo.setAttribute('aria-expanded', 'false');
+          (document.getElementById('create-tenant-form') as HTMLFormElement | null)?.reset();
+          btnNuevo.focus();
+        },
+      });
+    }
+
+    btnNuevo?.addEventListener('click', () => {
+      if (panelNuevo?.hidden) openNuevo();
+      else closeNuevo();
     });
-  });
-  document.getElementById("install-cancel")?.addEventListener("click", () => dlg.close());
+    document.getElementById('btn-empty-nuevo')?.addEventListener('click', openNuevo);
+    document.getElementById('btn-cancelar-nuevo')?.addEventListener('click', closeNuevo);
 
-  installForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!activeTenantId) return;
-    const mods = [...grid.querySelectorAll<HTMLInputElement>("[data-mod]:checked")].map((i) => i.value);
-    if (!mods.length) { msgEl.textContent = "Seleccioná al menos un módulo"; return; }
-    const fd = new FormData(installForm);
-    const action = String(fd.get("action") || "install");
-    const notes = String(fd.get("notes") || "");
-    msgEl.textContent = "Ejecutando…";
-    const res = await fetch(`/api/admin/tenants/${activeTenantId}/install`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ modules: mods, action, notes }),
-    });
-    const data = await res.json().catch(() => ({})) as { preview_command?: string; error?: { message?: string } };
-    if (!res.ok) { msgEl.textContent = data?.error?.message || "Error"; return; }
-    previewEl.textContent = (data as { preview_command?: string }).preview_command || previewEl.textContent;
-    msgEl.textContent = "OK — recargando…";
-    setTimeout(() => window.location.reload(), 700);
-  });
-
-  // G10 suspender/reactivar con guardas de Odoo (gracia 7d, UserError verbatim)
-  document.querySelectorAll("[data-state]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const el = btn as HTMLElement;
-      const id = Number(el.dataset.tenantId);
-      const action = String(el.dataset.action || "");
-      const name = String(el.dataset.name || `#${id}`);
-      const verbo = action === "suspend" ? "Suspender (bloquea logins)" : "Reactivar";
-      if (!window.confirm(`${verbo} a ${name}?`)) return;
-      el.setAttribute("disabled", "");
-      try {
-        const res = await fetch("/api/admin/tenants/state", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ id, action }),
-        });
-        const data = await res.json().catch(() => ({})) as { error?: { message?: string } };
-        if (!res.ok) { window.alert(data?.error?.message || "Error"); return; }
-        window.location.reload();
-      } finally {
-        el.removeAttribute("disabled");
+    const form = document.getElementById('create-tenant-form') as HTMLFormElement | null;
+    const msg = document.getElementById('create-msg');
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (msg) msg.textContent = 'Creando…';
+      const fd = new FormData(form);
+      const body = {
+        name: String(fd.get('name') || ''),
+        slug: String(fd.get('slug') || '') || undefined,
+        vertical: String(fd.get('vertical') || 'retail'),
+      };
+      const res = await fetch('/api/admin/tenants', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (msg) msg.textContent = (data as { error?: { message?: string } })?.error?.message || 'Error';
+        return;
       }
+      closeNuevo();
+      showToast('Tenant creado', `${body.name} quedó listo.`, 'ok');
+      setTimeout(() => window.location.reload(), 600);
     });
-  });
-</script>
 
-<style>
-  .mo-admin { max-width:78rem; margin:0 auto; padding:2rem 1rem 3rem; }
-  .mo-admin__topbar { display:flex; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; }
-  .mo-admin__eyebrow { color:var(--sg-flame-orange); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0; font-weight:700; }
-  .mo-admin__user { color:var(--sg-text-muted-dark); margin:.25rem 0 0; }
-  .mo-admin__actions { display:flex; gap:.5rem; align-items:center; }
-  .mo-admin__create { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1rem; background:var(--sg-glass-fill); backdrop-filter:blur(10px); margin-bottom:1rem; }
-  .mo-admin__create h2 { margin:0 0 .5rem; font-size:1rem; }
-  .mo-admin__create form { display:flex; gap:.5rem; flex-wrap:wrap; align-items:end; }
-  .mo-admin__create label { display:flex; flex-direction:column; gap:.25rem; font-size:.85rem; }
-  .mo-admin__create input, .mo-admin__create select { border:1px solid #2b2b2b; border-radius:.5rem; padding:.45rem .6rem; background:#0a0a0a; color:#fff; }
-  .mo-admin__create button { border-radius:999px; padding:.5rem .9rem; background:#fff; color:#111; border:0; cursor:pointer; font-weight:600; }
-  .mo-admin__msg { font-size:.85rem; color:var(--sg-text-muted-dark); }
-  .mo-admin__tablewrap { overflow:auto; border:1px solid var(--sg-glass-border); border-radius:1rem; background:var(--sg-glass-fill); }
-  .mo-admin__table { width:100%; border-collapse:collapse; font-size:.9rem; }
-  .mo-admin__table th, .mo-admin__table td { padding:.6rem .75rem; border-bottom:1px solid var(--sg-glass-border); text-align:left; }
-  .mo-badge { border-radius:999px; padding:.15rem .5rem; font-size:.75rem; font-weight:600; }
-  .mo-badge.is-activo { background:#16a34a; color:#fff; } .mo-badge.is-suspendido { background:#dc2626; color:#fff; } .mo-badge.is-baja { background:#6b7280; color:#fff; }
-  .mo-admin__error { color:#f87171; } .mo-admin__empty { color:var(--sg-text-muted-dark); padding:1rem; }
-  .mo-admin__foot { margin-top:1rem; font-size:.8rem; color:var(--sg-text-muted-dark); }
-  .mo-btn-sm { border:1px solid var(--sg-glass-border); border-radius:999px; padding:.3rem .6rem; background:#fff; color:#111; font-size:.75rem; cursor:pointer; font-weight:600; }
-  .mo-dialog { border:1px solid var(--sg-glass-border); border-radius:1rem; padding:1.2rem; background:#111; color:#fff; max-width:36rem; width:90%; }
-  .mo-dialog::backdrop { background:rgba(0,0,0,.6); backdrop-filter:blur(4px); }
-  .mo-dialog__db { color:var(--sg-flame-orange); font-family:monospace; margin:.25rem 0 .5rem; }
-  .mo-dialog__grid { display:grid; grid-template-columns:1fr 1fr; gap:.4rem; margin:.5rem 0; }
-  .mo-check { display:flex; gap:.35rem; align-items:center; font-size:.85rem; border:1px solid #2b2b2b; border-radius:.5rem; padding:.4rem .5rem; background:#0a0a0a; }
-  .mo-check code { font-size:.7rem; color:#aaa; margin-left:auto; }
-  .mo-dialog__notes { display:flex; flex-direction:column; gap:.25rem; margin:.5rem 0; font-size:.85rem; }
-  .mo-dialog__notes input { border:1px solid #2b2b2b; border-radius:.5rem; padding:.45rem .6rem; background:#0a0a0a; color:#fff; }
-  .mo-dialog__actions { display:flex; gap:.5rem; align-items:end; margin:.5rem 0; }
-  .mo-dialog__actions select { border:1px solid #2b2b2b; border-radius:.5rem; padding:.4rem; background:#0a0a0a; color:#fff; }
-  .mo-dialog__actions button { border-radius:999px; padding:.5rem .9rem; border:0; cursor:pointer; font-weight:600; }
-  #install-submit { background:#fff; color:#111; } #install-cancel { background:#2b2b2b; color:#fff; }
-  .mo-dialog__preview { background:#0a0a0a; border:1px solid #2b2b2b; border-radius:.5rem; padding:.6rem; font-size:.75rem; overflow:auto; white-space:pre-wrap; margin:.5rem 0; }
-</style>
+    document.querySelector('[data-logout]')?.addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.assign('/login');
+    });
+
+    function openConfirm(opts: { title: string; text: string; okLabel: string; danger: boolean; onConfirm: () => void }) {
+      if (!backdrop || !confirmTitle || !confirmText || !confirmOk) return;
+      lastFocus = document.activeElement as HTMLElement | null;
+      pendingAction = opts.onConfirm;
+      confirmTitle.textContent = opts.title;
+      confirmText.textContent = opts.text;
+      confirmOk.textContent = opts.okLabel;
+      confirmOk.className = opts.danger ? 'mo-btn mo-btn--danger' : 'mo-btn mo-btn--primary';
+      openWithEnter(backdrop);
+      confirmOk.focus();
+    }
+
+    function closeConfirm() {
+      if (!backdrop) return;
+      closeWithLeave(backdrop, {
+        leaveMs: LEAVE_MS,
+        onDone: () => {
+          pendingAction = null;
+          lastFocus?.focus?.();
+        },
+      });
+    }
+
+    confirmCancel?.addEventListener('click', closeConfirm);
+    confirmOk?.addEventListener('click', () => {
+      const fn = pendingAction;
+      closeConfirm();
+      if (typeof fn === 'function') fn();
+    });
+    backdrop?.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        closeConfirm();
+        return;
+      }
+      trapTabKey(backdrop, ev);
+    });
+    backdrop?.addEventListener('click', (ev) => {
+      if (ev.target === backdrop) closeConfirm();
+    });
+
+    document.querySelectorAll('[data-state]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const el = btn as HTMLElement;
+        const id = Number(el.dataset.tenantId);
+        const action = String(el.dataset.action || '');
+        const name = String(el.dataset.name || `#${id}`);
+        const danger = action === 'suspend';
+        openConfirm({
+          title: danger ? `¿Suspender a ${name}?` : `¿Reactivar a ${name}?`,
+          text: danger
+            ? 'El comercio deja de operar hasta que lo reactives.'
+            : 'Vuelve a estado activo y puede operar de inmediato.',
+          okLabel: danger ? 'Suspender' : 'Reactivar',
+          danger,
+          onConfirm: async () => {
+            el.setAttribute('disabled', '');
+            try {
+              const res = await fetch('/api/admin/tenants/state', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ id, action }),
+              });
+              const data = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+              if (!res.ok) {
+                showToast('No se pudo completar', data?.error?.message || 'Error', 'danger');
+                return;
+              }
+              showToast(danger ? 'Tenant suspendido' : 'Tenant reactivado', name, danger ? 'danger' : 'ok');
+              setTimeout(() => window.location.reload(), 500);
+            } finally {
+              el.removeAttribute('disabled');
+            }
+          },
+        });
+      });
+    });
+
+    const dlg = document.getElementById('install-dialog') as HTMLDialogElement | null;
+    const grid = document.getElementById('install-grid') as HTMLDivElement | null;
+    const titleEl = document.getElementById('install-title');
+    const dbEl = document.getElementById('install-db');
+    const previewEl = document.getElementById('install-preview');
+    const msgEl = document.getElementById('install-msg');
+    const installForm = document.getElementById('install-form') as HTMLFormElement | null;
+    let activeTenantId: number | null = null;
+    let activeDb = '';
+
+    function renderGrid() {
+      if (!grid) return;
+      grid.innerHTML = '';
+      for (const [key, label] of CATALOGO) {
+        const lbl = document.createElement('label');
+        lbl.className = 'mo-check';
+        lbl.innerHTML = `<input type="checkbox" value="${key}" data-mod /> ${label} <code>${key}</code>`;
+        grid.appendChild(lbl);
+      }
+    }
+    renderGrid();
+
+    function updatePreview() {
+      if (!grid || !previewEl || !installForm) return;
+      const mods = [...grid.querySelectorAll<HTMLInputElement>('[data-mod]:checked')].map((i) => i.value);
+      const action = (installForm.querySelector('select[name="action"]') as HTMLSelectElement)?.value || 'install';
+      const flag = action === 'install' ? '-i' : '-u';
+      previewEl.textContent = mods.length
+        ? `odoo-bin -d ${activeDb} ${flag} ${mods.join(', ')}  # batch ${mods.length}`
+        : '— seleccioná módulos —';
+    }
+    grid?.addEventListener('change', updatePreview);
+    installForm?.querySelector('select[name="action"]')?.addEventListener('change', updatePreview);
+
+    document.querySelectorAll('[data-install-open]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeTenantId = Number((btn as HTMLElement).dataset.tenantId);
+        activeDb = (btn as HTMLElement).dataset.db || 'modoops_<slug>';
+        if (titleEl) titleEl.textContent = `Instalar en #${activeTenantId}`;
+        if (dbEl) dbEl.textContent = activeDb;
+        if (msgEl) msgEl.textContent = '';
+        if (previewEl) previewEl.textContent = '— seleccioná módulos —';
+        grid?.querySelectorAll<HTMLInputElement>('[data-mod]').forEach((i) => (i.checked = false));
+        dlg?.showModal();
+      });
+    });
+    document.getElementById('install-cancel')?.addEventListener('click', () => dlg?.close());
+
+    installForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!activeTenantId || !grid || !msgEl || !previewEl) return;
+      const mods = [...grid.querySelectorAll<HTMLInputElement>('[data-mod]:checked')].map((i) => i.value);
+      if (!mods.length) {
+        msgEl.textContent = 'Seleccioná al menos un módulo';
+        return;
+      }
+      const fd = new FormData(installForm);
+      const action = String(fd.get('action') || 'install');
+      const notes = String(fd.get('notes') || '');
+      msgEl.textContent = 'Ejecutando…';
+      const res = await fetch(`/api/admin/tenants/${activeTenantId}/install`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ modules: mods, action, notes }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        preview_command?: string;
+        error?: { message?: string };
+      };
+      if (!res.ok) {
+        msgEl.textContent = data?.error?.message || 'Error';
+        return;
+      }
+      previewEl.textContent = data.preview_command || previewEl.textContent;
+      msgEl.textContent = 'OK — recargando…';
+      showToast('Instalación en curso', activeDb, 'ok');
+      setTimeout(() => window.location.reload(), 700);
+    });
+  </script>
+</LightAppLayout>

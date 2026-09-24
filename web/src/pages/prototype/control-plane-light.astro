@@ -1,0 +1,845 @@
+---
+// PROTOTYPE — Control Plane light · Ola 1+2 (ops chrome)
+import '../../styles/light-app.css';
+
+const variant = ['warm', 'papel', 'denso'].includes(Astro.url.searchParams.get('variant') || '')
+  ? (Astro.url.searchParams.get('variant') as string)
+  : 'papel';
+const estado = ['todos', 'activo', 'suspendido', 'moroso'].includes(Astro.url.searchParams.get('estado') || '')
+  ? (Astro.url.searchParams.get('estado') as string)
+  : 'todos';
+const qRaw = (Astro.url.searchParams.get('q') || '').trim();
+const q = qRaw.toLowerCase();
+const paint = Astro.url.searchParams.get('paint') === 'skeleton';
+const isDev = Astro.url.searchParams.get('dev') === '1';
+
+const TENANTS = [
+  { name: 'Pinturería Centro', slug: 'pintureria_centro', state: 'activo', modules: 4, due: '2026-10-01', saldo: 50 },
+  { name: 'Servigas Demo', slug: 'servigas', state: 'activo', modules: 6, due: '2026-09-28', saldo: 50 },
+  { name: 'Francis Turri Foto', slug: 'francisturri', state: 'moroso', modules: 2, due: '2026-09-10', saldo: 100 },
+  { name: 'Demo Suspendida', slug: 'demo_off', state: 'suspendido', modules: 3, due: '—', saldo: 0 },
+  { name: 'Retail Norte', slug: 'retail_norte', state: 'activo', modules: 5, due: '2026-10-05', saldo: 50 },
+] as const;
+
+const filtered = TENANTS.filter((t) => {
+  if (estado !== 'todos' && t.state !== estado) return false;
+  if (q && !(`${t.name} ${t.slug}`).toLowerCase().includes(q)) return false;
+  return true;
+});
+
+const hasFilters = estado !== 'todos' || q.length > 0;
+const emptyKind = filtered.length === 0 ? (hasFilters ? 'filtered' : 'cold') : null;
+
+const qs = (v: string, e: string, query: string, extra?: Record<string, string>) => {
+  const p = new URLSearchParams();
+  p.set('variant', v);
+  p.set('estado', e);
+  if (query) p.set('q', query);
+  if (isDev) p.set('dev', '1');
+  if (extra) {
+    for (const [k, val] of Object.entries(extra)) {
+      if (val) p.set(k, val);
+    }
+  }
+  return `/prototype/control-plane-light?${p.toString()}`;
+};
+
+const clearFiltersHref = qs(variant, 'todos', '');
+const removeEstadoHref = qs(variant, 'todos', qRaw);
+const removeQHref = qs(variant, estado, '');
+const activos = TENANTS.filter((t) => t.state === 'activo').length;
+const mora = TENANTS.filter((t) => t.state === 'moroso').length;
+const susp = TENANTS.filter((t) => t.state === 'suspendido').length;
+
+const STATE_LABEL: Record<string, string> = {
+  activo: 'activo',
+  moroso: 'moroso',
+  suspendido: 'suspendido',
+};
+
+const ESTAD_CHIP: Record<string, string> = {
+  activo: 'Estado: activo',
+  moroso: 'Estado: moroso',
+  suspendido: 'Estado: suspendido',
+};
+---
+
+<!doctype html>
+<html lang="es-AR" data-theme={variant}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7faf7" />
+    <meta name="robots" content="noindex" />
+    <title>PROTOTYPE — Control Plane ({variant})</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+    <style>
+      .shell { min-height: calc(100dvh - 2rem); }
+      .hero-band {
+        padding: 1.35rem 1.35rem 1.1rem;
+        border-bottom: 1px solid var(--mo-line);
+        background: color-mix(in srgb, var(--mo-canvas) 88%, transparent);
+      }
+      .hero-band__row {
+        display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
+        justify-content: space-between; max-width: 72rem;
+      }
+      .tools {
+        display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center;
+        padding: 0.85rem 1.35rem 0.45rem; max-width: 72rem;
+      }
+      .tools #btn-export { margin-left: auto; flex-shrink: 0; }
+      .search {
+        display: flex; align-items: center;
+        flex: 1 1 14rem; max-width: 20rem;
+        border: 1px solid var(--mo-line); border-radius: var(--mo-radius-sm);
+        background: var(--mo-canvas); padding: 0 0.7rem; min-height: 44px;
+      }
+      .search label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      .search input {
+        border: 0; background: transparent; width: 100%;
+        font: inherit; color: var(--mo-ink); outline: none; min-height: 42px; font-size: 16px;
+      }
+      .content { padding: 0 1.35rem 2rem; display: grid; gap: 1rem; max-width: 72rem; }
+      .kpis { display: grid; gap: 0.7rem; grid-template-columns: 1fr; }
+      @media (min-width: 720px) {
+        .kpis { grid-template-columns: 1.35fr 1fr 1fr; }
+      }
+      .filters { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+      .slug { color: var(--mo-muted); font-size: 0.78rem; }
+      .create-panel {
+        border: 1px solid var(--mo-line);
+        border-radius: var(--mo-radius);
+        background: var(--mo-canvas);
+        padding: 1rem 1.1rem;
+        display: grid;
+        gap: 0.75rem;
+        max-width: 28rem;
+        opacity: 0;
+        transform: scale(0.97);
+        transition:
+          opacity 200ms var(--mo-ease-out),
+          transform 200ms var(--mo-ease-out);
+      }
+      .create-panel.is-in {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .create-panel.is-out {
+        opacity: 0;
+        transform: scale(0.97);
+        transition-duration: 120ms;
+      }
+      .create-panel[hidden] { display: none; }
+      .create-panel__actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+      .paint-toggle { font-size: 0.75rem; }
+      .mo-panel { position: relative; }
+      @media (prefers-reduced-motion: reduce) {
+        .create-panel {
+          transition-duration: 0.01ms !important;
+        }
+        .create-panel.is-in {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="mo-skip" href="#contenido">Saltar al contenido</a>
+    <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
+    <div class="mo-live" id="live-assertive" aria-live="assertive" aria-atomic="true"></div>
+
+    {isDev && (
+    <div class="proto-banner" translate="no">
+      <span class="variant-switch" role="navigation" aria-label="Variante de diseño">
+        <a href={qs('warm', estado, qRaw)} aria-current={variant === 'warm' ? 'true' : undefined}>warm</a>
+        <a href={qs('papel', estado, qRaw)} aria-current={variant === 'papel' ? 'true' : undefined}>papel</a>
+        <a href={qs('denso', estado, qRaw)} aria-current={variant === 'denso' ? 'true' : undefined}>denso</a>
+      </span>
+      <a class="paint-toggle" href={paint ? qs(variant, estado, qRaw) : qs(variant, estado, qRaw, { paint: 'skeleton' })}>
+        {paint ? 'Ver datos' : 'Ver skeleton'}
+      </a>
+      <a href={`/prototype/shell-empleado?variant=${variant}&dev=1`}>Shell →</a>
+    </div>
+    )}
+
+    <div class="shell">
+      <header class="hero-band">
+        <div class="hero-band__row">
+          <div>
+            <p class="mo-brand mo-brand--display" translate="no">ModoOps</p>
+            <p class="mo-promise">Control Plane · tenants</p>
+          </div>
+          <button type="button" class="mo-btn mo-btn--primary" id="btn-nuevo" aria-expanded="false" aria-controls="panel-nuevo">
+            + Nuevo tenant
+          </button>
+        </div>
+      </header>
+
+      <div class="tools">
+        <form class="search" method="get" action="/prototype/control-plane-light" role="search">
+          <input type="hidden" name="variant" value={variant} />
+          <input type="hidden" name="estado" value={estado} />
+          <label for="q">Buscar tenant</label>
+          <input
+            id="q"
+            name="q"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Buscar por nombre o slug…"
+            value={qRaw}
+          />
+        </form>
+        <nav class="filters mo-pill-group" aria-label="Filtro estado">
+          <a class="mo-pill" href={qs(variant, 'todos', qRaw)} aria-current={estado === 'todos' ? 'true' : undefined}>Todos</a>
+          <a class="mo-pill" href={qs(variant, 'activo', qRaw)} aria-current={estado === 'activo' ? 'true' : undefined}>Activo</a>
+          <a class="mo-pill" href={qs(variant, 'moroso', qRaw)} aria-current={estado === 'moroso' ? 'true' : undefined}>Moroso</a>
+          <a class="mo-pill" href={qs(variant, 'suspendido', qRaw)} aria-current={estado === 'suspendido' ? 'true' : undefined}>Suspendido</a>
+        </nav>
+        <button type="button" class="mo-btn" id="btn-export">Export CSV</button>
+      </div>
+
+      {hasFilters && (
+        <div class="mo-chips" aria-label="Filtros activos">
+          {estado !== 'todos' && (
+            <span class={`mo-chip ${estado === 'moroso' ? 'mo-chip--warn' : estado === 'suspendido' ? 'mo-chip--danger' : ''}`}>
+              <span class="mo-chip__label">{ESTAD_CHIP[estado]}</span>
+              <a class="mo-chip__remove" href={removeEstadoHref} aria-label={`Quitar filtro ${estado}`}>×</a>
+            </span>
+          )}
+          {qRaw && (
+            <span class="mo-chip">
+              <span class="mo-chip__label">Buscar: {qRaw}</span>
+              <a class="mo-chip__remove" href={removeQHref} aria-label="Quitar búsqueda">×</a>
+            </span>
+          )}
+          <a class="mo-pill mo-pill--quiet" href={clearFiltersHref}>Limpiar todo</a>
+        </div>
+      )}
+
+      <main class="content" id="contenido">
+        {/* Un veredicto: mora gana; si no, KPI hero. Nunca pelean en el 1er viewport. */}
+        {paint ? (
+          <section class="kpis" aria-label="Cargando resumen" aria-busy="true">
+            <div class="mo-skeleton mo-skeleton--kpi" aria-hidden="true"></div>
+          </section>
+        ) : mora > 0 ? (
+          <aside class="mo-banner mo-banner--warn" role="status">
+            <span class="mo-banner__mark">Atención</span>
+            <div class="mo-banner__body">
+              <p class="mo-banner__title">
+                {mora === 1 ? '1 tenant en mora' : `${mora} tenants en mora`}
+              </p>
+              <p class="mo-banner__text">
+                Hay abonos vencidos. Priorizá el contacto antes de suspender.
+              </p>
+            </div>
+            <div class="mo-banner__actions">
+              <a class="mo-btn" href={qs(variant, 'moroso', '')}>Ver mora</a>
+            </div>
+          </aside>
+        ) : susp > 0 && estado === 'todos' ? (
+          <aside class="mo-banner mo-banner--danger" role="status">
+            <span class="mo-banner__mark">Sistema</span>
+            <div class="mo-banner__body">
+              <p class="mo-banner__title">
+                {susp === 1 ? '1 tenant suspendido' : `${susp} tenants suspendidos`}
+              </p>
+              <p class="mo-banner__text">No operan hasta reactivarlos.</p>
+            </div>
+            <div class="mo-banner__actions">
+              <a class="mo-btn" href={qs(variant, 'suspendido', '')}>Ver suspendidos</a>
+            </div>
+          </aside>
+        ) : (
+          <section class="kpis" aria-label="Resumen">
+            <article class="mo-kpi mo-kpi--hero">
+              <p class="mo-kpi__label">Tenants activos</p>
+              <p class="mo-kpi__value">{activos}</p>
+              <p class="mo-kpi__hint">
+                <span class="mo-pill mo-pill--quiet" style="color:inherit;border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.08)">en modo hoy</span>
+              </p>
+            </article>
+          </section>
+        )}
+
+        <div class="create-panel" id="panel-nuevo" hidden>
+          <p class="mo-section-label">Nuevo tenant</p>
+          <form id="form-nuevo" novalidate>
+            <div class="mo-field" id="field-nombre">
+              <label class="mo-field__label" for="tenant-nombre">Nombre del comercio</label>
+              <input
+                class="mo-field__control"
+                id="tenant-nombre"
+                name="nombre"
+                type="text"
+                autocomplete="organization"
+                required
+                placeholder="Pinturería Centro…"
+              />
+              <p class="mo-field__hint" id="hint-nombre">Como lo ve el dueño en el abono.</p>
+              <p class="mo-field__error" id="err-nombre" role="alert" hidden></p>
+            </div>
+            <div class="mo-field" id="field-slug" style="margin-top:0.75rem">
+              <label class="mo-field__label" for="tenant-slug">Slug técnico</label>
+              <input
+                class="mo-field__control"
+                id="tenant-slug"
+                name="slug"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                inputmode="latin"
+                required
+                pattern="[a-z0-9_]+"
+                placeholder="pintureria_centro…"
+                aria-describedby="hint-slug"
+              />
+              <p class="mo-field__hint" id="hint-slug">Solo minúsculas, números y guión bajo.</p>
+              <p class="mo-field__error" id="err-slug" role="alert" hidden></p>
+            </div>
+            <div class="create-panel__actions" style="margin-top:0.85rem">
+              <button type="submit" class="mo-btn mo-btn--primary" id="btn-crear">Crear tenant</button>
+              <button type="button" class="mo-btn mo-btn--ghost" id="btn-cancelar-nuevo">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="mo-panel" id="table-panel">
+          {paint ? (
+            <div aria-busy="true" aria-label="Cargando tabla">
+              <div class="mo-skeleton mo-skeleton--row"></div>
+              <div class="mo-skeleton mo-skeleton--row"></div>
+              <div class="mo-skeleton mo-skeleton--row"></div>
+              <div class="mo-skeleton mo-skeleton--row"></div>
+            </div>
+          ) : emptyKind === 'filtered' ? (
+            <div class="mo-empty" role="status">
+              <h2 class="mo-empty__title">Ningún tenant con este filtro</h2>
+              <p class="mo-empty__text">
+                {qRaw
+                  ? `No hay coincidencias para “${qRaw}”${estado !== 'todos' ? ` en estado ${estado}` : ''}.`
+                  : `No hay tenants en estado ${estado}.`}
+              </p>
+              <div class="mo-empty__actions">
+                <a class="mo-btn mo-btn--primary" href={clearFiltersHref}>Limpiar filtros</a>
+              </div>
+            </div>
+          ) : emptyKind === 'cold' ? (
+            <div class="mo-empty" role="status">
+              <h2 class="mo-empty__title">Todavía no hay tenants</h2>
+              <p class="mo-empty__text">Creá el primero para empezar a operar el control plane.</p>
+              <div class="mo-empty__actions">
+                <button type="button" class="mo-btn mo-btn--primary" id="btn-empty-nuevo">+ Nuevo tenant</button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div class="mo-table-chrome">
+                <p class="mo-table-chrome__meta" id="table-meta">
+                  Mostrando {filtered.length} de {TENANTS.length}
+                </p>
+                <p class="mo-table-chrome__meta" id="sel-hint" hidden></p>
+              </div>
+              <table class="mo-table" id="tenants-table">
+                <thead>
+                  <tr>
+                    <th scope="col" class="check">
+                      <label class="sr-only" for="check-all">Seleccionar todos</label>
+                      <input class="mo-check" type="checkbox" id="check-all" />
+                    </th>
+                    <th scope="col">Tenant</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col" class="num">Módulos</th>
+                    <th scope="col">Vto. abono</th>
+                    <th scope="col" class="num">USD/mes</th>
+                    <th scope="col"><span class="sr-only">Acciones</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((t) => (
+                    <tr data-tenant={t.slug} data-name={t.name} data-state={t.state}>
+                      <td class="check">
+                        <label class="sr-only" for={`chk-${t.slug}`}>Seleccionar {t.name}</label>
+                        <input class="mo-check row-check" type="checkbox" id={`chk-${t.slug}`} value={t.slug} data-name={t.name} data-state={t.state} />
+                      </td>
+                      <td>
+                        <strong>{t.name}</strong>
+                        <div class="slug"><code>{t.slug}</code></div>
+                      </td>
+                      <td>
+                        <span class={`mo-badge is-${t.state}`}>{STATE_LABEL[t.state]}</span>
+                      </td>
+                      <td class="num">{t.modules}</td>
+                      <td>{t.due}</td>
+                      <td class="num">{t.saldo || '—'}</td>
+                      <td>
+                        <div class="mo-row-actions">
+                          <a class="mo-btn" href={`/prototype/shell-empleado?variant=${variant}`}>Abrir</a>
+                          <div class="mo-overflow">
+                            <button
+                              type="button"
+                              class="mo-btn mo-btn--icon"
+                              data-overflow-toggle
+                              aria-haspopup="menu"
+                              aria-expanded="false"
+                              aria-label={`Más acciones para ${t.name}`}
+                            >
+                              ⋯
+                            </button>
+                            <div class="mo-overflow__menu" role="menu" hidden>
+                              {t.state !== 'suspendido' ? (
+                                <button
+                                  type="button"
+                                  class="mo-overflow__item mo-overflow__item--danger"
+                                  role="menuitem"
+                                  data-action="suspender"
+                                  data-slug={t.slug}
+                                  data-name={t.name}
+                                >
+                                  Suspender
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  class="mo-overflow__item"
+                                  role="menuitem"
+                                  data-action="reactivar"
+                                  data-slug={t.slug}
+                                  data-name={t.name}
+                                >
+                                  Reactivar
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                class="mo-overflow__item"
+                                role="menuitem"
+                                data-action="copiar"
+                                data-slug={t.slug}
+                                data-name={t.name}
+                              >
+                                Copiar slug
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div class="mo-bulk" id="bulk-bar" hidden>
+                <p class="mo-bulk__count" id="bulk-count">0 seleccionados</p>
+                <div class="mo-bulk__actions">
+                  <button type="button" class="mo-btn mo-btn--danger" id="bulk-suspend">Suspender</button>
+                  <button type="button" class="mo-btn mo-btn--primary" id="bulk-reactivate">Reactivar</button>
+                  <button type="button" class="mo-btn" id="bulk-clear">Limpiar selección</button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </main>
+    </div>
+
+    <div class="mo-toast-region" id="toast-region" aria-relevant="additions"></div>
+
+    <div class="mo-dialog-backdrop" id="confirm-backdrop" hidden>
+      <div
+        class="mo-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-title"
+        aria-describedby="confirm-text"
+      >
+        <h2 class="mo-dialog__title" id="confirm-title">Confirmar</h2>
+        <p class="mo-dialog__text" id="confirm-text"></p>
+        <div class="mo-dialog__actions">
+          <button type="button" class="mo-btn mo-btn--ghost" id="confirm-cancel">Cancelar</button>
+          <button type="button" class="mo-btn mo-btn--danger" id="confirm-ok">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      import {
+        resolveLeaveMs,
+        openWithEnter,
+        closeWithLeave,
+        showToast as mountToast,
+        setFadedVisible,
+        trapTabKey,
+      } from '../../scripts/light-app-chrome.ts';
+
+      const livePolite = document.getElementById('live-polite');
+      const liveAssertive = document.getElementById('live-assertive');
+      const toastRegion = document.getElementById('toast-region');
+      const backdrop = document.getElementById('confirm-backdrop');
+      const confirmTitle = document.getElementById('confirm-title');
+      const confirmText = document.getElementById('confirm-text');
+      const confirmOk = document.getElementById('confirm-ok');
+      const confirmCancel = document.getElementById('confirm-cancel');
+      const panelNuevo = document.getElementById('panel-nuevo');
+      const btnNuevo = document.getElementById('btn-nuevo');
+      const btnEmptyNuevo = document.getElementById('btn-empty-nuevo');
+      const btnCancelarNuevo = document.getElementById('btn-cancelar-nuevo');
+      const formNuevo = document.getElementById('form-nuevo');
+      const btnExport = document.getElementById('btn-export');
+      const checkAll = document.getElementById('check-all');
+      const bulkBar = document.getElementById('bulk-bar');
+      const bulkCount = document.getElementById('bulk-count');
+      const selHint = document.getElementById('sel-hint');
+
+      let pendingAction = null;
+      let lastFocus = null;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const LEAVE_MS = resolveLeaveMs(reduceMotion, 120);
+      const BULK_MS = resolveLeaveMs(reduceMotion, 150);
+
+      function announce(msg, assertive = false) {
+        const el = assertive ? liveAssertive : livePolite;
+        if (!el) return;
+        el.textContent = '';
+        requestAnimationFrame(() => {
+          el.textContent = msg;
+        });
+      }
+
+      function showToast(title, text, kind = 'ok') {
+        if (!toastRegion) return;
+        mountToast({
+          region: toastRegion,
+          title,
+          text,
+          kind,
+          holdMs: 3200,
+          leaveMs: LEAVE_MS,
+          announce,
+        });
+      }
+
+      function openConfirm({ title, text, okLabel, danger, onConfirm }) {
+        if (!backdrop || !confirmTitle || !confirmText || !confirmOk) return;
+        lastFocus = document.activeElement;
+        pendingAction = onConfirm;
+        confirmTitle.textContent = title;
+        confirmText.textContent = text;
+        confirmOk.textContent = okLabel;
+        confirmOk.className = danger ? 'mo-btn mo-btn--danger' : 'mo-btn mo-btn--primary';
+        openWithEnter(backdrop);
+        confirmOk.focus();
+      }
+
+      function closeConfirm() {
+        if (!backdrop) return;
+        closeWithLeave(backdrop, {
+          leaveMs: LEAVE_MS,
+          onDone: () => {
+            pendingAction = null;
+            if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+          },
+        });
+      }
+
+      function openNuevo() {
+        if (!panelNuevo || !btnNuevo) return;
+        openWithEnter(panelNuevo, { inClass: 'is-in' });
+        btnNuevo.setAttribute('aria-expanded', 'true');
+        document.getElementById('tenant-nombre')?.focus();
+        announce('Formulario de nuevo tenant abierto');
+      }
+
+      function closeNuevo() {
+        if (!panelNuevo || !btnNuevo || !formNuevo) return;
+        closeWithLeave(panelNuevo, {
+          leaveMs: LEAVE_MS,
+          inClass: 'is-in',
+          leavingClass: 'is-out',
+          onDone: () => {
+            formNuevo.reset();
+            clearFieldErrors();
+            btnNuevo.setAttribute('aria-expanded', 'false');
+            btnNuevo.focus();
+          },
+        });
+      }
+
+      function clearFieldErrors() {
+        for (const id of ['field-nombre', 'field-slug']) {
+          document.getElementById(id)?.classList.remove('is-invalid');
+        }
+        for (const id of ['err-nombre', 'err-slug']) {
+          const err = document.getElementById(id);
+          if (err) {
+            err.hidden = true;
+            err.textContent = '';
+          }
+        }
+      }
+
+      function setFieldError(fieldId, errId, message) {
+        document.getElementById(fieldId)?.classList.add('is-invalid');
+        const err = document.getElementById(errId);
+        if (err) {
+          err.hidden = false;
+          err.textContent = message;
+        }
+      }
+
+      function selectedRows() {
+        return Array.from(document.querySelectorAll('.row-check:checked'));
+      }
+
+      function syncBulk() {
+        const selected = selectedRows();
+        const n = selected.length;
+        const checks = document.querySelectorAll('.row-check');
+        if (checkAll) {
+          checkAll.checked = checks.length > 0 && n === checks.length;
+          checkAll.indeterminate = n > 0 && n < checks.length;
+        }
+        if (bulkBar) setFadedVisible(bulkBar, n > 0, BULK_MS);
+        if (bulkCount) {
+          bulkCount.textContent = n === 1 ? '1 seleccionado' : `${n} seleccionados`;
+        }
+        if (selHint) {
+          selHint.hidden = n === 0;
+          selHint.textContent = n === 0 ? '' : `${n} en selección`;
+        }
+      }
+
+      function closeAllOverflow(except) {
+        document.querySelectorAll('.mo-overflow').forEach((wrap) => {
+          if (except && wrap === except) return;
+          const menu = wrap.querySelector('.mo-overflow__menu');
+          const toggle = wrap.querySelector('[data-overflow-toggle]');
+          if (menu && !menu.hidden) {
+            closeWithLeave(menu, {
+              leaveMs: LEAVE_MS,
+              inClass: 'is-in',
+              leavingClass: 'is-out',
+              onDone: () => toggle?.setAttribute('aria-expanded', 'false'),
+            });
+          } else {
+            toggle?.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      btnNuevo?.addEventListener('click', () => {
+        if (panelNuevo?.hidden) openNuevo();
+        else closeNuevo();
+      });
+      btnEmptyNuevo?.addEventListener('click', openNuevo);
+      btnCancelarNuevo?.addEventListener('click', closeNuevo);
+
+      formNuevo?.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        clearFieldErrors();
+        const nombre = /** @type {HTMLInputElement} */ (document.getElementById('tenant-nombre'));
+        const slug = /** @type {HTMLInputElement} */ (document.getElementById('tenant-slug'));
+        let firstBad = null;
+        if (!nombre?.value.trim()) {
+          setFieldError('field-nombre', 'err-nombre', 'Escribí el nombre del comercio.');
+          firstBad = nombre;
+        }
+        if (!slug?.value.trim()) {
+          setFieldError('field-slug', 'err-slug', 'Escribí un slug técnico.');
+          firstBad = firstBad || slug;
+        } else if (slug && !/^[a-z0-9_]+$/.test(slug.value)) {
+          setFieldError('field-slug', 'err-slug', 'Usá solo minúsculas, números y guión bajo.');
+          firstBad = firstBad || slug;
+        }
+        if (firstBad) {
+          firstBad.focus();
+          announce('Hay errores en el formulario', true);
+          return;
+        }
+        const btn = document.getElementById('btn-crear');
+        if (btn) {
+          btn.setAttribute('aria-busy', 'true');
+          btn.textContent = 'Creando…';
+        }
+        window.setTimeout(() => {
+          if (btn) {
+            btn.removeAttribute('aria-busy');
+            btn.textContent = 'Crear tenant';
+          }
+          closeNuevo();
+          showToast('Tenant creado', `${nombre.value.trim()} quedó listo para operar.`, 'ok');
+        }, 450);
+      });
+
+      btnExport?.addEventListener('click', () => {
+        showToast('Export listo…', 'Descargamos el CSV con los filtros actuales.', 'ok');
+      });
+
+      document.addEventListener('click', (ev) => {
+        const target = /** @type {HTMLElement} */ (ev.target);
+        const toggle = target.closest('[data-overflow-toggle]');
+        if (toggle) {
+          const wrap = toggle.closest('.mo-overflow');
+          const menu = wrap?.querySelector('.mo-overflow__menu');
+          const open = menu && menu.hidden;
+          closeAllOverflow(wrap || undefined);
+          if (menu) {
+            if (open) {
+              openWithEnter(menu, { inClass: 'is-in' });
+              toggle.setAttribute('aria-expanded', 'true');
+            } else {
+              closeWithLeave(menu, {
+                leaveMs: LEAVE_MS,
+                inClass: 'is-in',
+                leavingClass: 'is-out',
+                onDone: () => toggle.setAttribute('aria-expanded', 'false'),
+              });
+            }
+          }
+          return;
+        }
+        if (!target.closest('.mo-overflow')) closeAllOverflow();
+      });
+
+      document.querySelectorAll('[data-action]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const action = btn.getAttribute('data-action');
+          const name = btn.getAttribute('data-name') || 'este tenant';
+          const slug = btn.getAttribute('data-slug') || '';
+          closeAllOverflow();
+          if (action === 'suspender') {
+            openConfirm({
+              title: `¿Suspender a ${name}?`,
+              text: 'El comercio deja de operar hasta que lo reactives. Podés deshacer desde la fila suspendida.',
+              okLabel: 'Suspender',
+              danger: true,
+              onConfirm: () => {
+                showToast('Tenant suspendido', `${name} (${slug}) quedó fuera de modo.`, 'danger');
+                announce(`${name} suspendido`, true);
+              },
+            });
+          } else if (action === 'reactivar') {
+            openConfirm({
+              title: `¿Reactivar a ${name}?`,
+              text: 'Vuelve a estado activo y puede operar de inmediato.',
+              okLabel: 'Reactivar',
+              danger: false,
+              onConfirm: () => {
+                showToast('Tenant reactivado', `${name} volvió a modo.`, 'ok');
+              },
+            });
+          } else if (action === 'copiar') {
+            const done = () => showToast('Slug copiado', slug, 'ok');
+            if (navigator.clipboard?.writeText) {
+              navigator.clipboard.writeText(slug).then(done).catch(done);
+            } else {
+              done();
+            }
+          }
+        });
+      });
+
+      checkAll?.addEventListener('change', () => {
+        document.querySelectorAll('.row-check').forEach((c) => {
+          /** @type {HTMLInputElement} */ (c).checked = /** @type {HTMLInputElement} */ (checkAll).checked;
+        });
+        syncBulk();
+        announce(
+          checkAll.checked
+            ? `Todos seleccionados (${document.querySelectorAll('.row-check').length})`
+            : 'Selección limpiada',
+        );
+      });
+
+      document.querySelectorAll('.row-check').forEach((c) => {
+        c.addEventListener('change', syncBulk);
+      });
+
+      document.getElementById('bulk-clear')?.addEventListener('click', () => {
+        document.querySelectorAll('.row-check').forEach((c) => {
+          /** @type {HTMLInputElement} */ (c).checked = false;
+        });
+        if (checkAll) {
+          checkAll.checked = false;
+          checkAll.indeterminate = false;
+        }
+        syncBulk();
+        announce('Selección limpiada');
+      });
+
+      document.getElementById('bulk-suspend')?.addEventListener('click', () => {
+        const rows = selectedRows().filter((c) => c.getAttribute('data-state') !== 'suspendido');
+        if (rows.length === 0) {
+          showToast('Nada para suspender', 'Los seleccionados ya están suspendidos o no hay selección.', 'danger');
+          return;
+        }
+        const names = rows.map((c) => c.getAttribute('data-name')).join(', ');
+        openConfirm({
+          title: `¿Suspender ${rows.length} tenant${rows.length === 1 ? '' : 's'}?`,
+          text: names,
+          okLabel: 'Suspender selección',
+          danger: true,
+          onConfirm: () => {
+            showToast('Suspensión masiva', `${rows.length} tenant(s) fuera de modo.`, 'danger');
+            document.getElementById('bulk-clear')?.click();
+          },
+        });
+      });
+
+      document.getElementById('bulk-reactivate')?.addEventListener('click', () => {
+        const rows = selectedRows().filter((c) => c.getAttribute('data-state') === 'suspendido');
+        if (rows.length === 0) {
+          showToast('Nada para reactivar', 'Seleccioná tenants suspendidos.', 'danger');
+          return;
+        }
+        openConfirm({
+          title: `¿Reactivar ${rows.length} tenant${rows.length === 1 ? '' : 's'}?`,
+          text: rows.map((c) => c.getAttribute('data-name')).join(', '),
+          okLabel: 'Reactivar selección',
+          danger: false,
+          onConfirm: () => {
+            showToast('Reactivación masiva', `${rows.length} tenant(s) de vuelta a modo.`, 'ok');
+            document.getElementById('bulk-clear')?.click();
+          },
+        });
+      });
+
+      confirmCancel?.addEventListener('click', closeConfirm);
+      confirmOk?.addEventListener('click', () => {
+        const fn = pendingAction;
+        closeConfirm();
+        if (typeof fn === 'function') fn();
+      });
+
+      backdrop?.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape') {
+          ev.preventDefault();
+          closeConfirm();
+          return;
+        }
+        trapTabKey(backdrop, ev);
+      });
+
+      backdrop?.addEventListener('click', (ev) => {
+        if (ev.target === backdrop) closeConfirm();
+      });
+
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key !== 'Escape') return;
+        if (panelNuevo && !panelNuevo.hidden) {
+          ev.preventDefault();
+          closeNuevo();
+          return;
+        }
+        closeAllOverflow();
+      });
+
+      syncBulk();
+    </script>
+  </body>
+</html>

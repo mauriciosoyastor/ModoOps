@@ -65,8 +65,6 @@ Un único **Agente ModoOps** herramental, tenant-aislado, cuyo chat es solo UI. 
 
 ## Out of Scope
 
-- `--pdg` / PDG layer, taint, CDG/REACHING_DEF Haystack: no requisito MVP, queda fog (`CONTEXT.md` Grafo GitNexus nota `Sin --pdg`).
-- Grafo por Tenant como multi-DB para embeddings (`graph+fts+vector 384 dims` se mantiene en repo ModoOps, `CONTEXT.md` Grafo nota: `fts/vector: available` + `stats.embeddings>0` + `embeddingDims==384` como paridad; grafo por tenant es plantilla futura, no Fase 1).
 - Chat LLM proveedor (OpenAI/Anthropic) elección y prompt engineering fino; el spec fija el contrato Orquestador/Herramienta, no el vendor.
 - Ingesta/migración histórica >500 filas (`MAX_IMPORT_ROWS=500` en `mo_price_list_import_logic.py:89` límite vigente; >500 = tramo extra días×$52).
 - Billing automático del Techo IA (primero conteo y bloqueo; facturación manual vía Abono/Add-on, Control Plane Fase 1 manual).

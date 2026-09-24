@@ -67,15 +67,3 @@ jobs:
           CLOUDFLARE_API_TOKEN: dummy
           CLOUDFLARE_ACCOUNT_ID: dummy
         run: npx wrangler deploy --dry-run --config wrangler.toml --no-autoconfig || echo "wrangler dry-run skipped (no real token) — build already validated"
-
-  # Optional grafo check — only runs if .gitnexus exists in repo (normally gitignored, so skipped)
-  grafo:
-    if: false # enable locally with: gh workflow run ci --field check_grafo=true (see workflow_dispatch input if added)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-      - run: npm ci --ignore-scripts
-      - run: node tools/check-grafo.mjs

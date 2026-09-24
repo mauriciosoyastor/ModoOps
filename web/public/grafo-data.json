@@ -10,7 +10,7 @@
       "processes": 123
     },
     "commit": "97432d0",
-    "description": "Grafo de código ModoOps — file-level + comunidades + flujos. Aristas: IMPORTS (96) file→file, CALLS agregadas a file-level, DEFINES/HAS_METHOD colapsadas. Para consulta símbol-level usar gitnexus_query/context/impact/trace."
+    "description": "Grafo de código ModoOps — file-level + comunidades + flujos (snapshot congelado; sin motor de índice activo)."
   },
   "nodes": [
     {

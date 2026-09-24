@@ -45,7 +45,7 @@ Cada pregunta libre deja una comanda mínima sin datos personales (quién-hash, 
 - Guardar texto completo, respuestas completas o datos de contacto en esta capa.
 - Cambiar el juez portal (sigue pasando solo echo), crear Tenant desde portal, o tocar auditoría tenant.
 - Métricas de drop-off del guion, e-commerce, CRM, MRP, archivo JSONL con rotación (va después si hace falta).
-- Cambios a Infra Multi-DB o Grafo GitNexus.
+- Cambios a Infra Multi-DB.
 
 ## Further Notes
 

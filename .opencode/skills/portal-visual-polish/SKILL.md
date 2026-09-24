@@ -13,10 +13,6 @@ Lleva la oficina 3D del portal de onboarding de "cajas de ensayo" a "producto vi
 - **No**: `web/src/lib/oficina-mapping.ts` es contrato (ticket 01 done + suite 35/35). Si un ítem exige cambiar su interfaz, **parar y preguntar** — no romper el seam.
 - Marca blanca siempre: solo Módulos ModoOps, ningún precio como oferta, nada crea Tenant.
 
-## Gate GitNexus (obligatorio, 1 call)
-
-Antes de editar cualquier símbolo: `impact({target, direction: "upstream", summaryOnly: true})`. Si devuelve `HIGH`/`CRITICAL`/`UNKNOWN`, avisar al usuario antes de tocar. Al terminar, `detect_changes({scope: "all"})`.
-
 ## Fuentes (leer la del ítem antes de implementarlo)
 
 Ante conflicto, manda el precedente interno + el spec. Lo externo es guía, no ley.

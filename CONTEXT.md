@@ -283,10 +283,6 @@ _Avoid_: Odoo expuesto directo a IA con `auth='public'` o cookie de sesión, byp
 Par `db_name` + `tenant_id` inyectado en toda invocación IA que fija el cursor ORM a `modoops_<slug>`. Sin él no hay ejecución.
 _Avoid_: `user_id` suelto, cursor implícito, agente sin `db_name`.
 
-**Grafo GitNexus ModoOps**:
-Índice local `.gitnexus/` del repo ModoOps con capas `graph + FTS (ladybugdb-fts) + vectorSearch/embeddings` (modelo local `snowflake-arctic-embed-xs`, **384 dims** congeladas, ~90 MB modelo / +2–5 MB índice) consumible por el agente IA vía MCP (`query` → `context` → `impact` → `cypher`), offline-first, reindex con `npx gitnexus analyze --force --embeddings`; `fts/vector: available` + `Semantic mode: vector` + `stats.embeddings>0` + `embeddingDims==384` es el criterio de paridad. Sin `--pdg` en MVP (fog). Plantilla reutilizable si un tenant requiriera grafo propio.
-_Avoid_: dims distintas sin ADR + reindex; `--pdg` como requisito de paridad MVP; grafo por tenant como infra multi-DB hoy.
-
 **Catálogo de Herramientas IA**:
 Conjunto vivo de Herramientas validadas por ModoOps, definido en `modoops_master` y ejecutado siempre en la DB del Tenant. Las credenciales externas (ej: API key MercadoPago del Cliente) se resuelven en el Tenant ejecutante, no en el catálogo central.
 _Avoid_: credenciales de Tenant en master, herramienta sin dueño Tenant.
@@ -585,7 +581,6 @@ Documento **separado** del informe. Secciones:
 - **Composable:** el cliente elige módulos del Catálogo, pero el **Ancla** es combo base cerrado por vertical (híbrido), no suma Lego ilimitada sin techo.
 - **Infra Fase 1 vs 2:** Fase 1 backups/S3, RTO 60min, sin VPS réplica; Fase 2 hot standby, RTO 2–5min. Failover solo cuando recurrente >$400/mes.
 - **Control Plane Fase 1:** lista tenants, instalar/quitar Módulos Catálogo, suspender/reactivar, logs. No edita vistas ni factura automático (manual).
-- **Grafo GitNexus** (`graph+fts+vector 384 dims`): requisito de paridad **congelado** para agentes IA; validar con `npx gitnexus analyze --force --embeddings` (no `--pdg` en MVP).
 - **IA en producción:** `Agente` estricto herramental + `Herramienta` única vía + `Aduana BFF` obligatoria + `Falla cerrada` + `Techo IA` en `Orquestador` + `Memoria` en Tenant + código nuevo en `modoops.*`. Sin `Herramienta` no hay `write`.
 
 ## Precios — referencia acordada (ModoOps, USD)

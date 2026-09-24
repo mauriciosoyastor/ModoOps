@@ -68,7 +68,7 @@ Un **chat configurador** al lado de la oficina: el Prospecto responde ~10 pregun
 - Persistencia del borrador más allá del browser y autenticación del Prospecto.
 - Métricas de drop-off del chat.
 - E-commerce, CRM, MRP, multi-sucursal, B2B avanzado dentro del ancla.
-- Migración del adapter de deploy; cambios a Infra Multi-DB, Control Plane o Grafo GitNexus.
+- Migración del adapter de deploy; cambios a Infra Multi-DB o Control Plane.
 
 ## Further Notes
 
