@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import re
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -217,6 +218,13 @@ class GitCollectError(RuntimeError):
     """git status/diff failed — not the same as a clean working tree."""
 
 
+def _no_window_kwargs() -> dict:
+    """Windows: avoid flashing a console per git.exe invocation."""
+    if sys.platform == "win32":
+        return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)}
+    return {}
+
+
 def _run_git(args: list[str], *, cwd: Path | None = None) -> str:
     proc = subprocess.run(
         ["git", *args],
@@ -225,6 +233,7 @@ def _run_git(args: list[str], *, cwd: Path | None = None) -> str:
         text=True,
         encoding="utf-8",
         errors="replace",
+        **_no_window_kwargs(),
     )
     if proc.returncode != 0:
         err = (proc.stderr or proc.stdout or "").strip()[:400]

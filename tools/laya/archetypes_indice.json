@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "goal": "dónde está el ensure keep-warm anti double-spawn de Laya",
+    "query": "tools/laya/ensure_daemon.py should_spawn CREATE_NO_WINDOW",
+    "gold_path": "tools/laya/ensure_daemon.py"
+  },
+  {
+    "id": 2,
+    "goal": "dónde se exporta el grafo file-level desde el Índice CRG",
+    "query": "export_grafo_crg build_grafo_payload",
+    "gold_path": "tools/grafo/export_grafo_crg.py"
+  },
+  {
+    "id": 3,
+    "goal": "dónde el cliente arma candidatos del Índice para Laya",
+    "query": "recortar_indice collect_indice search",
+    "gold_path": "tools/laya/recortar_indice.py"
+  },
+  {
+    "id": 4,
+    "goal": "dónde el hook silencioso actualiza el Índice sin mintty",
+    "query": "crg_update_hook debounce CREATE_NO_WINDOW",
+    "gold_path": "tools/indice_codigo/hooks/crg_update_hook.py"
+  },
+  {
+    "id": 5,
+    "goal": "dónde está el harness de frescor del Índice code-review-graph",
+    "query": "test_frescor_crg update brief probes",
+    "gold_path": "tools/indice_codigo/test_frescor_crg.py"
+  }
+]

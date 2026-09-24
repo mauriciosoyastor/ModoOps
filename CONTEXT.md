@@ -269,7 +269,11 @@ Incidente que impide vender o emitir comprobantes por falla atribuible al trabaj
 
 **Agente ModoOps**:
 Proceso herramental que resuelve una tarea invocando **Herramientas ModoOps** dentro de un único **Tenant**. El chat es solo UI sobre el mismo Agente.
-_Avoid_: "agente" genérico sin Tenant, "chatbot" con escrituras directas, agente multi-tenant.
+_Avoid_: "agente" genérico sin Tenant, "chatbot" con escrituras directas, agente multi-tenant, índice/grafo de código del IDE (eso es **Índice de código**).
+
+**Índice de código**:
+Mapa estructural local del repo ModoOps para agentes de desarrollo (p. ej. Cursor MCP); se mantiene fresco con edits. No es **Agente ModoOps**, no es superficie marketing `/grafo`, y no vive en Tenant.
+_Avoid_: Agente, GitNexus, grafo de producto, Techo IA.
 
 **Herramienta ModoOps (Tool)**:
 Unidad invocable por un Agente que envuelve una operación Odoo con contrato cerrado (`input_schema` + permisos `groups_id` + auditoría). No es **Add-on** ni **Integración Fase 2** ni `ir.actions`.
