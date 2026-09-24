@@ -18,3 +18,4 @@ web/.vercel/
 .venv-win/
 .claude/
 CLAUDE.md
+.code-review-graph/
