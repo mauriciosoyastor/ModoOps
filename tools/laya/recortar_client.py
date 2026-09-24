@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""PROTOTYPE: thin client — status+diff → POST /v1/recortar-git (sesión canónica).
+"""PROTOTYPE: thin client — path A (git) o path B (Índice CRG) → POST /v1/recortar-git.
 
-  .\\.venv-win\\Scripts\\python.exe tools\\laya\\recortar_client.py `
-    -g "…" --json
+  # Path A (working tree)
+  .\\.venv-win\\Scripts\\python.exe tools\\laya\\recortar_client.py -g "…" --json
+
+  # Path B (Índice de código)
+  .\\.venv-win\\Scripts\\python.exe tools\\laya\\recortar_client.py --indice -g "…" -q "…" --json
 """
 from __future__ import annotations
 
@@ -21,6 +24,7 @@ if str(_DIR) not in sys.path:
 
 import ensure_daemon as ED  # noqa: E402
 import recortar_git as RG  # noqa: E402
+import recortar_indice as RI  # noqa: E402
 
 DEFAULT_GIT_URL = os.environ.get(
     "LAYA_DAEMON_GIT_URL", "http://127.0.0.1:8765/v1/recortar-git"
@@ -44,12 +48,22 @@ def post_json(url: str, body: dict, timeout: float = 120.0) -> tuple[dict, float
 
 def main() -> int:
     ap = argparse.ArgumentParser(
-        description="Client thin → daemon Laya recortar-git (sesión)"
+        description="Client thin → daemon Laya recortar-git (path A git / path B índice)"
     )
     ap.add_argument("--goal", "-g", required=True)
-    ap.add_argument("--query", "-q", default="", help="Opcional; ayuda al state Laya")
+    ap.add_argument(
+        "--query",
+        "-q",
+        default="",
+        help="Path A: ayuda state. Path B: query de search del Índice (default=goal)",
+    )
     ap.add_argument("--url", default=None, help="Override daemon URL")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument(
+        "--indice",
+        action="store_true",
+        help="Path B: candidatos desde code-review-graph search",
+    )
     ap.add_argument(
         "--no-ensure",
         action="store_true",
@@ -57,7 +71,7 @@ def main() -> int:
     )
     ap.add_argument(
         "--candidates-json",
-        help="Skip git collect: path to JSON {candidates,goal?,query?}",
+        help="Skip collect: path to JSON {candidates,goal?,query?}",
     )
     args = ap.parse_args()
 
@@ -68,6 +82,7 @@ def main() -> int:
 
     url = args.url or DEFAULT_GIT_URL
     collect_ms = 0.0
+    mode = "git"
     if args.candidates_json:
         blob = json.loads(
             Path(args.candidates_json).read_text(encoding="utf-8-sig")
@@ -76,6 +91,18 @@ def main() -> int:
         goal = blob.get("goal") or args.goal
         q = blob.get("query") or args.query
         cands = RG.filter_and_rank(raw)
+        mode = blob.get("mode") or ("indice" if args.indice else "git")
+    elif args.indice:
+        mode = "indice"
+        goal = args.goal
+        q = (args.query or args.goal).strip()
+        try:
+            t0 = time.perf_counter()
+            cands = RI.collect_indice(q)
+            collect_ms = (time.perf_counter() - t0) * 1000.0
+        except RI.IndiceCollectError as e:
+            print(f"ERROR: Índice/CRG: {e}", file=sys.stderr)
+            return 4
     else:
         try:
             t0 = time.perf_counter()
@@ -87,6 +114,7 @@ def main() -> int:
         goal, q = args.goal, args.query
 
     if not cands:
+        abort_reason = "no_indice_hits" if mode == "indice" else "clean_tree"
         out = {
             "goal": goal,
             "query": q,
@@ -94,12 +122,16 @@ def main() -> int:
             "expand": [],
             "expand_ids": [],
             "abort": True,
-            "abort_reason": "clean_tree",
+            "abort_reason": abort_reason,
             "session_ok": False,
-            "mode": "git",
+            "mode": mode,
             "message": (
-                "No hay candidatos en el working tree (status+diff vacío tras filtros). "
-                "Ensuciá el tree o explorá a mano; el recortador usa solo status+diff."
+                "Sin candidatos del Índice (search vacío). Probá otra -q o path A (sin --indice)."
+                if mode == "indice"
+                else (
+                    "No hay candidatos en el working tree (status+diff vacío tras filtros). "
+                    "Ensuciá el tree, usá --indice, o explorá a mano."
+                )
             ),
             "client_collect_ms": round(collect_ms, 2),
         }
@@ -125,7 +157,7 @@ def main() -> int:
 
     out["client_collect_ms"] = round(collect_ms, 2)
     out["client_rtt_ms"] = round(rtt_ms, 2)
-    out["mode"] = "git"
+    out["mode"] = mode
     expands = out.get("expand") or []
     if "session_ok" not in out:
         out["session_ok"] = bool(expands) and all(not e.get("skipped") for e in expands)
@@ -134,7 +166,8 @@ def main() -> int:
         print(json.dumps(out, ensure_ascii=False, indent=2))
         return 0
 
-    print("==== RECORTAR git (sesión) ====", flush=True)
+    label = "indice" if mode == "indice" else "git"
+    print(f"==== RECORTAR {label} (sesión) ====", flush=True)
     print(
         f"collect_ms={collect_ms:.0f}  rtt_ms={rtt_ms:.0f}  "
         f"daemon_wall_ms={out.get('wall_ms')}  n={out.get('n_candidates')}"

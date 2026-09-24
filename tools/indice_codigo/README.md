@@ -14,7 +14,8 @@ code-review-graph build
 
 MCP: [`.cursor/mcp.json`](../../.cursor/mcp.json). Reiniciá Cursor tras install.
 
-Frescor: `code-review-graph watch` y/o hooks que `install` escribe en `~/.cursor/hooks.json` (global Cursor).
+Frescor: preferí `code-review-graph watch` en una terminal, o `update` a mano.
+**Windows:** `code-review-graph install` mete hooks `.sh` en `~/.cursor/hooks.json` que abren **mintty/git-bash por cada edit** — desactivalos (hooks vacíos). El repo deja `.cursor/hooks.json` vacío a propósito.
 
 ## Seam test
 
@@ -28,4 +29,4 @@ Pass = status + `file_summary`/callers sobre probes en `tools/indice_codigo/prob
 
 - DB: `.code-review-graph/` (gitignored).
 - Backup si falla Windows: code-graph-mcp (research).
-- Laya path B = ticket 03 (pendiente).
+- Laya path B: `tools/laya/recortar_indice.py` + `recortar_client.py --indice` (ticket 03).

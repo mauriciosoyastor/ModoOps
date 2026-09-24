@@ -1,94 +1,62 @@
 ---
 name: laya-recortador
-description: "Recorta candidatos del working tree (status+diff) con Laya keep-warm a ≤2 paths para Read. Use when exploring local changes in ModoOps."
+description: "Recorta candidatos (working tree o Índice de código) con Laya keep-warm a ≤2 paths para Read. Use when exploring local changes or structural questions in ModoOps."
 ---
 
-# Laya recortador (ModoOps) — sesión git
+# Laya recortador (ModoOps) — dual A/B
 
 Throwaway tooling del agente de Cursor. **No** es el **Agente** / **Techo IA** del producto.
 
-> **Canónico:** working tree **status+diff** → daemon `/v1/recortar-git` → ≤2 paths → **Read**.
+> **Path A:** status+diff → `/v1/recortar-git` → ≤2 paths → Read  
+> **Path B:** Índice (code-review-graph search) → mismos candidatos → `/v1/recortar-git` → ≤2 paths → Read  
 
 ## When
 
-- Vas a explorar código tocado en el working tree y querés elegir qué leer primero.
-- El usuario pide entender un cambio local / “qué miro del diff”.
+- **A:** working tree sucio / “qué miro del diff”.
+- **B:** tree limpio / “dónde está X” / callers (requiere Índice CRG indexed).
 - El usuario nombra recortador o Laya.
 
 ## When NOT
 
 - Commits, PRs, UI, Odoo runtime.
-- Tree limpio: la skill **aborta** (no inventa paths).
+- Path A + tree limpio: aborta (`clean_tree`) — usá `--indice` o Grep.
+- Path B sin hits: aborta (`no_indice_hits`).
 
-## Workflow (obligatorio)
+## Workflow
 
 ```
-1. Armá goal (ES-AR; nombres de símbolo/path ayudan)
-2. Corré recortar_client.py (ensure daemon; status+diff automático)
-3. Si abort (clean_tree): avisá; no inventes paths
-4. Abrí Read SOLO de expand[].path (≤2)
-5. Recién ahí respondé
+1. Goal ES-AR
+2. Path A: recortar_client.py -g "…" --json
+   Path B: recortar_client.py --indice -g "…" -q "palabras" --json
+3. Si abort: avisá; no inventes paths
+4. Read SOLO expand[].path (≤2)
+5. Respondé
 ```
 
-**Nunca** expandas todos los archivos sucios si el cliente devolvió `expand`.
-
-## Daemon keep-warm (automático)
-
-`recortar_client.py` llama `ensure_daemon.py` al inicio (salvo `--no-ensure`).
-
-Si el daemon es viejo (404 en `/v1/recortar-git`): cerrá su consola y volvé a ensure.
-
-## Command — cliente thin (PowerShell, raíz del repo)
+## Command (PowerShell, raíz repo)
 
 ```powershell
 $env:USE_TF='0'
 $env:LAYA_MODEL_PATH="$PWD\.models\laya-multilingual"
 $env:PYTHONIOENCODING='utf-8'
-.\.venv-win\Scripts\python.exe tools\laya\recortar_client.py `
-  --goal "<qué querés entender>" `
-  --json
+
+# A — git
+.\.venv-win\Scripts\python.exe tools\laya\recortar_client.py -g "<goal>" --json
+
+# B — Índice
+.\.venv-win\Scripts\python.exe tools\laya\recortar_client.py --indice -g "<goal>" -q "<search>" --json
 ```
-
-Opcional: `--query` con palabras clave; `--candidates-json` para fixtures.
-
-Con `--json`, leé `expand[]` y `session_ok` / `abort`:
-
-| Campo | Uso |
-|-------|-----|
-| `expand[].path` / `file` | `Read` de ese path |
-| `abort: true` + `abort_reason: clean_tree` | no hay candidatos — no inventes |
-| `session_ok` | `true` si expand tiene paths legibles |
-
-## Fallback
-
-Si ensure/cliente falla (sin pesos, sin venv, timeout, 404 de endpoint viejo):
-
-1. Avisá una línea.
-2. `Read` como máximo 2 paths del `git status` elegidos a mano.
-3. No abras el resto.
 
 ## Checklist
 
 ```
-- [ ] Repo = ModoOps (raíz)
-- [ ] Corrí recortar_client.py
-- [ ] Read solo de expand (≤2) o abort limpio
-- [ ] No expandí todos los archivos sucios
-- [ ] Dejé la consola del daemon abierta si la abrió ensure
+- [ ] Path A o B según tree limpio/sucio
+- [ ] Read solo expand (≤2)
+- [ ] No Grep ciego si expand ok
 ```
-
-## Harness
-
-```powershell
-.\.venv-win\Scripts\python.exe tools\laya\harness_recortador_git.py
-```
-
-Umbrales: hits ≥4/5, ahorro vs A ≥40%, wall mediana ≤2s, no peor que B.
 
 ## Refs
 
-- Ensure: `tools/laya/ensure_daemon.py`
-- Cliente: `tools/laya/recortar_client.py`
-- Módulo git: `tools/laya/recortar_git.py`
-- Daemon: `tools/laya/daemon_http.py` (`/v1/recortar-git`)
-- PROTOTYPE: `tools/laya/PROTOTYPE_GIT.md`
+- `tools/laya/recortar_client.py` · `recortar_git.py` · `recortar_indice.py`
+- ADR `docs/adr/0010-indice-codigo-vivo-laya-dual.md`
+- Índice: `tools/indice_codigo/README.md`

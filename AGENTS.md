@@ -7,6 +7,6 @@ Spike **local** en rama `prototype/indice-codigo-crg` (code-review-graph): harne
 ## Exploración (estrategia dual)
 
 - Working tree / “qué miro del diff” → **path A**: skill `laya-recortador` (`tools/laya/recortar_client.py`, status+diff → ≤2 paths → Read).
-- Tree limpio / “dónde está X” / callers → **path B (soft)**: preferí Índice de código vía MCP `code-review-graph` / CLI `code-review-graph query|impact|search` si está up; si no, `Grep` / `Glob` / `Read`.
-- Laya sobre candidatos del Índice = ticket pendiente (`.scratch/indice-codigo-vivo/issues/03-…`). Hard path B después.
+- Tree limpio / “dónde está X” / callers → **path B (soft)**: `recortar_client.py --indice -g "…" -q "…"` (Índice CRG → Laya ≤2). Si CRG/MCP down: CLI `code-review-graph query|search` o `Grep`/`Read`.
+- Hard path B (prohibir Grep estructural) = ticket 04 pendiente.
 - No confundir con **Agente ModoOps** (`CONTEXT.md`).

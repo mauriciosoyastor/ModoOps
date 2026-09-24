@@ -11,6 +11,7 @@ Watch/hooks Cursor son ops manuales (README); no se asimilan en este seam.
 from __future__ import annotations
 
 import subprocess
+import sys
 import time
 import unittest
 from pathlib import Path
@@ -22,6 +23,12 @@ PROBE_ASTRO = PROBE_DIR / "frescor_probe.astro"
 MAX_UPDATE_S = 5.0
 
 
+def _no_window_kwargs() -> dict:
+    if sys.platform == "win32":
+        return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)}
+    return {}
+
+
 def run_crg(args: list[str], timeout: float = 120.0) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         ["code-review-graph", *args],
@@ -31,6 +38,7 @@ def run_crg(args: list[str], timeout: float = 120.0) -> subprocess.CompletedProc
         encoding="utf-8",
         errors="replace",
         timeout=timeout,
+        **_no_window_kwargs(),
     )
 
 
