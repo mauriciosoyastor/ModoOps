@@ -1,0 +1,160 @@
+{
+  "prototype": "tools/laya/harness_recortador_indice.py",
+  "mode": "indice_search",
+  "use_daemon": true,
+  "hits": 5,
+  "n": 5,
+  "accuracy": 1.0,
+  "median_rtt_s": 0.4959,
+  "save_A": 0.4954,
+  "tokens": {
+    "A": 18313,
+    "Laya": 9241
+  },
+  "thresholds": {
+    "hits_ge": 4,
+    "save_A_ge": 0.4,
+    "wall_overhead_s": 2.0
+  },
+  "pass": {
+    "wall": true,
+    "tokens": true,
+    "accuracy": true,
+    "verdict": true
+  },
+  "fine_tune_gate": {
+    "rule": "≥2 ciclos datos+calibración sin subir hits, con save_A≥40%",
+    "triggered": false,
+    "note": "No entrenar pesos en este tranche; solo documentar."
+  },
+  "rows": [
+    {
+      "id": 1,
+      "goal": "dónde está el ensure keep-warm anti double-spawn de Laya",
+      "query": "tools/laya/ensure_daemon.py should_spawn CREATE_NO_WINDOW",
+      "gold_path": "tools/laya/ensure_daemon.py",
+      "hit": true,
+      "gold_in_candidates": true,
+      "n_candidates": 2,
+      "expand_paths": [
+        "tools/laya/tests/test_ensure_daemon.py",
+        "tools/laya/ensure_daemon.py"
+      ],
+      "hybrid_reason": "prio_tie:0.0000",
+      "rtt_ms": 495.89,
+      "daemon_wall_ms": 471.86,
+      "tokens": {
+        "query": 200,
+        "A": 2528,
+        "Laya": 2528,
+        "save_A": 0.0
+      },
+      "calls": {
+        "A": 3,
+        "Laya": 3
+      }
+    },
+    {
+      "id": 2,
+      "goal": "dónde se exporta el grafo file-level desde el Índice CRG",
+      "query": "export_grafo_crg build_grafo_payload",
+      "gold_path": "tools/grafo/export_grafo_crg.py",
+      "hit": true,
+      "gold_in_candidates": true,
+      "n_candidates": 1,
+      "expand_paths": [
+        "tools/grafo/export_grafo_crg.py"
+      ],
+      "hybrid_reason": "single",
+      "rtt_ms": 376.46,
+      "daemon_wall_ms": 354.66,
+      "tokens": {
+        "query": 129,
+        "A": 2114,
+        "Laya": 2114,
+        "save_A": 0.0
+      },
+      "calls": {
+        "A": 2,
+        "Laya": 2
+      }
+    },
+    {
+      "id": 3,
+      "goal": "dónde el cliente arma candidatos del Índice para Laya",
+      "query": "recortar_indice collect_indice search",
+      "gold_path": "tools/laya/recortar_indice.py",
+      "hit": true,
+      "gold_in_candidates": true,
+      "n_candidates": 1,
+      "expand_paths": [
+        "tools/laya/recortar_indice.py"
+      ],
+      "hybrid_reason": "single",
+      "rtt_ms": 337.34,
+      "daemon_wall_ms": 316.43,
+      "tokens": {
+        "query": 120,
+        "A": 1193,
+        "Laya": 1193,
+        "save_A": 0.0
+      },
+      "calls": {
+        "A": 2,
+        "Laya": 2
+      }
+    },
+    {
+      "id": 4,
+      "goal": "dónde el hook silencioso actualiza el Índice sin mintty",
+      "query": "crg_update_hook debounce CREATE_NO_WINDOW",
+      "gold_path": "tools/indice_codigo/hooks/crg_update_hook.py",
+      "hit": true,
+      "gold_in_candidates": true,
+      "n_candidates": 2,
+      "expand_paths": [
+        "tools/indice_codigo/tests/test_crg_update_hook.py",
+        "tools/indice_codigo/hooks/crg_update_hook.py"
+      ],
+      "hybrid_reason": "prio_tie:0.0000",
+      "rtt_ms": 560.77,
+      "daemon_wall_ms": 538.46,
+      "tokens": {
+        "query": 221,
+        "A": 1485,
+        "Laya": 1485,
+        "save_A": 0.0
+      },
+      "calls": {
+        "A": 3,
+        "Laya": 3
+      }
+    },
+    {
+      "id": 5,
+      "goal": "dónde está el harness de frescor del Índice code-review-graph",
+      "query": "test_frescor_crg update brief probes",
+      "gold_path": "tools/indice_codigo/test_frescor_crg.py",
+      "hit": true,
+      "gold_in_candidates": true,
+      "n_candidates": 9,
+      "expand_paths": [
+        "tools/indice_codigo/probes/frescor_probe.astro",
+        "tools/indice_codigo/test_frescor_crg.py"
+      ],
+      "hybrid_reason": "prio_tie:0.0000",
+      "rtt_ms": 2211.65,
+      "daemon_wall_ms": 2198.71,
+      "tokens": {
+        "query": 866,
+        "A": 10993,
+        "Laya": 1921,
+        "save_A": 0.8253
+      },
+      "calls": {
+        "A": 10,
+        "Laya": 3
+      }
+    }
+  ]
+}
