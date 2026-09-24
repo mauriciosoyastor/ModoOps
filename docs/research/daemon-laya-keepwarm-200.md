@@ -56,13 +56,12 @@ predict_warm_s=0.208
 
 ```
 Cursor agent / skill
-  → Shell: .venv-win\Scripts\python.exe tools\laya\recortar.py --query … --goal … [--json]
-       → load_laya()  # cada invocación paga ~33 s
-       → gitnexus query + hybrid + predict
-       → stdout JSON / prosa
+  → Shell: recortar_client.py → daemon keep-warm
+       → status+diff + hybrid + predict
+       → stdout JSON
 ```
 
-Contrato de salida usable hoy (`recortar.py` + skill):
+Contrato de salida usable hoy (`recortar_client.py` + skill):
 
 | Campo | Uso agente |
 |---|---|
@@ -72,7 +71,7 @@ Contrato de salida usable hoy (`recortar.py` + skill):
 | `laya_choice`, `hybrid_reason`, `n_candidates` | diagnóstico |
 | `skipped: true` | no inventar símbolo |
 
-Entrada actual: `--query` + `--goal` (el CLI vuelve a llamar `query` GitNexus — #202 pide evitar query duplicado).
+Entrada actual: `--goal` (+ `--query` opcional); candidatos vienen de status+diff (#202).
 
 Harness (`harness_recortador.py`) ya hace `load_laya()` **una vez** por corrida batch; eso no ayuda a la sesión Cursor donde cada Shell es un proceso nuevo.
 
@@ -157,7 +156,7 @@ Start-Process -NoNewWindow .\.venv-win\Scripts\python.exe tools\laya\daemon_http
 | **Pros** | Local-only |
 | **Contras** | Peor DX que HTTP para el agente; sin ganancia clara vs B |
 
-### Opción E — MCP server stdio (estilo GitNexus)
+### Opción E — MCP server stdio
 
 | | |
 |---|---|
@@ -192,7 +191,7 @@ Buen **segundo** paso si #202/#204 confirman que Laya se queda.
 | | |
 |---|---|
 | **Evidencia** | Space oficial carga pesos al boot y sirve UI |
-| **Para ModoOps** | Latencia red + fuera del loop GitNexus local; **descartada** para el recortador del agente |
+| **Para ModoOps** | Latencia red + fuera del loop local; **descartada** para el recortador del agente |
 
 ---
 
@@ -284,7 +283,7 @@ Env invariantes (ya en skill/#194): `USE_TF=0`, `LAYA_MODEL_PATH=.models/laya-mu
 ## 8. Riesgos / límites
 
 - **RAM:** proceso keep-warm ocupa memoria todo el rato; en laptops justas puede paginar y degradar warm.
-- **Stale index:** el daemon no invalida resultados si GitNexus reindexa mid-sesión (mismo riesgo que one-shot).
+- **Working tree:** el daemon no ve commits nuevos hasta el próximo `collect` del cliente (status+diff).
 - **Seguridad:** bind **solo** `127.0.0.1`; no exponer LAN.
 - **Reinicio Cursor / crash Python:** vuelve el cold — documentar “daemon up?” en la skill.
 - **Epistemic:** tiempos de esta nota son **una** corrida CPU Windows con pesos locales; GPU/HF download cambiarían números (HF cita 193–464 ms CPU warm post-preload).

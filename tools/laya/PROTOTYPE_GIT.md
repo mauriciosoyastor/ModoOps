@@ -1,10 +1,10 @@
 # PROTOTYPE — Recortador git (sesión)
 
-Throwaway. Canónico de sesión Cursor tras ADR `docs/adr/0010-laya-recortador-git-not-grafo.md`.
+Throwaway. Canónico de sesión Cursor: status+diff → Laya → ≤2 Reads.
 
 ## Question
 
-¿Status+diff → Laya (`/v1/recortar-git`) → ≤2 Reads pasa umbrales (hits ≥4/5, ahorro ≥40% vs A, wall ≤2s, no peor que B) sin GitNexus?
+¿Status+diff → Laya (`/v1/recortar-git`) → ≤2 Reads pasa umbrales (hits ≥4/5, ahorro ≥40% vs A, wall ≤2s, no peor que B)?
 
 ## Run
 
@@ -30,12 +30,9 @@ $env:PYTHONIOENCODING='utf-8'
 | File | Role |
 |------|------|
 | `recortar_git.py` | filter/top-20, serialize, pick, collect status+diff |
-| `daemon_http.py` | `POST /v1/recortar-git` (+ `/v1/recortar` legacy) |
-| `recortar_client.py` | sesión git; `--grafo` soft-deprecated |
+| `daemon_http.py` | `POST /v1/recortar-git` |
+| `recortar_client.py` | sesión git |
 | `harness_recortador_git.py` | A/B/Laya fixtures |
+| `harness_recortador.py` | helpers Laya compartidos |
 | `archetypes_git.json` | gold_path + candidates |
 | `harness_git_last_run.json` | última evidencia |
-
-## Soft-deprecate
-
-`/v1/recortar` + harness grafo: offline/histórico. Sesión: sin `--grafo`.

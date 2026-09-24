@@ -2,7 +2,7 @@
 """PROTOTYPE (#202/#203 + recortador-git): Laya keep-warm HTTP on loopback.
 
 Throwaway. Load checkpoint once.
-  POST /v1/recortar      — candidates from GitNexus (#202; soft-deprecated in session)
+  POST /v1/recortar      — candidates ya armados (legacy; sesión usa git)
   POST /v1/recortar-git  — candidates from status+diff (session canonical)
   POST /v1/seleccionar   — one Matt skill from catalog (#203)
 
@@ -35,7 +35,7 @@ _loaded_at: float | None = None
 
 
 def pick_from_candidates(goal: str, query: str, cands: list[dict]) -> dict:
-    """Laya + hybrid only — caller already ran GitNexus query."""
+    """Laya + hybrid only — caller already built candidates."""
     if not cands:
         return {
             "goal": goal,
@@ -227,7 +227,7 @@ class Handler(BaseHTTPRequestHandler):
             if not goal or not isinstance(cands, list):
                 self._json(
                     400,
-                    {"error": "need goal + candidates[] (git paths — no GitNexus)"},
+                    {"error": "need goal + candidates[] (git paths)"},
                 )
                 return
             query = req.get("query") or ""
@@ -249,7 +249,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(
                 400,
                 {
-                    "error": "need goal + candidates[] (no GitNexus in daemon — #202)",
+                    "error": "need goal + candidates[] (#202)",
                 },
             )
             return

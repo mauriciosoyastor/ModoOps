@@ -45,4 +45,4 @@ Spec delta sobre `docs/specs/0010-portal-onboarding-3d-spec.md:1` + prototipo As
 - Cierre del anexo fiscal en el portal (requiere validación del Asesor fiscal + firma; solo borrador).
 - E-commerce, CRM, MRP, multi-sucursal, B2B avanzado dentro del ancla (`CONTEXT.md:377`).
 - Migración adapter deploy del sitio (Vercel→Cloudflare); la escena es agnóstica.
-- Cambiar Infra Multi-DB, Control Plane o requisito Grafo GitNexus.
+- Cambiar Infra Multi-DB o Control Plane.

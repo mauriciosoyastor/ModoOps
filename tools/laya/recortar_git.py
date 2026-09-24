@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""PROTOTYPE: Recortador de sesión sobre status+diff (sin GitNexus).
+"""PROTOTYPE: Recortador de sesión sobre status+diff.
 
 Candidatos = paths del working tree. Laya elige ≤2. El agente hace Read.
-No muta compact_candidates / harness grafo (expand-contract).
 """
 from __future__ import annotations
 
@@ -49,7 +48,6 @@ def is_excluded(path: str) -> bool:
         "/node_modules/",
         "/.git/",
         "/.models/",
-        "/.gitnexus/",
         "/__pycache__/",
         "/web/public/prototype/vendor/",
         "/.astro/",

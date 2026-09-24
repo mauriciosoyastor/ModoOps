@@ -1,4 +1,4 @@
-"""Seam: Recortador de sesión (git) — comportamiento externo sin GitNexus."""
+"""Seam: Recortador de sesión (git) — comportamiento externo sobre status+diff."""
 
 from __future__ import annotations
 

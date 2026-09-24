@@ -1,4 +1,4 @@
-// Auto-generado por tools/grafo/export-grafo.mjs — no editar a mano
+// Snapshot congelado (antes export-grafo.mjs) — no regenerar hasta motor nuevo
 export const grafoData = {
   "meta": {
     "repo": "ModoOps",
@@ -11,7 +11,7 @@ export const grafoData = {
       "processes": 123
     },
     "commit": "97432d0",
-    "description": "Grafo de código ModoOps — file-level + comunidades + flujos. Aristas: IMPORTS (96) file→file, CALLS agregadas a file-level, DEFINES/HAS_METHOD colapsadas. Para consulta símbol-level usar gitnexus_query/context/impact/trace."
+    "description": "Grafo de código ModoOps — file-level + comunidades + flujos (snapshot congelado; sin motor de índice activo)."
   },
   "nodes": [
     {

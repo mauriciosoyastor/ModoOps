@@ -41,7 +41,7 @@ Un único **deep module** `modoops_catalogo` cuyo `catalogo.json` es la verdad. 
 - **Gobernanza en dos capas**: CI fail-closed como capa primaria (bloquea PR), safety net en Odoo startup / BFF build como segunda red (warn). Un solo comando `resolveTtl`-like para env: no aplica — aquí un solo parser de catálogo, no 4.
 - **Migración en 2 PRs (locality de riesgo)**: PR1 crea `modoops_catalogo/` + 3 generados + adapters importan generados + shim `HORAS = {k: modules[k].horas}` + CI warn→fail. PR2 borra shim, borra `CATALOGO_MODOOPS` hardcode, borra `CATALOGO_DICT`, borra `CATALOGO_KEYS` legacy en BFF y `sys.path` hack en configurador wizard, y deja fail-closed estricto.
 - **Glosario y ADR**: Actualizar `CONTEXT.md` para dejar explícito que Catálogo ModoOps = `modoops_catalogo/catalogo.json` SSOT que genera Selection/TS/docs, y que Lista cerrada = output de `validate()` (no confundir). Registrar ADR `00xx-catalogo-ssot` con decisión generado vs runtime y por qué generado gana (tipos TS reales, CI drift, no dependencia FS en Odoo).
-- **No tocar Infra Multi-DB ni Grafo 384d**: El catálogo es universo ofrecible, no cambia la regla `Tenant = modoops_<slug>` ni el requisito `graph+fts+vector 384d` en `.gitnexus`.
+- **No tocar Infra Multi-DB**: El catálogo es universo ofrecible, no cambia la regla `Tenant = modoops_<slug>`.
 
 ## Testing Decisions
 
@@ -60,8 +60,6 @@ Un único **deep module** `modoops_catalogo` cuyo `catalogo.json` es la verdad. 
 - Unificar `modoops_ia` Tool Catalog (`tool_schemas.py` + `modoops_agent_tool_data.xml` + `run.ts CATALOG`) — es C2, no este spec.
 - Extraer `MetricMixin` en `modoops_core` (`mo_hub_card`/`mo_app_tile`) — bonus speculative, no este spec.
 - Re-trabajar `session-store` / `middleware` BFF (C3) o lifecycle Tenant con Clock (C4).
-- Grafo GitNexus `--pdg` / PDG layer — fuera de MVP (`CONTEXT.md` fog).
-- Grafo por Tenant para embeddings — plantilla futura, no Fase 1.
 - Pricing dinámico o multi-moneda más allá de `ars_tipo_cambio` existente.
 
 ## Further Notes

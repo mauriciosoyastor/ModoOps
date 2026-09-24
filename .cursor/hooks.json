@@ -1,12 +1,4 @@
 {
   "version": 1,
-  "hooks": {
-    "postToolUse": [
-      {
-        "command": "node tools/gitnexus/hook_notify_stale.mjs",
-        "matcher": "Shell",
-        "timeout": 10
-      }
-    ]
-  }
+  "hooks": {}
 }

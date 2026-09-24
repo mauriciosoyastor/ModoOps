@@ -64,7 +64,7 @@ Un portal de onboarding en el sitio Astro con una **oficina virtual Three.js**: 
 - Autenticación del Prospecto y persistencia del borrador (abierto en T3).
 - E-commerce, CRM, MRP, multi-sucursal y B2B avanzado dentro del ancla (excluidos del ancla por glosario).
 - Migración del adapter de deploy del sitio (Vercel→Cloudflare) — la escena debe ser agnóstica al adapter, la migración es otro esfuerzo.
-- Cambiar Infra Multi-DB, Control Plane o el requisito del Grafo GitNexus.
+- Cambiar Infra Multi-DB o Control Plane.
 
 ## Further Notes
 

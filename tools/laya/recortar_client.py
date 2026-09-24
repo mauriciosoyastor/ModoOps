@@ -3,8 +3,6 @@
 
   .\\.venv-win\\Scripts\\python.exe tools\\laya\\recortar_client.py `
     -g "…" --json
-
-GitNexus path soft-deprecated: use --grafo only for offline/legacy.
 """
 from __future__ import annotations
 
@@ -22,45 +20,11 @@ if str(_DIR) not in sys.path:
     sys.path.insert(0, str(_DIR))
 
 import ensure_daemon as ED  # noqa: E402
-import harness_recortador as H  # noqa: E402
 import recortar_git as RG  # noqa: E402
 
 DEFAULT_GIT_URL = os.environ.get(
     "LAYA_DAEMON_GIT_URL", "http://127.0.0.1:8765/v1/recortar-git"
 )
-DEFAULT_GRAFO_URL = os.environ.get(
-    "LAYA_DAEMON_URL", "http://127.0.0.1:8765/v1/recortar"
-)
-TOP_N = 10
-
-
-def attach_mitigation(payload: dict, cands: list[dict]) -> dict:
-    """Raw GitNexus attach vs after compact recovery (#206 / dedupe #209)."""
-    procs = (payload.get("processes") or [])[:TOP_N]
-    syms = payload.get("process_symbols") or []
-    by: dict[str, int] = {}
-    for s in syms:
-        pid = s.get("process_id")
-        if pid:
-            by[pid] = by.get(pid, 0) + 1
-    raw_attached = sum(1 for p in procs if by.get(p.get("id"), 0) > 0)
-    after = sum(1 for c in cands if c.get("symbols"))
-    recovered = 0
-    for c in cands:
-        if not c.get("symbols"):
-            continue
-        if by.get(c["id"], 0) == 0:
-            recovered += 1
-    n = len(procs) or len(cands) or 1
-    return {
-        "top_n": len(procs),
-        "attach_raw": raw_attached,
-        "attach_raw_rate": round(raw_attached / n, 3) if procs else None,
-        "attach_after_compact": after,
-        "attach_after_rate": round(after / max(len(cands), 1), 3),
-        "recovered_by_summary": recovered,
-        "note": "recovered_by_summary = empty raw attach fixed via #206 name-in-summary; not an upstream GitNexus fix",
-    }
 
 
 def post_json(url: str, body: dict, timeout: float = 120.0) -> tuple[dict, float]:
@@ -95,11 +59,6 @@ def main() -> int:
         "--candidates-json",
         help="Skip git collect: path to JSON {candidates,goal?,query?}",
     )
-    ap.add_argument(
-        "--grafo",
-        action="store_true",
-        help="LEGACY soft-deprecated: query GitNexus → /v1/recortar",
-    )
     args = ap.parse_args()
 
     if not args.no_ensure:
@@ -107,42 +66,6 @@ def main() -> int:
         if code != 0:
             return code
 
-    # --- LEGACY grafo path (soft-deprecated) ---
-    if args.grafo:
-        if not args.query:
-            print("ERROR: --grafo requiere --query / -q", file=sys.stderr)
-            return 2
-        url = args.url or DEFAULT_GRAFO_URL
-        t0 = time.perf_counter()
-        payload = H.query(args.query, args.goal)
-        query_ms = (time.perf_counter() - t0) * 1000.0
-        cands = H.compact_candidates(payload, args.goal, args.query)
-        mitigation = attach_mitigation(payload, cands)
-        try:
-            out, rtt_ms = post_json(
-                url, {"goal": args.goal, "query": args.query, "candidates": cands}
-            )
-        except urllib.error.URLError as e:
-            print(
-                f"ERROR: daemon unreachable at {url}: {e}\n"
-                "Run: .\\.venv-win\\Scripts\\python.exe tools\\laya\\ensure_daemon.py",
-                file=sys.stderr,
-            )
-            return 1
-        out["client_query_ms"] = round(query_ms, 2)
-        out["client_rtt_ms"] = round(rtt_ms, 2)
-        out["attach_mitigation"] = mitigation
-        out["mode"] = "grafo_deprecated"
-        expands = out.get("expand") or []
-        out["session_ok"] = bool(expands) and all(not e.get("skipped") for e in expands)
-        if args.json:
-            print(json.dumps(out, ensure_ascii=False, indent=2))
-        else:
-            print("==== RECORTAR grafo (DEPRECATED) ====", flush=True)
-            print(f"session_ok={out['session_ok']} — preferí path git sin --grafo")
-        return 0
-
-    # --- Canonical: status+diff ---
     url = args.url or DEFAULT_GIT_URL
     collect_ms = 0.0
     if args.candidates_json:
@@ -176,7 +99,7 @@ def main() -> int:
             "mode": "git",
             "message": (
                 "No hay candidatos en el working tree (status+diff vacío tras filtros). "
-                "Ensuciá el tree o usá impact/query a mano; el recortador git no usa el grafo."
+                "Ensuciá el tree o explorá a mano; el recortador usa solo status+diff."
             ),
             "client_collect_ms": round(collect_ms, 2),
         }

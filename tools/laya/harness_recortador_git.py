@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Harness Recortador git — A/B/Laya sobre fixtures (sin GitNexus).
+"""Harness Recortador git — A/B/Laya sobre fixtures (status+diff).
 
 Umbrales (grill / #201):
   hits ≥ 4/5
