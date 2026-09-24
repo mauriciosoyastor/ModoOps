@@ -1,35 +1,33 @@
 ---
 name: laya-recortador
-description: "Recorta candidatos (working tree o Índice de código) con Laya keep-warm a ≤2 paths para Read. Use when exploring local changes or structural questions in ModoOps. Path B hard: no Grep estructural ciego si el Índice responde."
+description: "Recorta candidatos del Índice de código (CRG) con Laya keep-warm a ≤2 paths para Read. Solo grafo — sin path git. Use when exploring structural questions in ModoOps."
 ---
 
-# Laya recortador (ModoOps) — dual A/B (B hard)
+# Laya recortador (ModoOps) — solo Índice
 
 Throwaway tooling del agente de Cursor. **No** es el **Agente** / **Techo IA** del producto.
 
-> **Path A:** status+diff → `/v1/recortar-git` → ≤2 paths → Read  
-> **Path B (hard):** Índice (code-review-graph search) → mismos candidatos → `/v1/recortar-git` → ≤2 paths → Read  
+> **Canon:** Índice (code-review-graph search) → `/v1/recortar-git` → ≤2 paths → Read  
+> Path A (git status+diff → Laya) **retirado**. Diff local = git a mano.  
 > Con Índice up: **no** `Grep`/`Glob` estructurales primero.
 
 ## When
 
-- **A:** working tree sucio / “qué miro del diff”.
-- **B:** tree limpio / “dónde está X” / callers (requiere Índice CRG indexed).
+- Tree limpio o sucio: “dónde está X” / callers / exploración estructural.
 - El usuario nombra recortador o Laya.
 
 ## When NOT
 
 - Commits, PRs, UI, Odoo runtime.
-- Path A + tree limpio: aborta (`clean_tree`) — usá `--indice` (no Grep primero).
-- Path B sin hits: aborta (`no_indice_hits`) — ahí sí Grep/CLI CRG a mano.
-- Sustituir path B por Grep “por las dudas” con Índice respondiendo.
+- “Qué mirar del diff” — usá `git status` / diff; **no** Laya.
+- Sin hits: abort `no_indice_hits` — ahí sí Grep/CLI CRG.
+- Sustituir Índice por Grep “por las dudas” con Índice respondiendo.
 
 ## Workflow
 
 ```
-1. Goal ES-AR
-2. Path A: recortar_client.py -g "…" --json
-   Path B: recortar_client.py --indice -g "…" -q "palabras" --json
+1. Goal ES-AR + -q palabras de search
+2. recortar_client.py -g "…" -q "…" --json
 3. Si abort: avisá; fallback Grep solo entonces (o CRG down)
 4. Read SOLO expand[].path (≤2)
 5. Respondé — sin Grep estructural extra si expand ok
@@ -42,25 +40,21 @@ $env:USE_TF='0'
 $env:LAYA_MODEL_PATH="$PWD\.models\laya-multilingual"
 $env:PYTHONIOENCODING='utf-8'
 
-# A — git
-.\.venv-win\Scripts\python.exe tools\laya\recortar_client.py -g "<goal>" --json
-
-# B — Índice (default estructural)
-.\.venv-win\Scripts\python.exe tools\laya\recortar_client.py --indice -g "<goal>" -q "<search>" --json
+.\.venv-win\Scripts\python.exe tools\laya\recortar_client.py -g "<goal>" -q "<search>" --json
 ```
 
 ## Checklist
 
 ```
-- [ ] Path A o B según tree limpio/sucio
-- [ ] B hard: no Grep/Glob estructurales antes de --indice / CRG
+- [ ] Solo Índice (no path git→Laya)
+- [ ] No Grep/Glob estructurales antes de recortar / CRG
 - [ ] Read solo expand (≤2)
 - [ ] Grep solo tras abort o CRG down
 ```
 
 ## Refs
 
-- `tools/laya/recortar_client.py` · `recortar_git.py` · `recortar_indice.py`
+- `tools/laya/recortar_client.py` · `recortar_indice.py`
+- Frescor: `tools/indice_codigo/hooks/` + README
 - ADR `docs/adr/0010-indice-codigo-vivo-laya-dual.md`
-- Índice: `tools/indice_codigo/README.md`
 - `AGENTS.md` § Exploración

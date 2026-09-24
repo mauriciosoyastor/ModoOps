@@ -2,14 +2,14 @@
 
 ## Índice de código (dev tooling)
 
-Spike **local** en rama `prototype/indice-codigo-crg` (code-review-graph): harness CLI PASS (`tools/indice_codigo/test_frescor_crg.py`). Watch/hooks Cursor = ops manual (README). DB gitignored. `/grafo` JSON **congelado**. ADR `docs/adr/0010-indice-codigo-vivo-laya-dual.md`.
+Spike **local** en rama `prototype/indice-codigo-crg` (code-review-graph): harness CLI PASS (`tools/indice_codigo/test_frescor_crg.py`). Frescor: hooks silenciosos (`tools/indice_codigo/hooks/`) o `watch`. DB gitignored. `/grafo` JSON **congelado**. ADR `docs/adr/0010-indice-codigo-vivo-laya-dual.md`.
 
-## Exploración (estrategia dual)
+## Exploración (solo grafo / Índice)
 
-- Working tree / “qué miro del diff” → **path A**: skill `laya-recortador` (`tools/laya/recortar_client.py`, status+diff → ≤2 paths → Read).
-- Tree limpio / “dónde está X” / callers / búsqueda estructural → **path B (hard)**:
-  1. `recortar_client.py --indice -g "…" -q "…"` (Índice CRG → Laya ≤2) **o** CLI/MCP `code-review-graph` (`search` / `query` / callers).
+- “Dónde está X” / callers / búsqueda estructural → **Laya solo-índice** (path B hard):
+  1. `recortar_client.py -g "…" -q "…"` (Índice CRG → Laya ≤2) **o** CLI/MCP `code-review-graph`.
   2. `Read` solo de `expand[]` o de paths que devolvió el Índice.
-  3. **Prohibido** abrir `Grep` / `Glob` estructurales a ciegas mientras el Índice responda.
-  4. **Fallback** `Grep`/`Glob`/`Read` solo si: abort `no_indice_hits`, `IndiceCollectError` / CRG down, o path A ya eligió expand.
+  3. **Prohibido** `Grep` / `Glob` estructurales a ciegas mientras el Índice responda.
+  4. **Fallback** `Grep`/`Glob`/`Read` solo si: abort `no_indice_hits` o CRG down.
+- “Qué mirar del diff” → **git status/diff a mano** (fuera de Laya; path A retirado).
 - No confundir con **Agente ModoOps** (`CONTEXT.md`).
