@@ -1,0 +1,30 @@
+{
+  "goal": "d??nde est?? ensure_daemon keep-warm",
+  "query": "ensure_daemon should_spawn",
+  "n_candidates": 1,
+  "laya_choice": "file:tools/laya/ensure_daemon.py",
+  "hybrid_reason": "single",
+  "expand_ids": [
+    "file:tools/laya/ensure_daemon.py"
+  ],
+  "expand": [
+    {
+      "process_id": "file:tools/laya/ensure_daemon.py",
+      "path": "tools/laya/ensure_daemon.py",
+      "file": "tools/laya/ensure_daemon.py",
+      "symbol": "ensure_daemon.py",
+      "status": "I",
+      "skipped": false,
+      "summary": "I tools/laya/ensure_daemon.py",
+      "priority": 0.9
+    }
+  ],
+  "wall_ms": 270.64,
+  "state_chars": 203,
+  "skipped_all": false,
+  "abort": false,
+  "session_ok": true,
+  "client_collect_ms": 555.8,
+  "client_rtt_ms": 294.54,
+  "mode": "indice"
+}

@@ -6,6 +6,6 @@ Tras retirar GitNexus, el desarrollo con agentes Cursor usa un **Índice de cód
 
 **Spike (½–1 día, local — sin issue GitHub):** rama `prototype/indice-codigo-crg`. Solo índice + MCP Cursor (Laya path B en slice siguiente). DB local gitignored (p. ej. `.code-review-graph/`). Frescor: `watch` + hooks PostToolUse; si Windows falla, hooks solos. Pass = index OK + edit `.ts`/`.astro` reflejado &lt;5s + MCP callers/impact útil. Backup: code-graph-mcp. Fuera: Agente/Tenant, re-export `/grafo`, CKB/SCIP, CI de paridad, #213.
 
-**Post-pass AGENTS:** path B soft (“preferí B si MCP up”) hasta cablear Laya B; luego hard contra Grep estructural ciego.
+**Post-pass AGENTS:** path B **hard** contra Grep/Glob estructurales ciegos (ticket 04). Default: `--indice` o CLI/MCP CRG → Read; Grep solo si abort `no_indice_hits` o CRG down.
 
 **Considered Options:** solo Laya+git; solo grafo; CKB/SCIP “incremental”; code-graph-mcp o codebase-memory-mcp como spike #1 — elegimos dual A+B y spike code-review-graph (Astro+Cursor+watch documentados; research `docs/research/motores-grafo-indice-vivo.md`).

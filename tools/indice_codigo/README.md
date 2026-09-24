@@ -30,3 +30,4 @@ Pass = status + `file_summary`/callers sobre probes en `tools/indice_codigo/prob
 - DB: `.code-review-graph/` (gitignored).
 - Backup si falla Windows: code-graph-mcp (research).
 - Laya path B: `tools/laya/recortar_indice.py` + `recortar_client.py --indice` (ticket 03).
+- Path B **hard** (ticket 04): con Índice up, no Grep/Glob estructurales ciegos — ver `AGENTS.md`.
