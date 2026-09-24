@@ -2,7 +2,7 @@
 
 ## Índice de código (dev tooling)
 
-Spike **local** PASS en rama `prototype/indice-codigo-crg` (code-review-graph). DB gitignored (`.code-review-graph/`). `/grafo` JSON **congelado**. ADR `docs/adr/0010-indice-codigo-vivo-laya-dual.md` · research `docs/research/motores-grafo-indice-vivo.md` · harness `tools/indice_codigo/test_frescor_crg.py`.
+Spike **local** en rama `prototype/indice-codigo-crg` (code-review-graph): harness CLI PASS (`tools/indice_codigo/test_frescor_crg.py`). Watch/hooks Cursor = ops manual (README). DB gitignored. `/grafo` JSON **congelado**. ADR `docs/adr/0010-indice-codigo-vivo-laya-dual.md`.
 
 ## Exploración (estrategia dual)
 

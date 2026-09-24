@@ -22,7 +22,7 @@ Frescor: `code-review-graph watch` y/o hooks que `install` escribe en `~/.cursor
 python tools\indice_codigo\test_frescor_crg.py
 ```
 
-Pass = status + `file_summary` + `update --brief` &lt;5s tras warmup.
+Pass = status + `file_summary`/callers sobre probes en `tools/indice_codigo/probes/` + `update --brief` &lt;5s (warm) tras tocar `.ts` y `.astro`. Watch/hooks = manual.
 
 ## Notas
 
