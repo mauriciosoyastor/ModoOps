@@ -2,7 +2,7 @@
 
 ## Índice de código (dev tooling)
 
-Spike **local** en rama `prototype/indice-codigo-crg` (code-review-graph): harness CLI PASS (`tools/indice_codigo/test_frescor_crg.py`). Frescor: hooks silenciosos (`tools/indice_codigo/hooks/`) o `watch`. DB gitignored. `/grafo` JSON **congelado**. ADR `docs/adr/0010-indice-codigo-vivo-laya-dual.md`.
+Spike **local** en rama `prototype/indice-codigo-crg` (code-review-graph): harness CLI PASS (`tools/indice_codigo/test_frescor_crg.py`). Frescor: hooks silenciosos (`tools/indice_codigo/hooks/`) o `watch`. DB gitignored. `/grafo` re-export file-level desde Índice (`tools/grafo/export_grafo_crg.py`, #217). ADR `docs/adr/0010-indice-codigo-vivo-laya-dual.md`.
 
 ## Exploración (solo grafo / Índice)
 
