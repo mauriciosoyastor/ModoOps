@@ -1,35 +1,29 @@
-# PROTOTYPE — Laya recortador (mapa #192 / loop aprendizaje + #198)
+# PROTOTYPE — Laya recortador (solo Índice)
 
 Throwaway. No es producción. Pesos: `.models/laya-multilingual` (gitignored).
+**No** es el Agente / Techo IA del producto.
 
-## Sesión Cursor (canónico — solo Índice)
+## Sesión Cursor (canónico)
 
-**Daemon keep-warm + CRG search → `/v1/recortar-git`.** Ver skill `laya-recortador`.
+Índice CRG → daemon Laya (`/v1/recortar-git`, nombre HTTP histórico) → ≤2 Reads.
+Ver skill `laya-recortador` y `AGENTS.md`.
 
 ```powershell
-.\.venv-win\Scripts\python.exe tools\laya\recortar_client.py --indice -g "…" -q "…" --json
+$env:USE_TF='0'
+$env:LAYA_MODEL_PATH="$PWD\.models\laya-multilingual"
+.\.venv-win\Scripts\python.exe tools\laya\recortar_client.py -g "…" -q "…" --json
+```
+
+Path A (git status+diff → Laya) **retirado**. Diff local = git a mano.
+Legado / harness git: `PROTOTYPE_GIT.md` + `harness_recortador_git.py`.
+
+## Opcional — hits loop / calibración (fuera del critical path)
+
+Harness índice y umbrales de acierto/ahorro son experimento local, no requisito de sesión:
+
+```powershell
 .\.venv-win\Scripts\python.exe tools\laya\harness_recortador_indice.py
 ```
 
-## Umbral vigente (índice / hits loop)
-
-- Acierto ≥ **4/5**; ahorro ≥ **40%** vs leer todos los candidatos del search; wall mediana ≤ **2 s**
-- Oros: `archetypes_indice.json` · evidencia: `harness_indice_last_run.json`
-
-### Ciclo calibración 1 (2026-09-24)
-
-| | hits | save_A | wall med | nota |
-|---|---|---|---|---|
-| baseline | 4/5 | 55% | ~0.42s | oro #1 miss: search no traía `ensure_daemon.py` |
-| post-query #1 | **5/5** | 50% | ~0.50s | query con path explícito → gold_in_cands |
-
-**Gate fine-tune:** no disparar. Regla: ≥2 ciclos datos+calibración sin subir hits, con save_A≥40%. Este tranche solo midió + calibró query.
-
-## Legado git harness
-
-Fixtures status+diff: `harness_recortador_git.py` / `PROTOTYPE_GIT.md` (path A retirado en sesión).
-
-## Plan vigente
-
-- Sesión: `recortar_client.py --indice` + daemon `/v1/recortar-git`
-- Skill: `.agents/skills/laya-recortador`
+Oros: `archetypes_indice.json` · evidencia: `harness_indice_last_run.json`.
+**Gate fine-tune:** no disparar desde este doc.

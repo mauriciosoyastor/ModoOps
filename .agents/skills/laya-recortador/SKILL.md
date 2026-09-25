@@ -7,7 +7,8 @@ description: "Recorta candidatos del Índice de código (CRG) con Laya keep-warm
 
 Throwaway tooling del agente de Cursor. **No** es el **Agente** / **Techo IA** del producto.
 
-> **Canon:** Índice (code-review-graph search) → `/v1/recortar-git` → ≤2 paths → Read  
+> **Canon:** Índice (code-review-graph search) → daemon Laya → ≤2 paths → Read  
+> Endpoint HTTP: `/v1/recortar-git` (nombre histórico; el body es Índice, **no** git status+diff).  
 > Path A (git status+diff → Laya) **retirado**. Diff local = git a mano.  
 > Con Índice up: **no** `Grep`/`Glob` estructurales primero.
 

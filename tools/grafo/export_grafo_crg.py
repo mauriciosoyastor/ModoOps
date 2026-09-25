@@ -48,25 +48,44 @@ def to_repo_rel(path: str, root: Path = ROOT) -> str:
     return ""
 
 
+def _win_kwargs() -> dict:
+    if sys.platform == "win32":
+        return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)}
+    return {}
+
+
+def iso_mtime_utc(path: Path) -> str:
+    """UTC ISO-8601 from file mtime (Índice provenance)."""
+    ts = path.stat().st_mtime
+    return (
+        datetime.fromtimestamp(ts, tz=timezone.utc)
+        .strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
+        + "Z"
+    )
+
+
 def ensure_crg_json(*, force: bool = False) -> Path:
     if CRG_JSON.is_file() and not force:
         return CRG_JSON
-    subprocess.run(
+    proc = subprocess.run(
         ["code-review-graph", "visualize", "--mode", "file", "--format", "json"],
         cwd=str(ROOT),
-        check=False,
         capture_output=True,
         text=True,
         encoding="utf-8",
         errors="replace",
-        **(
-            {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)}
-            if sys.platform == "win32"
-            else {}
-        ),
+        **_win_kwargs(),
     )
+    if proc.returncode != 0:
+        err = (proc.stderr or proc.stdout or "").strip() or f"exit {proc.returncode}"
+        raise RuntimeError(
+            f"code-review-graph visualize failed ({err}); "
+            f"no se publica artefacto vacío. Revisá el Índice CRG."
+        )
     if not CRG_JSON.is_file():
-        raise FileNotFoundError(f"missing {CRG_JSON} after visualize")
+        raise FileNotFoundError(
+            f"missing {CRG_JSON} after visualize; no se publica artefacto vacío"
+        )
     return CRG_JSON
 
 
@@ -78,18 +97,21 @@ def git_commit(root: Path = ROOT) -> str:
             text=True,
             encoding="utf-8",
             errors="replace",
-            **(
-                {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)}
-                if sys.platform == "win32"
-                else {}
-            ),
+            **_win_kwargs(),
         )
         return out.strip()
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
 
 
-def build_grafo_payload(raw: dict, *, root: Path = ROOT, commit: str | None = None) -> dict:
+def build_grafo_payload(
+    raw: dict,
+    *,
+    root: Path = ROOT,
+    commit: str | None = None,
+    indexed_at: str | None = None,
+    exported_at: str | None = None,
+) -> dict:
     """Pure mapping CRG visualize JSON → GrafoData (scope A)."""
     q_to_file: dict[str, str] = {}
     file_ids: set[str] = set()
@@ -177,11 +199,15 @@ def build_grafo_payload(raw: dict, *, root: Path = ROOT, commit: str | None = No
         edges.append({"from": f1, "to": f2, "type": et, "weight": w})
 
     commit = commit or git_commit(root)
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+    exported = exported_at or (
+        datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+    )
+    indexed = indexed_at or exported
     return {
         "meta": {
             "repo": "ModoOps",
-            "indexedAt": now,
+            "indexedAt": indexed,
+            "exportedAt": exported,
             "stats": {
                 "files": len(nodes),
                 "nodes": len(nodes),
@@ -202,6 +228,15 @@ def build_grafo_payload(raw: dict, *, root: Path = ROOT, commit: str | None = No
     }
 
 
+def require_nonempty_nodes(payload: dict) -> None:
+    nodes = payload.get("nodes") or []
+    if len(nodes) == 0:
+        raise ValueError(
+            "Índice vacío o visualize falló; no se escribe artefacto "
+            "(nodes=0). Revisá code-review-graph / graph.json."
+        )
+
+
 def validate_payload(payload: dict) -> None:
     ids = {n["id"] for n in payload.get("nodes") or []}
     for e in payload.get("edges") or []:
@@ -216,6 +251,7 @@ def validate_payload(payload: dict) -> None:
 
 
 def write_outputs(payload: dict) -> None:
+    require_nonempty_nodes(payload)
     validate_payload(payload)
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
@@ -233,7 +269,7 @@ def main() -> int:
     force = "--force" in sys.argv
     ensure_crg_json(force=force)
     raw = json.loads(CRG_JSON.read_text(encoding="utf-8"))
-    payload = build_grafo_payload(raw)
+    payload = build_grafo_payload(raw, indexed_at=iso_mtime_utc(CRG_JSON))
     write_outputs(payload)
     print(
         f"OK nodes={payload['meta']['stats']['nodes']} "

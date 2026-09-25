@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""PROTOTYPE (#202/#203 + recortador-git): Laya keep-warm HTTP on loopback.
+"""PROTOTYPE: Laya keep-warm HTTP on loopback.
 
 Throwaway. Load checkpoint once.
-  POST /v1/recortar      — candidates ya armados (legacy; sesión usa git)
-  POST /v1/recortar-git  — candidates from status+diff (session canonical)
+  POST /v1/recortar-git  — sesión canónica: body con candidatos del Índice (nombre
+                           HTTP histórico; NO status+diff). Path A git→Laya retirado.
+  POST /v1/recortar      — candidates ya armados (legacy harness)
   POST /v1/seleccionar   — one Matt skill from catalog (#203)
 
   $env:USE_TF='0'
@@ -271,7 +272,8 @@ def main() -> int:
     print(f"Laya ready in {time.perf_counter() - t0:.1f}s (cold once).", flush=True)
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
     print(
-        f"Listening http://{HOST}:{PORT}/v1/recortar-git  /v1/recortar  GET /health",
+        f"Listening http://{HOST}:{PORT}/v1/recortar-git "
+        f"(Índice session; historical path name)  /v1/recortar  GET /health",
         flush=True,
     )
     try:
