@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""PROTOTYPE: thin client — solo Índice CRG → POST /v1/recortar-git.
+"""PROTOTYPE: thin client — solo Índice CRG → daemon Laya.
+
+POSTea a `/v1/recortar-git` (nombre HTTP histórico; el body son candidatos del
+Índice, no git status+diff). Path A retirado.
 
   .\\.venv-win\\Scripts\\python.exe tools\\laya\\recortar_client.py -g "…" -q "…" --json
 """
@@ -22,9 +25,11 @@ import ensure_daemon as ED  # noqa: E402
 import recortar_git as RG  # noqa: E402
 import recortar_indice as RI  # noqa: E402
 
-DEFAULT_GIT_URL = os.environ.get(
+# Historical env name LAYA_DAEMON_GIT_URL still accepted (URL path is legacy).
+DEFAULT_DAEMON_URL = os.environ.get("LAYA_DAEMON_URL") or os.environ.get(
     "LAYA_DAEMON_GIT_URL", "http://127.0.0.1:8765/v1/recortar-git"
 )
+DEFAULT_GIT_URL = DEFAULT_DAEMON_URL  # backwards-compat alias for importers/tests
 
 
 def post_json(url: str, body: dict, timeout: float = 120.0) -> tuple[dict, float]:
@@ -44,7 +49,10 @@ def post_json(url: str, body: dict, timeout: float = 120.0) -> tuple[dict, float
 
 def main() -> int:
     ap = argparse.ArgumentParser(
-        description="Client thin → daemon Laya (solo Índice CRG → /v1/recortar-git)"
+        description=(
+            "Client thin → daemon Laya (solo Índice CRG; "
+            "URL /v1/recortar-git es nombre histórico)"
+        )
     )
     ap.add_argument("--goal", "-g", required=True)
     ap.add_argument(
@@ -77,7 +85,7 @@ def main() -> int:
         if code != 0:
             return code
 
-    url = args.url or DEFAULT_GIT_URL
+    url = args.url or DEFAULT_DAEMON_URL
     collect_ms = 0.0
     mode = "indice"
     if args.candidates_json:
