@@ -2,8 +2,9 @@
 
 /* GalaxyGroup — paleta extraída de imagen galaxia */
 @theme {
-  --color-space-void: #000000;
-  --color-space-mist: #101020;
+  /* Hobday: near-black / near-white (no pure #000 / #fff) */
+  --color-space-void: #07070c;
+  --color-space-mist: #12121c;
   --color-galaxy-deep: #2a3444;
   --color-galaxy-blue: #3c5b87;
   --color-nebula-cyan: #496a95;
@@ -15,9 +16,9 @@
   --color-star-glow: #b65e49;
 
   /* Alias semánticos (componentes existentes) */
-  --color-midnight-void: #000000;
+  --color-midnight-void: #07070c;
   --color-canvas-white: #f3ecf2;
-  --color-soft-linen: #101020;
+  --color-soft-linen: #12121c;
   --color-ash-gray: #867f7f;
   --color-trust-slate: #496a95;
 
@@ -31,7 +32,8 @@
   --text-body: 1rem;
   --text-body-sm: 0.875rem;
 
-  --spacing-section: 3.125rem;
+  /* Escala 8px-ish: 3rem = 48px */
+  --spacing-section: 3rem;
   --spacing-element: 0.75rem;
   --radius-button: 5rem;
   --radius-card: 1.25rem;
@@ -41,7 +43,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   /* S2: sin scroll suave para quien prefiere movimiento reducido */
@@ -64,16 +66,16 @@
 
   /* S1 lote 0: foco visible en toda la web (Vercel: clear focus) */
   :focus-visible {
-    outline: 2px solid var(--color-star-white);
+    outline: 2px solid var(--mo-focus, var(--color-star-white));
     outline-offset: 3px;
   }
 
   body {
-    font-family: var(--font-sans);
+    font-family: var(--mo-font, var(--font-sans));
     font-size: var(--text-body);
     line-height: 1.5;
-    color: var(--color-star-white);
-    background-color: var(--color-space-void);
+    color: var(--mo-ink, var(--color-star-white));
+    background-color: var(--mo-wash, var(--color-space-void));
   }
 
   ::selection {
@@ -114,17 +116,30 @@
   }
 
   .galaxy-card {
-    border: 1px solid color-mix(in srgb, var(--color-nebula-cyan) 32%, transparent);
-    background-color: color-mix(in srgb, var(--color-galaxy-deep) 72%, transparent);
-    backdrop-filter: blur(10px);
+    /* ADR 0011 — cards en Tema papel */
+    border: 1px solid var(--mo-line, color-mix(in srgb, var(--color-nebula-cyan) 38%, var(--color-space-void)));
+    background-color: var(--mo-canvas, color-mix(in srgb, var(--color-galaxy-deep) 82%, var(--color-space-void)));
+  }
+
+  /* Bridge: utilidades galaxia → tinta papel en Superficie marketing */
+  html[data-theme='papel'] .text-canvas-white,
+  html[data-theme='papel'] .text-core-cream,
+  html[data-theme='papel'] .text-star-white {
+    color: var(--mo-ink);
+  }
+  html[data-theme='papel'] .text-ash-gray {
+    color: var(--mo-muted);
+  }
+  html[data-theme='papel'] .text-nebula-cyan {
+    color: var(--mo-ok);
   }
 
   .hero-content-scrim {
     background: linear-gradient(
       105deg,
-      color-mix(in srgb, var(--color-space-void) 88%, transparent) 0%,
-      color-mix(in srgb, var(--color-space-void) 55%, transparent) 50%,
-      color-mix(in srgb, var(--color-space-void) 70%, transparent) 100%
+      color-mix(in srgb, var(--color-space-void) 92%, transparent) 0%,
+      color-mix(in srgb, var(--color-space-void) 62%, transparent) 48%,
+      color-mix(in srgb, var(--color-space-void) 78%, transparent) 100%
     );
   }
 

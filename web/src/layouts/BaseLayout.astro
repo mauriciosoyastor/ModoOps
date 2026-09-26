@@ -1,4 +1,5 @@
 ---
+import '../styles/light-app.css';
 import '../styles/global.css';
 import SiteHeader from '../components/ui/SiteHeader.astro';
 import FloatingWhatsApp from '../components/ui/FloatingWhatsApp.astro';
@@ -14,8 +15,6 @@ interface Props {
 
 const { title, description, canonical, ogImage, ogType = 'website', noindex = false } = Astro.props;
 
-// URLs absolutas para OG/WhatsApp: si hay canonical explícito manda su origen
-// (dominio canónico único); si no, Astro.site con fallback.
 const siteBase = (Astro.site?.toString() ?? 'https://modoops.com.ar').replace(/\/$/, '');
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteBase).toString();
 const imgBase = canonical ? new URL(canonicalUrl).origin : siteBase;
@@ -23,15 +22,15 @@ const ogImageUrl = new URL(ogImage ?? '/images/galaxy-hero.png', imgBase).toStri
 ---
 
 <!doctype html>
-<html lang="es-AR">
+<html lang="es-AR" data-theme="papel">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#f7faf7" />
+    <meta name="color-scheme" content="light" />
     <style>
-      /* S1 lote 0: fondo oscuro antes de que cargue el CSS (anti-flash) */
       html {
-        background: #000;
+        background: #f7faf7;
       }
     </style>
     <meta name="description" content={description} />
@@ -54,10 +53,9 @@ const ogImageUrl = new URL(ogImage ?? '/images/galaxy-hero.png', imgBase).toStri
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
       rel="stylesheet"
     />
-    <!-- Plausible/Umami <2KB sin cookies — privacy-friendly, no GA4. Activa con data-domain. Umami fallback: cambiar src a tu host umami y data-website-id -->
     <script defer data-domain={import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN || "modoops.com.ar"} src="https://plausible.io/js/script.tagged-events.js"></script>
     <script>
       window.plausible = window.plausible || function(){(window.plausible.q=window.plausible.q||[]).push(arguments)};
@@ -85,7 +83,7 @@ const ogImageUrl = new URL(ogImage ?? '/images/galaxy-hero.png', imgBase).toStri
       })();
     </script>
   </head>
-  <body>
+  <body class="lp-body">
     <a href="#contenido" class="skip-link">Saltar al contenido</a>
     <SiteHeader />
     <div id="contenido" tabindex="-1">
@@ -96,20 +94,28 @@ const ogImageUrl = new URL(ogImage ?? '/images/galaxy-hero.png', imgBase).toStri
 </html>
 
 <style>
-  /* S1 lote 0: skip-link visible solo al tabular */
+  .lp-body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--mo-wash);
+    color: var(--mo-ink);
+    font-family: var(--mo-font);
+  }
+
   .skip-link {
     position: absolute;
     left: 1rem;
     top: -4rem;
     z-index: 100;
-    background: var(--color-star-white);
-    color: var(--color-midnight-void);
+    background: var(--mo-ink);
+    color: var(--mo-wash);
     padding: 0.5rem 1rem;
     border-radius: 999px;
     font-weight: 600;
   }
   .skip-link:focus-visible {
     top: 1rem;
-    outline-color: var(--color-midnight-void);
+    outline: 2px solid var(--mo-focus);
+    outline-offset: 3px;
   }
 </style>
