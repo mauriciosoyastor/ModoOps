@@ -8,22 +8,51 @@ interface Props {
 const { title, lead, invert = false } = Astro.props;
 ---
 
-<header class="mb-10 max-w-3xl">
+<header class="lp-heading">
   {
     title && (
-      <h2
-        class:list={[
-          'text-[length:var(--text-display-sm)] font-medium tracking-tight',
-          invert ? 'text-canvas-white' : 'text-core-cream',
-        ]}
-      >
-        {title}
-      </h2>
+      <h2 class:list={['lp-heading__title', invert && 'is-invert']}>{title}</h2>
     )
   }
   {
     lead && (
-      <p class:list={['text-[length:var(--text-body-lg)] text-ash-gray', title && 'mt-4']}>{lead}</p>
+      <p class:list={['lp-heading__lead', title && 'has-title']}>{lead}</p>
     )
   }
 </header>
+
+<style>
+  .lp-heading {
+    margin-bottom: 2.5rem;
+    max-width: 48rem;
+    border-left: 3px solid var(--mo-accent);
+    padding-left: 1rem;
+  }
+
+  .lp-heading__title {
+    margin: 0;
+    font-family: var(--mo-display);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 650;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+    color: var(--mo-ink);
+  }
+
+  .lp-heading__title.is-invert {
+    color: var(--mo-ink);
+  }
+
+  .lp-heading__lead {
+    margin: 0;
+    max-width: 36rem;
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: var(--mo-muted);
+  }
+
+  .lp-heading__lead.has-title {
+    margin-top: 0.75rem;
+  }
+</style>

@@ -8,10 +8,11 @@ interface Props {
 
 const { variant = 'white', id, narrow = false, embedded = false } = Astro.props;
 
+/* ADR 0011 — capas Tema papel */
 const bg = {
-  dark: 'bg-space-void text-canvas-white',
-  linen: 'bg-space-mist text-canvas-white',
-  white: 'bg-galaxy-deep text-canvas-white',
+  dark: 'lp-section lp-section--wash',
+  linen: 'lp-section lp-section--canvas',
+  white: 'lp-section lp-section--card',
 }[variant];
 
 const inner = narrow ? 'max-w-2xl' : 'max-w-[var(--width-content)]';
@@ -19,7 +20,7 @@ const inner = narrow ? 'max-w-2xl' : 'max-w-[var(--width-content)]';
 
 {
   embedded ? (
-    <div id={id} class="w-full text-canvas-white">
+    <div id={id} class="w-full text-[var(--mo-ink)]">
       <div class:list={['mx-auto w-full', narrow ? 'max-w-2xl' : 'max-w-none']}>
         <slot />
       </div>
@@ -32,3 +33,18 @@ const inner = narrow ? 'max-w-2xl' : 'max-w-[var(--width-content)]';
     </section>
   )
 }
+
+<style>
+  .lp-section {
+    color: var(--mo-ink);
+  }
+  .lp-section--wash {
+    background: var(--mo-wash);
+  }
+  .lp-section--canvas {
+    background: var(--mo-canvas);
+  }
+  .lp-section--card {
+    background: var(--mo-card);
+  }
+</style>
