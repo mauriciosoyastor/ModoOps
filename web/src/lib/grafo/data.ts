@@ -2,15 +2,16 @@
 export const grafoData = {
   "meta": {
     "repo": "ModoOps",
-    "indexedAt": "2026-09-24T19:24:12.088Z",
+    "indexedAt": "2026-09-26T00:42:23.790Z",
+    "exportedAt": "2026-09-26T00:42:25.308Z",
     "stats": {
-      "files": 301,
-      "nodes": 301,
-      "edges": 1031,
+      "files": 306,
+      "nodes": 306,
+      "edges": 1053,
       "communities": 0,
       "processes": 0
     },
-    "commit": "edace52",
+    "commit": "ce787b7",
     "description": "Grafo de código ModoOps — file-level desde Índice (code-review-graph); comunidades/flujos vacíos (scope A, sin inventar)."
   },
   "nodes": [
@@ -19,7 +20,7 @@ export const grafoData = {
       "label": "generar_pdf_contrato.py",
       "kind": "File",
       "group": "docs",
-      "weight": 32
+      "weight": 34
     },
     {
       "id": "docs/generar_pdf_ventas_repuestos.py",
@@ -89,7 +90,7 @@ export const grafoData = {
       "label": "modules_instalados.py",
       "kind": "File",
       "group": "modoops_admin",
-      "weight": 40
+      "weight": 41
     },
     {
       "id": "modoops_admin/logic/tenant_lifecycle.py",
@@ -124,7 +125,7 @@ export const grafoData = {
       "label": "modoops_configurador_wizard.py",
       "kind": "File",
       "group": "modoops_admin",
-      "weight": 9
+      "weight": 8
     },
     {
       "id": "modoops_admin/models/modoops_lead.py",
@@ -1125,7 +1126,7 @@ export const grafoData = {
       "label": "configurador.py",
       "kind": "File",
       "group": "tools",
-      "weight": 8
+      "weight": 7
     },
     {
       "id": "tools/configurador/sync_catalogo.py",
@@ -1165,6 +1166,20 @@ export const grafoData = {
     {
       "id": "tools/gmaps/check_csv.py",
       "label": "check_csv.py",
+      "kind": "File",
+      "group": "tools",
+      "weight": 6
+    },
+    {
+      "id": "tools/grafo/export_grafo_crg.py",
+      "label": "export_grafo_crg.py",
+      "kind": "File",
+      "group": "tools",
+      "weight": 8
+    },
+    {
+      "id": "tools/grafo/tests/test_export_grafo_crg.py",
+      "label": "test_export_grafo_crg.py",
       "kind": "File",
       "group": "tools",
       "weight": 6
@@ -1230,7 +1245,7 @@ export const grafoData = {
       "label": "harness_recortador.py",
       "kind": "File",
       "group": "tools",
-      "weight": 11
+      "weight": 13
     },
     {
       "id": "tools/laya/harness_recortador_git.py",
@@ -1238,6 +1253,13 @@ export const grafoData = {
       "kind": "File",
       "group": "tools",
       "weight": 8
+    },
+    {
+      "id": "tools/laya/harness_recortador_indice.py",
+      "label": "harness_recortador_indice.py",
+      "kind": "File",
+      "group": "tools",
+      "weight": 14
     },
     {
       "id": "tools/laya/measure_selector.py",
@@ -1258,18 +1280,25 @@ export const grafoData = {
       "label": "recortar_git.py",
       "kind": "File",
       "group": "tools",
-      "weight": 21
+      "weight": 23
     },
     {
       "id": "tools/laya/recortar_indice.py",
       "label": "recortar_indice.py",
       "kind": "File",
       "group": "tools",
-      "weight": 12
+      "weight": 14
     },
     {
       "id": "tools/laya/tests/test_ensure_daemon.py",
       "label": "test_ensure_daemon.py",
+      "kind": "File",
+      "group": "tools",
+      "weight": 5
+    },
+    {
+      "id": "tools/laya/tests/test_harness_indice_metrics.py",
+      "label": "test_harness_indice_metrics.py",
       "kind": "File",
       "group": "tools",
       "weight": 5
@@ -1300,7 +1329,7 @@ export const grafoData = {
       "label": "provision_tenant.py",
       "kind": "File",
       "group": "tools",
-      "weight": 7
+      "weight": 8
     },
     {
       "id": "tools/wizards/deploy_pages.sh",
@@ -1772,6 +1801,13 @@ export const grafoData = {
       "weight": 2
     },
     {
+      "id": "web/src/lib/grafo/grafo-data.smoke.test.ts",
+      "label": "grafo-data.smoke.test.ts",
+      "kind": "File",
+      "group": "web",
+      "weight": 1
+    },
+    {
       "id": "web/src/lib/grafo/types.ts",
       "label": "types.ts",
       "kind": "File",
@@ -1846,7 +1882,7 @@ export const grafoData = {
       "label": "light-app-contract.test.ts",
       "kind": "File",
       "group": "web",
-      "weight": 10
+      "weight": 11
     },
     {
       "id": "web/src/middleware.ts",
@@ -2056,7 +2092,7 @@ export const grafoData = {
       "label": "oficina.astro",
       "kind": "File",
       "group": "web",
-      "weight": 23
+      "weight": 24
     },
     {
       "id": "web/src/pages/prototype/control-plane-light.astro",
@@ -2272,12 +2308,6 @@ export const grafoData = {
       "to": "modoops_core/models/mo_appliance.py",
       "type": "CALLS",
       "weight": 2
-    },
-    {
-      "from": "modoops_admin/models/modoops_configurador_wizard.py",
-      "to": "tools/configurador/logic/configurador.py",
-      "type": "IMPORTS",
-      "weight": 1
     },
     {
       "from": "modoops_admin/models/modoops_configurador_wizard.py",
@@ -4776,6 +4806,60 @@ export const grafoData = {
       "weight": 1
     },
     {
+      "from": "tools/grafo/export_grafo_crg.py",
+      "to": "modoops_admin/logic/modules_instalados.py",
+      "type": "CALLS",
+      "weight": 4
+    },
+    {
+      "from": "tools/grafo/export_grafo_crg.py",
+      "to": "modoops_catalogo/__init__.py",
+      "type": "CALLS",
+      "weight": 14
+    },
+    {
+      "from": "tools/grafo/export_grafo_crg.py",
+      "to": "tools/grafo/tests/test_export_grafo_crg.py",
+      "type": "TESTED_BY",
+      "weight": 9
+    },
+    {
+      "from": "tools/grafo/export_grafo_crg.py",
+      "to": "tools/modoops_provision/provision_tenant.py",
+      "type": "CALLS",
+      "weight": 1
+    },
+    {
+      "from": "tools/grafo/export_grafo_crg.py",
+      "to": "web/src/lib/bff/http.ts",
+      "type": "IMPORTS",
+      "weight": 1
+    },
+    {
+      "from": "tools/grafo/tests/test_export_grafo_crg.py",
+      "to": "docs/generar_pdf_contrato.py",
+      "type": "CALLS",
+      "weight": 1
+    },
+    {
+      "from": "tools/grafo/tests/test_export_grafo_crg.py",
+      "to": "tools/grafo/export_grafo_crg.py",
+      "type": "CALLS",
+      "weight": 9
+    },
+    {
+      "from": "tools/grafo/tests/test_export_grafo_crg.py",
+      "to": "tools/grafo/export_grafo_crg.py",
+      "type": "IMPORTS",
+      "weight": 1
+    },
+    {
+      "from": "tools/grafo/tests/test_export_grafo_crg.py",
+      "to": "web/src/lib/bff/http.ts",
+      "type": "IMPORTS",
+      "weight": 1
+    },
+    {
       "from": "tools/indice_codigo/hooks/crg_update_hook.py",
       "to": "modoops_catalogo/__init__.py",
       "type": "CALLS",
@@ -4986,6 +5070,72 @@ export const grafoData = {
       "weight": 1
     },
     {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "modoops_catalogo/__init__.py",
+      "type": "CALLS",
+      "weight": 8
+    },
+    {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "tools/laya/harness_recortador.py",
+      "type": "CALLS",
+      "weight": 3
+    },
+    {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "tools/laya/harness_recortador.py",
+      "type": "IMPORTS",
+      "weight": 1
+    },
+    {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "tools/laya/recortar_git.py",
+      "type": "CALLS",
+      "weight": 3
+    },
+    {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "tools/laya/recortar_git.py",
+      "type": "IMPORTS",
+      "weight": 1
+    },
+    {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "tools/laya/recortar_indice.py",
+      "type": "CALLS",
+      "weight": 1
+    },
+    {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "tools/laya/recortar_indice.py",
+      "type": "IMPORTS",
+      "weight": 1
+    },
+    {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "tools/laya/tests/test_harness_indice_metrics.py",
+      "type": "TESTED_BY",
+      "weight": 4
+    },
+    {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "web/src/lib/bff/http.ts",
+      "type": "IMPORTS",
+      "weight": 1
+    },
+    {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "web/src/light-app-contract.test.ts",
+      "type": "CALLS",
+      "weight": 2
+    },
+    {
+      "from": "tools/laya/harness_recortador_indice.py",
+      "to": "web/src/pages/oficina.astro",
+      "type": "CALLS",
+      "weight": 1
+    },
+    {
       "from": "tools/laya/measure_selector.py",
       "to": "modoops_catalogo/__init__.py",
       "type": "CALLS",
@@ -5180,6 +5330,24 @@ export const grafoData = {
     {
       "from": "tools/laya/tests/test_ensure_daemon.py",
       "to": "tools/laya/ensure_daemon.py",
+      "type": "IMPORTS",
+      "weight": 1
+    },
+    {
+      "from": "tools/laya/tests/test_harness_indice_metrics.py",
+      "to": "docs/generar_pdf_contrato.py",
+      "type": "CALLS",
+      "weight": 1
+    },
+    {
+      "from": "tools/laya/tests/test_harness_indice_metrics.py",
+      "to": "tools/laya/harness_recortador_indice.py",
+      "type": "CALLS",
+      "weight": 4
+    },
+    {
+      "from": "tools/laya/tests/test_harness_indice_metrics.py",
+      "to": "tools/laya/harness_recortador_indice.py",
       "type": "IMPORTS",
       "weight": 1
     },

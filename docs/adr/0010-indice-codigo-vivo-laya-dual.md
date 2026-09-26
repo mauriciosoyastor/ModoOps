@@ -4,8 +4,8 @@ Tras retirar GitNexus, el desarrollo con agentes Cursor usa un **Índice de cód
 
 **Status:** accepted
 
-**Spike (½–1 día, local):** rama `prototype/indice-codigo-crg`. Índice + MCP Cursor + Laya solo-índice. DB local gitignored (`.code-review-graph/`). Frescor: hooks silenciosos (`tools/indice_codigo/hooks/`, pythonw) o `watch`; no hooks `.sh` (mintty en Windows). Pass = index OK + edit reflejado &lt;5s + search/callers útil. Backup: code-graph-mcp. Fuera: Agente/Tenant, CKB/SCIP, CI de paridad, #213. Re-export `/grafo`: #217.
+**Spike (½–1 día, local):** rama `prototype/indice-codigo-crg`. Índice + MCP Cursor + Laya solo-índice. DB local gitignored (`.code-review-graph/`). Frescor: hooks silenciosos (`tools/indice_codigo/hooks/`, pythonw) o `watch`; no hooks `.sh` (mintty en Windows). Pass = index OK + edit reflejado &lt;5s + search/callers útil. Backup: code-graph-mcp. Fuera: Agente/Tenant, CKB/SCIP, CI de paridad, #213. Re-export `/grafo` (#217): **shipped** scope A (`export_grafo_crg.py` → `grafo-data.json` / `data.ts`; comunidades/flujos `[]`).
 
-**Post-pass AGENTS:** solo Índice → Laya; hard contra Grep/Glob estructurales ciegos; Grep solo si abort `no_indice_hits` o CRG down. Specs: #216 (solo-índice), #217 (re-export file-level).
+**Post-pass AGENTS:** solo Índice → Laya; hard contra Grep/Glob estructurales ciegos; Grep solo si abort `no_indice_hits` o CRG down. Specs: #216 (solo-índice, cerrado), #217 (re-export file-level, shipped).
 
 **Considered Options:** solo Laya+git; solo grafo; CKB/SCIP “incremental”; code-graph-mcp o codebase-memory-mcp — elegimos grafo/Índice (CRG) + Laya; path git→Laya retirado tras spike dual; `/grafo` re-export scope A (sin inventar comunidades).

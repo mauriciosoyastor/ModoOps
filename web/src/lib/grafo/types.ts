@@ -12,7 +12,14 @@ export interface GrafoEdge {
   weight: number;
 }
 export interface GrafoData {
-  meta: { repo: string; indexedAt: string; stats: Record<string, number>; commit: string; description: string };
+  meta: {
+    repo: string;
+    indexedAt: string;
+    exportedAt?: string;
+    stats: Record<string, number>;
+    commit: string;
+    description: string;
+  };
   nodes: GrafoNode[];
   edges: GrafoEdge[];
   communities: { id: string; label: string; count: number; cohesion: number }[];
