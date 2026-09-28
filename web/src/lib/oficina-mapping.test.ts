@@ -164,6 +164,9 @@ describe("oficina-mapping — seam único objeto↔módulo", () => {
     expect(texto).toContain("Pinturería Centro");
     expect(texto).toContain("no vinculante");
     expect(texto).toContain("Descubrimiento");
+    expect(texto).toContain("conversando en el portal");
+    expect(texto.toLowerCase()).not.toContain("oficina virtual");
+    expect(texto.toLowerCase()).not.toContain("3d");
     expect(texto).not.toContain("$800");
     expect(texto).not.toContain("$155");
     expect(texto.toLowerCase()).not.toContain("oferta");

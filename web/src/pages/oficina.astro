@@ -1,6 +1,6 @@
 ---
-// Ruta REAL del portal (ticket 03) — recorrido guiado + hero 3D, reescrita con polish.
-// No es prototype: sin precios como oferta, borrador completo v1, localStorage, envío.
+// Ruta REAL del portal — chat → borrador v1 (sin escena 3D).
+// Sin precios como oferta; localStorage; envío WhatsApp / consultor.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { seoOficina } from '../data/business';
 import { OBJETO_LABEL, PUERTA_FUTURO, horasDe, type Objeto3DId } from '../lib/oficina-mapping';
@@ -64,27 +64,18 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
               <p class="mt-1 text-xs text-zinc-400">Respondé y también podés preguntarme lo que sea (ej: ¿qué incluye el sistema?). Solo nombre y un contacto son obligatorios. Todo queda en tu navegador hasta que lo envíes.</p>
             </div>
             <div class="relative flex h-full flex-col rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm md:p-4" data-hero>
-              <canvas
-                data-hero-canvas
-                class="block min-h-[22rem] w-full flex-1 rounded-xl"
-                aria-label="Oficina virtual ModoOps: tocá un mueble para ir a su ficha"
-                aria-describedby="hero-ayuda"
-              ></canvas>
-            <div data-hero-etiquetas class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"></div>
-            <div data-hero-fallback hidden class="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-              <p class="text-sm font-semibold">Plano del local (sin 3D)</p>
-              <p class="text-xs text-zinc-400">Tocá un sector para ir a su ficha.</p>
-              <div class="mt-2 flex flex-wrap gap-1">
+              <p class="text-sm font-semibold">Sectores de tu borrador</p>
+              <p class="text-xs text-zinc-400">Tocá un sector para ir a su ficha (también desde el chat).</p>
+              <div class="mt-2 flex flex-wrap gap-1" data-hero-sectores>
                 {objetos.map((id) => (
-                  <button data-hero-fallback-btn={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">
+                  <button type="button" data-hero-sector={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">
                     {OBJETO_LABEL[id]}
                   </button>
                 ))}
               </div>
-            </div>
-            <p class="px-1 py-1 text-xs text-zinc-400" data-hero-estado id="hero-ayuda">
-              Arrastrá para girar · click en un mueble para ir a su ficha.
-            </p>
+              <p class="mt-2 px-1 py-1 text-xs text-zinc-400" data-hero-estado id="hero-ayuda">
+                El borrador se arma en el chat; los sectores saltan a cada ficha.
+              </p>
             </div>
           </div>
 
@@ -250,30 +241,6 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   [data-portal] input:not([type='checkbox']):not([type='radio']),
   [data-portal] select {
     font-size: 1rem;
-  }
-  :global(.oficina-cartel) {
-    position: absolute;
-    left: 0;
-    top: 0;
-    border-radius: 9999px;
-    background: rgb(255 255 255 / 0.92);
-    color: #111;
-    border: 1px solid rgb(0 0 0 / 0.15);
-    padding: 0.1rem 0.5rem;
-    font-size: 0.7rem;
-    font-weight: 600;
-    white-space: nowrap;
-    box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
-  }
-  :global(.oficina-cartel--activo) {
-    background: #111;
-    color: #fff;
-  }
-  @media (max-width: 480px) {
-    :global(.oficina-cartel) {
-      font-size: 0.6rem;
-      padding: 0.05rem 0.4rem;
-    }
   }
   .ficha-flash {
     outline: 2px solid #111;
@@ -1042,8 +1009,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     });
     // Navegación entre paneles solo desde el chat (irAPaso directo).
 
-    // Hero 3D → ficha (click en mueble tilda y baja a la ficha).
-    // S5: el objeto vive en ?objeto= para compartir y refrescar (deep-link).
+    // Sector → ficha (sin escena 3D). S5: ?objeto= para compartir/refrescar.
     function irAFicha(id) {
       try {
         const url = new URL(window.location.href);
@@ -1066,46 +1032,17 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         setTimeout(() => card.classList.remove('ficha-flash'), 1600);
       }
     }
-    const heroCanvas = root.querySelector('[data-hero-canvas]');
-    const heroCapa = root.querySelector('[data-hero-etiquetas]');
-    const heroFallback = root.querySelector('[data-hero-fallback]');
-    const heroEstado = root.querySelector('[data-hero-estado]');
-    root.querySelectorAll('[data-hero-fallback-btn]').forEach((b) => {
+    root.querySelectorAll('[data-hero-sector]').forEach((b) => {
       b.addEventListener('click', () => {
-        const id = b.getAttribute('data-hero-fallback-btn');
+        const id = b.getAttribute('data-hero-sector');
         if (typeof id === 'string') irAFicha(id);
       });
     });
-    if (heroCanvas instanceof HTMLCanvasElement && !heroCanvas.dataset.mounted) {
-      const io = new IntersectionObserver(async (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        io.disconnect();
-        try {
-          const { mountOficinaScene } = await import('../scripts/oficina-scene');
-          const cleanup = mountOficinaScene(
-            heroCanvas,
-            (id) => irAFicha(id),
-            heroCapa instanceof HTMLElement ? heroCapa : undefined,
-          );
-          window.addEventListener('pagehide', cleanup, { once: true });
-          document.addEventListener('astro:before-swap', cleanup, { once: true });
-          if (heroEstado) heroEstado.textContent = 'Escena 3D activa: click en un mueble para ir a su ficha.';
-        } catch {
-          heroCanvas.style.display = 'none';
-          if (heroCapa instanceof HTMLElement) heroCapa.style.display = 'none';
-          if (heroFallback instanceof HTMLElement) heroFallback.hidden = false;
-          if (heroEstado) heroEstado.textContent = 'Sin WebGL: usá el plano para ir a cada ficha.';
-        }
-      }, { rootMargin: '200px' });
-      io.observe(heroCanvas);
-    }
 
     pintaPaso();
     pinta();
     convPreguntar();
-    // Ruta predeterminada: el chat con la IA (Paso 1). Si la URL trae
-    // ?objeto= de una sesión anterior, se limpia para no revivir ese panel.
-    // El click en un mueble sigue fijando ?objeto= para compartir en sesión.
+    // Chat primero. Si la URL trae ?objeto= de una sesión anterior, se limpia.
     try {
       const url = new URL(window.location.href);
       if (url.searchParams.has('objeto')) {

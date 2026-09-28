@@ -257,15 +257,15 @@ export const garantia = {
 } as const;
 
 export const puenteOficina = {
-  title: 'Recorré tu local antes de comprar nada',
-  lead: 'Armamos tu borrador conversando: tu negocio, lo que necesitás hoy y para dónde querés crecer.',
-  cta: 'Entrar a mi oficina',
-  href: '/oficina#camino',
-  note: 'La oficina no te vende nada: es tu borrador, lo valida el consultor en el Descubrimiento.',
+  title: 'Armá tu borrador antes de comprar nada',
+  lead: 'Conversamos: tu negocio, lo que necesitás hoy y para dónde querés crecer. Sin recorrido 3D.',
+  cta: 'Armar mi borrador',
+  href: '/oficina',
+  note: 'El chat no te vende nada: es tu borrador, lo valida el consultor en el Descubrimiento.',
 } as const;
 
 export const nav = [
-  { href: '/oficina', label: 'Recorré tu oficina' },
+  { href: '/oficina', label: 'Armá tu borrador' },
   { href: '#camino', label: 'Camino' },
   { href: '#contacto', label: 'Contacto' },
 ] as const;
@@ -288,7 +288,7 @@ export const seo = {
 } as const;
 
 export const seoOficina = {
-  title: 'Recorré tu oficina — armá tu borrador | ModoOps',
+  title: 'Armá tu borrador conversando | ModoOps',
   description:
-    'Recorré la oficina ModoOps, cargá los datos de tu negocio por objeto y enviá tu borrador no vinculante al consultor.',
+    'Respondé en el chat, tildá lo que necesitás hoy y enviá tu borrador no vinculante al consultor.',
 } as const;

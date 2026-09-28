@@ -1,6 +1,7 @@
-// Seam único Objeto3D ↔ Módulo ModoOps + constructor del borrador JSON v1.
-// Toda variante del portal (3D, plano 2D, recorrido) lee por acá; la validación
-// real (hard gate fiscal, techo de horas) vive en el Configurador, nunca en el browser.
+// Seam único zona ↔ Módulo ModoOps + constructor del borrador JSON v1.
+// El portal arma el borrador por chat (sectores/chips); los ids `*-3d` son
+// históricos del schema (origen portal-oficina-3d) y no implican WebGL.
+// Validación dura (gate fiscal, techo de horas) vive en el Configurador, nunca en el browser.
 // Fuente SSOT: modoops_catalogo/catalogo.json vía catalogo.generated.ts (ADR 0009).
 import {
   CATALOGO_HORAS,
@@ -426,7 +427,7 @@ export function mensajeWhatsApp(b: BorradorV1): string {
   const contacto = [b.prospecto.telefono, b.prospecto.email].filter(Boolean).join(' · ');
   const lineas = [
     `Hola ModoOps, soy ${nombre} de ${b.prospecto.nombre} (${b.prospecto.rubro}${contacto ? `, ${contacto}` : ''}).`,
-    'Armé mi borrador no vinculante en la oficina virtual:',
+    'Armé mi borrador no vinculante conversando en el portal:',
   ];
   for (const k of b.modulos_ancla) {
     if (!(SIEMPRE_INCLUIDOS as readonly string[]).includes(k)) lineas.push(`- ${labelDe(k)}`);
