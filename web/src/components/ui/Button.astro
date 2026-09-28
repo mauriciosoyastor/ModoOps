@@ -1,7 +1,7 @@
 ---
 interface Props {
   href: string;
-  variant?: 'primary' | 'ghost-dark' | 'ghost-light';
+  variant?: 'primary' | 'ghost-dark' | 'ghost-light' | 'link';
   class?: string;
   onclick?: string;
   'data-cta'?: string;
@@ -10,13 +10,17 @@ interface Props {
 
 const { href, variant = 'primary', class: className, onclick, 'data-cta': dataCta, 'data-source': dataSource } = Astro.props;
 
-const base =
-  'btn inline-flex items-center justify-center rounded-[var(--radius-button)] px-6 py-4 text-base font-medium hover:opacity-90';
+const base = 'btn inline-flex items-center justify-center text-base font-medium';
 
 const variants = {
-  primary: 'bg-star-warm text-space-void hover:bg-star-glow',
-  'ghost-dark': 'border border-canvas-white/50 text-canvas-white bg-transparent hover:border-canvas-white',
-  'ghost-light': 'border border-nebula-cyan/60 text-canvas-white bg-transparent hover:border-nebula-cyan',
+  /* ADR 0011: Acento ModoOps = --mo-accent (papel) */
+  primary:
+    'rounded-full bg-[var(--mo-accent)] px-6 py-3 text-[var(--mo-accent-ink)] hover:bg-[var(--mo-accent-hover)]',
+  'ghost-dark':
+    'rounded-full border border-[color-mix(in_srgb,var(--mo-on-hero)_45%,transparent)] bg-transparent px-6 py-3 text-[var(--mo-on-hero)] hover:border-[var(--mo-on-hero)] hover:bg-[color-mix(in_srgb,var(--mo-on-hero)_12%,transparent)]',
+  'ghost-light':
+    'rounded-full border border-[var(--mo-line-strong)] bg-transparent px-6 py-3 text-[var(--mo-ink)] hover:border-[var(--mo-accent)] hover:bg-[var(--mo-accent-soft)]',
+  link: 'hit-target px-1 py-1 text-sm font-medium underline underline-offset-4 text-[color-mix(in_srgb,var(--mo-on-hero)_78%,transparent)] hover:text-[var(--mo-on-hero)]',
 };
 ---
 
@@ -25,12 +29,14 @@ const variants = {
 </a>
 
 <style>
-  /* S1 lote 0: propiedades explícitas, nunca transition-all (prototipo guidelines-hero) */
   .btn {
     transition:
       color 0.15s ease,
       background-color 0.15s ease,
       border-color 0.15s ease,
       opacity 0.15s ease;
+    font-family: var(--mo-font);
+    text-decoration: none;
+    min-height: 44px;
   }
 </style>

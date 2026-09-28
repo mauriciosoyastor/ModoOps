@@ -22,7 +22,7 @@
   /* Brand CTA = Jade 9; soft = Jade 4 (más presente) */
   --mo-accent: #29a383;
   --mo-accent-hover: #26997b;
-  --mo-accent-ink: #ffffff;
+  --mo-accent-ink: #f7faf7;
   --mo-accent-soft: #d6f1e3;
   --mo-danger: #e5484d;
   --mo-warn: #ab6400;
@@ -94,7 +94,7 @@
   --mo-line-strong: #aeb6c2;
   --mo-accent: #12151a;
   --mo-accent-hover: #2a3038;
-  --mo-accent-ink: #ffffff;
+  --mo-accent-ink: #f3f4f6;
   --mo-accent-soft: #e8ebf0;
   --mo-danger: #a10214;
   --mo-warn: #7c4b01;
@@ -130,7 +130,8 @@ body {
   font-family: var(--mo-font);
   color: var(--mo-ink);
   background: var(--mo-atmosphere);
-  font-size: 0.975rem;
+  /* Hobday: body ≥ 16px */
+  font-size: 1rem;
   line-height: 1.5;
   letter-spacing: -0.011em;
   font-optical-sizing: auto;
@@ -239,7 +240,8 @@ a {
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  padding: 0.45rem 1rem;
+  /* Hobday: horizontal padding ≈ 2× vertical */
+  padding: 0.5rem 1rem;
   border-radius: var(--mo-radius-sm);
   border: 1px solid var(--mo-line);
   background: var(--mo-canvas);
@@ -280,7 +282,7 @@ a {
 
 .mo-btn--danger {
   background: var(--mo-danger);
-  color: #fff;
+  color: var(--mo-on-hero);
   border-color: var(--mo-danger);
   font-weight: 650;
 }
@@ -317,16 +319,16 @@ a {
 }
 
 .mo-kpi {
-  border: 1px solid var(--mo-line);
+  border: 0;
   border-radius: var(--mo-radius);
-  background: var(--mo-canvas);
-  padding: 1rem 1.05rem;
+  background: var(--mo-card);
+  padding: 1rem;
 }
 
 .mo-kpi--hero {
   background: var(--mo-hero);
   color: var(--mo-on-hero);
-  border-color: var(--mo-hero);
+  border: 0;
 }
 
 .mo-kpi__label {
@@ -485,7 +487,7 @@ a {
 }
 
 .mo-panel {
-  border: 1px solid var(--mo-line);
+  border: 0;
   border-radius: var(--mo-radius);
   background: var(--mo-canvas);
   overflow: auto;
@@ -638,7 +640,8 @@ a {
   min-height: 44px;
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--mo-line);
+  /* Hobday: border contrasts with field AND surrounding surface */
+  border: 1px solid var(--mo-line-strong);
   border-radius: var(--mo-radius-sm);
   background: var(--mo-field);
   color: var(--mo-ink);
@@ -883,9 +886,9 @@ a {
 .mo-dialog__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.5rem;
   justify-content: flex-end;
-  margin-top: 1.1rem;
+  margin-top: 1rem;
 }
 
 .mo-live {
@@ -907,24 +910,26 @@ a {
 .mo-banner {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem 1rem;
+  gap: 0.75rem 1rem;
   align-items: flex-start;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--mo-line);
+  padding: 1rem;
+  /* Hobday: no two hard divides — tint only, no outer border */
+  border: 0;
   border-radius: var(--mo-radius);
-  background: var(--mo-canvas);
+  background: var(--mo-card);
 }
 
 .mo-banner__mark {
   flex: 0 0 auto;
   min-width: 4.5rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 0.2rem 0.5rem;
+  padding: 0.25rem 0.5rem;
   border-radius: var(--mo-radius-sm);
-  border: 1px solid var(--mo-line);
+  border: 0;
+  background: color-mix(in srgb, var(--mo-ink) 6%, var(--mo-canvas));
 }
 
 .mo-banner__body {
@@ -953,35 +958,32 @@ a {
 }
 
 .mo-banner--warn {
-  border-color: color-mix(in srgb, var(--mo-warn) 35%, var(--mo-line));
-  background: color-mix(in srgb, var(--mo-warn) 8%, var(--mo-canvas));
+  background: color-mix(in srgb, var(--mo-warn) 10%, var(--mo-canvas));
 }
 
 .mo-banner--warn .mo-banner__mark {
   color: var(--mo-warn);
-  border-color: color-mix(in srgb, var(--mo-warn) 40%, var(--mo-line));
-  background: color-mix(in srgb, var(--mo-warn) 12%, var(--mo-canvas));
+  border: 0;
+  background: color-mix(in srgb, var(--mo-warn) 14%, var(--mo-canvas));
 }
 
 .mo-banner--danger {
-  border-color: color-mix(in srgb, var(--mo-danger) 35%, var(--mo-line));
-  background: color-mix(in srgb, var(--mo-danger) 7%, var(--mo-canvas));
+  background: color-mix(in srgb, var(--mo-danger) 9%, var(--mo-canvas));
 }
 
 .mo-banner--danger .mo-banner__mark {
   color: var(--mo-danger);
-  border-color: color-mix(in srgb, var(--mo-danger) 40%, var(--mo-line));
-  background: color-mix(in srgb, var(--mo-danger) 10%, var(--mo-canvas));
+  border: 0;
+  background: color-mix(in srgb, var(--mo-danger) 12%, var(--mo-canvas));
 }
 
 .mo-banner--ok {
-  border-color: color-mix(in srgb, var(--mo-ok) 30%, var(--mo-line));
   background: var(--mo-ok-soft);
 }
 
 .mo-banner--ok .mo-banner__mark {
   color: var(--mo-ok);
-  border-color: color-mix(in srgb, var(--mo-ok) 35%, var(--mo-line));
+  border: 0;
   background: color-mix(in srgb, var(--mo-ok) 14%, var(--mo-canvas));
 }
 
@@ -1333,19 +1335,20 @@ a {
 .mo-sheet__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.5rem;
   margin-top: auto;
+  justify-content: flex-end;
 }
 
 .mo-tile {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 0.4rem 0.85rem;
+  gap: 0.5rem 1rem;
   align-items: center;
-  border: 1px solid var(--mo-line);
+  border: 0;
   border-radius: var(--mo-radius);
-  background: var(--mo-canvas);
-  padding: 1rem 1.05rem;
+  background: var(--mo-card);
+  padding: 1rem;
   min-height: 5.5rem;
   text-decoration: none;
   color: inherit;
@@ -1389,7 +1392,6 @@ html.mo-tiles-stagger .mo-tile {
 @media (hover: hover) and (pointer: fine) {
   .mo-tile:hover {
     background: var(--mo-accent-soft);
-    border-color: color-mix(in srgb, var(--mo-accent) 30%, var(--mo-line));
   }
 }
 
@@ -1416,4 +1418,82 @@ html.mo-tiles-stagger .mo-tile {
   margin: 0.2rem 0 0;
   color: var(--mo-muted);
   font-size: 0.84rem;
+}
+
+/* ——— Ops density (hobday-app-visual): prototypes + light-app shells ——— */
+
+html[data-ops="1"] body {
+  background: var(--mo-wash);
+}
+
+html[data-ops="1"] .mo-kpi__value,
+html[data-ops="1"] .mo-tile__label,
+html[data-ops="1"] .mo-saludo {
+  font-family: var(--mo-font);
+}
+
+html[data-ops="1"] .mo-kpi__value {
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+html[data-ops="1"] .mo-tile__label {
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+html[data-ops="1"] .mo-tile {
+  min-height: 0;
+  padding: 0.75rem 1rem;
+}
+
+html[data-ops="1"] .mo-table th,
+html[data-ops="1"] .mo-table td {
+  padding: 0.5rem 0.75rem;
+}
+
+html[data-ops="1"] .mo-kpi {
+  padding: 0.75rem;
+}
+
+html[data-ops="1"] .mo-brand--display {
+  font-family: var(--mo-font);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--mo-muted);
+}
+
+html[data-ops="1"] .mo-saludo {
+  font-size: 1.125rem;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+html[data-ops="1"] .mo-meta-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+  padding: 0.5rem 0;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--mo-muted);
+}
+
+html[data-ops="1"] .mo-meta-strip strong {
+  color: var(--mo-ink);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-ops="1"] .mo-app-title {
+  margin: 0.15rem 0 0;
+  font-family: var(--mo-font);
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--mo-ink);
+  line-height: 1.2;
 }

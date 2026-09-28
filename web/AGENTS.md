@@ -15,12 +15,12 @@ Fuente: Vercel Web Interface Guidelines adaptadas a ES-AR (decisiones #112, spec
 ## SHOULD
 
 - Bordes crisp sutiles; NEVER sombras por capas ni glassmorphism decorativo (glass solo estático en chrome UI).
-- Dark-galaxia vigente (tokens del stylesheet mandan; el doc solo blanquea). Nada de superficies claras nuevas.
+- **Superficie marketing** = **Tema papel** (ADR 0011); **Superficie producto** = light-app (`papel` default). Nada de dark-galaxia en cara pública.
 - Radios hijo ≤ padre y concéntricos; hits ≥24px (44px mobile); `touch-action: manipulation`.
 - Inputs a 16px con `type` / `inputmode` / `autocomplete` correctos; NEVER bloquear pegado ni typing.
 - `scroll-margin-top` en anclas; `theme-color` + `color-scheme` ya globales (no duplicar).
 - `Intl es-AR` para moneda/fecha; `&nbsp;` en unidades y teléfonos; `…` en vez de `...`.
-- CTA primario: fondo `star-warm` OBLIGATORIAMENTE con texto oscuro (4.78:1; en blanco falla AA).
+- CTA primario: **Acento ModoOps** `--mo-accent` (Tema papel) + `--mo-accent-ink`; medir AA.
 
 ## NEVER
 

@@ -54,7 +54,26 @@ por acceso asignado, ve solo su stack y nunca otros tenants ni el Control Plane.
 _Avoid_: "usuario" genérico sin decir si es consultor o usuario tenant; empleado viendo otros tenants.
 
 **ModoOps**:
-Marca comercial de sistema de gestión modular. En marketing y propuesta comercial **no se menciona Odoo**; en **anexo técnico y licencia** se explicita que ModoOps corre sobre **Odoo CE 19** + módulos validados. Operativos viven en **Shell Astro BFF + Liquid Glass** sin exponer UI Odoo nativa.
+Marca comercial de sistema de gestión modular. En marketing y propuesta comercial **no se menciona Odoo**; en **anexo técnico y licencia** se explicita que ModoOps corre sobre **Odoo CE 19** + módulos validados. Operativos viven en **Shell Astro BFF** (**Superficie producto**, **Tema papel**) sin exponer UI Odoo nativa.
+_Avoid_: presentar "Liquid Glass" o "dark-galaxia" como cara pública vigente.
+
+### Visual (marca en UI)
+
+**Tema papel**:
+Tema visual canónico ModoOps: default de producto y de marketing. Capas claras, tipografía y roles semánticos del light-app `papel`.
+_Avoid_: dark-galaxia, Neuralink, terracotta galaxia (`star-warm`) como acento canónico de cara pública.
+
+**Superficie marketing**:
+Páginas públicas Astro orientadas a **Prospecto** (landing y equivalentes bajo layout de marketing). Usan **Tema papel**.
+_Avoid_: dashboard/gestor denso en la landing; chrome de Control Plane en marketing.
+
+**Superficie producto**:
+Shell, Control Plane y app tenant. **Tema papel** por defecto; variantes `warm` / `denso` solo internas.
+_Avoid_: exigir que marketing copie densidad ops o tablas del gestor.
+
+**Acento ModoOps**:
+Color de marca/CTA del **Tema papel** (`--mo-accent` y derivados). Único acento saturado de cara pública.
+_Avoid_: `star-warm` / terracotta galaxia como MUST de CTA en marketing; dos acentos distintos entre landing y producto.
 
 **Módulo ModoOps**:
 Unidad comercial renombrada que envuelve uno o más módulos Odoo validados (ej: Odoo `point_of_sale` → ModoOps **"Mostrador"**, `stock` → **"Depósito Inteligente"**, `l10n_ar` → **"Fiscal AR"**). Solo los módulos del **Catálogo ModoOps** son ofrecibles sin add-on de evaluación.
@@ -436,8 +455,8 @@ Mismo contenido en **landing de 1 página** y **PDF one-pager**. Solo precio pú
 8. **Contacto** — formulario + email + WhatsApp comercial  
 
 **Copy listo para publicar:** `docs/marketing-one-pager.md` (secciones 1–8).  
-**Diseño:** `docs/DESIGN.md` (Neuralink adaptado).  
-**Implementación:** esqueleto Astro en `web/` — ver `docs/landing-architecture.md`.
+**Diseño:** **Tema papel** (ADR 0011); `docs/DESIGN.md` queda legado Neuralink/galaxia hasta reescribirse.  
+**Implementación:** esqueleto Astro en `web/` — ver `docs/landing-architecture.md`. Camino: prototipo `landing-papel` → prod.
 
 ### Marca
 
@@ -571,6 +590,7 @@ Documento **separado** del informe. Secciones:
 
 ## Flagged ambiguities (ModoOps)
 
+- **Cara visual pública** = **Tema papel** (ADR 0011); dark-galaxia y Neuralink en `docs/DESIGN.md` son legado hasta el prototipo/migración. Variantes `warm`/`denso` no son cara pública.
 - **Marca ModoOps** = *Sistema de Gestión Modular*; **stack** = Odoo CE 19 + Astro BFF, pero **Odoo no aparece en marketing/propuesta** (marca blanca comercial). Sí aparece en **anexo técnico/licencia** y en configurador interno.
 - **WhatsApp** en landing es **comercial**; post contrato rigen reglas de **Soporte** / **Emergencia** (mismo número, distinto uso).
 - “Integración” se usa a veces para “implementar ModoOps”; aquí **implementación núcleo** es **Fase 1** y **integración externa** es **Fase 2**.

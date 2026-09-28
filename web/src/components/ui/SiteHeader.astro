@@ -2,25 +2,99 @@
 import { nav, brand } from '../../data/business';
 ---
 
-<header
-  class="sticky top-0 z-20 border-b border-nebula-cyan/20 bg-space-void/55 backdrop-blur-lg"
->
-  <div
-    class="mx-auto flex max-w-[var(--width-content)] flex-wrap items-center justify-between gap-4 px-6 py-4 md:px-10"
-  >
-    <a href="#" class="text-sm font-semibold tracking-wide text-core-cream" translate="no">{brand.name}</a>
-      <nav aria-label="Secciones" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-        {
-          nav.map((item) => (
-            <a href={item.href} class="text-ash-gray transition-colors hover:text-nebula-cyan">
-              {item.label}
-            </a>
-          ))
-        }
-        <a href="/login" class="rounded-full border border-nebula-cyan/40 px-4 py-1.5 text-core-cream transition-colors hover:border-nebula-cyan hover:text-nebula-cyan" data-cta="cta_login" data-source="header">Trabajo en ModoOps</a>
-      </nav>
+<header class="lp-header">
+  <div class="lp-header__inner">
+    <a href="/" class="lp-header__brand" translate="no">{brand.name}</a>
+    <nav aria-label="Secciones" class="lp-header__nav">
+      {
+        nav.map((item) => (
+          <a href={item.href}>{item.label}</a>
+        ))
+      }
+      <a
+        href="/login"
+        class="lp-header__cta"
+        data-cta="cta_login"
+        data-source="header"
+      >
+        Trabajo en ModoOps
+      </a>
+    </nav>
   </div>
 </header>
+
+<style>
+  .lp-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid var(--mo-line);
+    background: color-mix(in srgb, var(--mo-canvas) 92%, transparent);
+  }
+
+  .lp-header__inner {
+    max-width: var(--width-content, 70rem);
+    margin: 0 auto;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .lp-header__inner {
+      padding-left: 2.5rem;
+      padding-right: 2.5rem;
+    }
+  }
+
+  .lp-header__brand {
+    font-family: var(--mo-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--mo-ink);
+    text-decoration: none;
+  }
+
+  .lp-header__nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 1.1rem;
+    font-size: 0.9rem;
+  }
+
+  .lp-header__nav a {
+    color: var(--mo-muted);
+    text-decoration: none;
+    min-height: 24px;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.15s ease-out;
+  }
+
+  .lp-header__nav a:hover {
+    color: var(--mo-ink);
+  }
+
+  .lp-header__cta {
+    border: 1px solid var(--mo-line-strong);
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    color: var(--mo-ink) !important;
+    transition:
+      border-color 0.15s ease-out,
+      background-color 0.15s ease-out;
+  }
+
+  .lp-header__cta:hover {
+    border-color: var(--mo-accent);
+    background: var(--mo-accent-soft);
+  }
+</style>
 
 <script>
   document.querySelectorAll('a[data-cta="cta_login"][data-source="header"]').forEach((el) => {
