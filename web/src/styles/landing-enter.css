@@ -1,0 +1,30 @@
+/* Landing enter-on-view — shared recipe (tickets 04+05)
+ * Sin JS: contenido visible (progressive enhancement).
+ * Con JS: html.lp-enter-js oculta hasta .is-in
+ */
+html.lp-enter-js [data-lp-enter] {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 280ms var(--mo-ease-out),
+    transform 280ms var(--mo-ease-out);
+  transition-delay: var(--lp-enter-delay, 0ms);
+}
+
+html.lp-enter-js [data-lp-enter].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.lp-enter-js [data-lp-enter] {
+    opacity: 0;
+    transform: none;
+    transition: opacity 120ms var(--mo-ease-out);
+    transition-delay: 0ms;
+  }
+
+  html.lp-enter-js [data-lp-enter].is-in {
+    opacity: 1;
+  }
+}

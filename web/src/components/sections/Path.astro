@@ -12,20 +12,25 @@ const { embedded = false } = Astro.props;
 
 <Section variant="linen" id="camino" embedded={embedded}>
   <SectionHeading title={path.title} lead={path.lead} />
-  <ol class="grid gap-6 md:grid-cols-3">
+  <ol class="path-track">
     {
-      path.steps.map((step) => (
-        <li class="galaxy-card rounded-[var(--radius-card)] p-6">
-          <p class="text-sm font-medium text-ash-gray">{step.step}</p>
-          <p class="mt-2 text-[length:var(--text-subheading)] font-medium">{step.title}</p>
-          <p class="mt-2 text-ash-gray">{step.detail}</p>
+      path.steps.map((step, i) => (
+        <li class="path-step" data-lp-enter style={`--lp-enter-delay: ${i * 45}ms`}>
+          {i > 0 && <span class="path-connector" aria-hidden="true" />}
+          <span class="path-num" aria-hidden="true">
+            {i + 1}
+          </span>
+          <p class="path-kicker">{step.step}</p>
+          <p class="path-title">{step.title}</p>
+          <p class="path-detail">{step.detail}</p>
         </li>
       ))
     }
   </ol>
-  <p class="mt-8 text-sm text-ash-gray">{path.footnote}</p>
-  <p class="mt-2 text-sm">
-    Antes de hablar, <a href="/oficina" class="underline underline-offset-4" data-cta="cta_oficina" data-source="camino">armá tu borrador conversando</a>.
+  <p class="path-foot">{path.footnote}</p>
+  <p class="path-link">
+    Antes de hablar,
+    <a href="/oficina" data-cta="cta_oficina" data-source="camino">armá tu borrador conversando</a>.
   </p>
 </Section>
 
@@ -34,3 +39,104 @@ const { embedded = false } = Astro.props;
     el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_oficina', {props:{source:'camino'}}));
   });
 </script>
+
+<style>
+  .path-track {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  @media (min-width: 800px) {
+    .path-track {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+  }
+
+  .path-step {
+    position: relative;
+    display: grid;
+    gap: 0.35rem;
+    padding: 1.1rem 1.1rem 1.2rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius, 14px);
+    background: var(--mo-card, var(--mo-canvas));
+  }
+
+  .path-connector {
+    display: none;
+  }
+
+  @media (min-width: 800px) {
+    .path-connector {
+      display: block;
+      position: absolute;
+      left: -0.55rem;
+      top: 1.55rem;
+      width: 0.55rem;
+      height: 2px;
+      background: color-mix(in srgb, var(--color-star-warm) 55%, var(--mo-line));
+    }
+  }
+
+  .path-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-bottom: 0.25rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: var(--color-star-warm);
+    color: var(--mo-ink);
+  }
+
+  .path-kicker {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 650;
+    color: var(--mo-muted);
+  }
+
+  .path-title {
+    margin: 0;
+    font-size: var(--text-subheading, 1.5rem);
+    font-weight: 650;
+    line-height: 1.2;
+    color: var(--mo-ink);
+  }
+
+  .path-detail {
+    margin: 0.15rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--mo-muted);
+  }
+
+  .path-foot {
+    margin: 1.25rem 0 0;
+    font-size: 0.875rem;
+    color: var(--mo-muted);
+  }
+
+  .path-link {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: var(--mo-ink);
+  }
+
+  .path-link a {
+    color: var(--mo-ink);
+    text-underline-offset: 4px;
+  }
+
+  .path-link a:focus-visible {
+    outline: 2px solid var(--mo-focus);
+    outline-offset: 3px;
+  }
+</style>

@@ -13,9 +13,9 @@ const { href, variant = 'primary', class: className, onclick, 'data-cta': dataCt
 const base = 'btn inline-flex items-center justify-center text-base font-medium';
 
 const variants = {
-  /* ADR 0011: Acento ModoOps = --mo-accent (papel) */
+  /* web/AGENTS: CTA primario = star-warm + texto oscuro (AA) */
   primary:
-    'rounded-full bg-[var(--mo-accent)] px-6 py-3 text-[var(--mo-accent-ink)] hover:bg-[var(--mo-accent-hover)]',
+    'rounded-full bg-[var(--color-star-warm)] px-6 py-3 text-[var(--mo-ink)] hover:bg-[var(--color-star-glow)]',
   'ghost-dark':
     'rounded-full border border-[color-mix(in_srgb,var(--mo-on-hero)_45%,transparent)] bg-transparent px-6 py-3 text-[var(--mo-on-hero)] hover:border-[var(--mo-on-hero)] hover:bg-[color-mix(in_srgb,var(--mo-on-hero)_12%,transparent)]',
   'ghost-light':
@@ -34,9 +34,29 @@ const variants = {
       color 0.15s ease,
       background-color 0.15s ease,
       border-color 0.15s ease,
-      opacity 0.15s ease;
+      opacity 0.15s ease,
+      transform 160ms var(--mo-ease-out, cubic-bezier(0.23, 1, 0.32, 1));
     font-family: var(--mo-font);
     text-decoration: none;
     min-height: 44px;
+  }
+
+  .btn:active:not(.hit-target) {
+    transform: scale(0.97);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition:
+        color 0.12s ease,
+        background-color 0.12s ease,
+        border-color 0.12s ease,
+        opacity 0.12s ease;
+    }
+
+    .btn:active:not(.hit-target) {
+      transform: none;
+      opacity: 0.92;
+    }
   }
 </style>
