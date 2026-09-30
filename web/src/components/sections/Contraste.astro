@@ -8,16 +8,288 @@ interface Props {
 }
 
 const { embedded = false } = Astro.props;
+
+/** Mini-UI por fila: hoy (analógico) vs con (sistema). Copy canónico en business.ts */
+const VISUAL = [
+  { hoyKind: 'notebook', conKind: 'price' },
+  { hoyKind: 'memory', conKind: 'caja' },
+  { hoyKind: 'tally', conKind: 'cierre' },
+  { hoyKind: 'chat', conKind: 'orden' },
+] as const;
 ---
 
 <Section variant="dark" id="contraste" embedded={embedded}>
   <SectionHeading title={contraste.title} lead={contraste.lead} invert />
-  <div class="grid max-w-4xl gap-3">
-    {contraste.rows.map((row) => (
-      <div class="galaxy-card grid gap-2 rounded-[var(--radius-card)] p-4 md:grid-cols-2 md:gap-6">
-        <p class="text-ash-gray">{row.hoy}</p>
-        <p class="font-medium text-core-cream">{row.con}</p>
-      </div>
-    ))}
-  </div>
+  <ul class="cx-list">
+    {
+      contraste.rows.map((row, i) => {
+        const v = VISUAL[i] ?? VISUAL[0];
+        return (
+          <li class="cx-row">
+            <div class="cx-pane cx-pane--hoy" aria-label="Hoy">
+              <p class="cx-pane__label">Hoy</p>
+              <div class="cx-mock" data-kind={v.hoyKind}>
+                {v.hoyKind === 'notebook' && (
+                  <div class="cx-mock__notebook" aria-hidden="true">
+                    <span /><span /><span />
+                  </div>
+                )}
+                {v.hoyKind === 'memory' && (
+                  <div class="cx-mock__memory" aria-hidden="true">
+                    <span class="cx-mock__q">¿?</span>
+                    <span class="cx-mock__blur">$ ···</span>
+                  </div>
+                )}
+                {v.hoyKind === 'tally' && (
+                  <div class="cx-mock__tally" aria-hidden="true">
+                    <span>||||</span>
+                    <span>|||</span>
+                  </div>
+                )}
+                {v.hoyKind === 'chat' && (
+                  <div class="cx-mock__bubbles" aria-hidden="true">
+                    <span class="cx-mock__bubble">ok mando mañana</span>
+                    <span class="cx-mock__bubble cx-mock__bubble--out">¿cuánto quedó?</span>
+                  </div>
+                )}
+              </div>
+              <p class="cx-pane__text">{row.hoy}</p>
+            </div>
+            <div class="cx-arrow" aria-hidden="true">→</div>
+            <div class="cx-pane cx-pane--con" aria-label="Con ModoOps">
+              <p class="cx-pane__label">Con ModoOps</p>
+              <div class="cx-mock" data-kind={v.conKind}>
+                {v.conKind === 'price' && (
+                  <div class="cx-mock__ticket" aria-hidden="true">
+                    <span class="cx-mock__sku">Látex 20L</span>
+                    <strong class="cx-mock__amount">USD&nbsp;48</strong>
+                  </div>
+                )}
+                {v.conKind === 'caja' && (
+                  <div class="cx-mock__ticket" aria-hidden="true">
+                    <span class="cx-mock__sku">Venta #1042</span>
+                    <span class="cx-mock__chip">Depósito −1</span>
+                  </div>
+                )}
+                {v.conKind === 'cierre' && (
+                  <div class="cx-mock__ticket" aria-hidden="true">
+                    <span class="cx-mock__sku">Cierre turno</span>
+                    <strong class="cx-mock__amount">USD&nbsp;1.240</strong>
+                  </div>
+                )}
+                {v.conKind === 'orden' && (
+                  <div class="cx-mock__ticket" aria-hidden="true">
+                    <span class="cx-mock__sku">OC · Proveedor Norte</span>
+                    <span class="cx-mock__chip cx-mock__chip--ok">En depósito</span>
+                  </div>
+                )}
+              </div>
+              <p class="cx-pane__text cx-pane__text--strong">{row.con}</p>
+            </div>
+          </li>
+        );
+      })
+    }
+  </ul>
 </Section>
+
+<style>
+  .cx-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.85rem;
+    max-width: 48rem;
+  }
+
+  .cx-row {
+    display: grid;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  @media (min-width: 720px) {
+    .cx-row {
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0.75rem;
+      align-items: center;
+    }
+  }
+
+  .cx-arrow {
+    display: none;
+    color: var(--mo-muted);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  @media (min-width: 720px) {
+    .cx-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .cx-pane {
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius, 14px);
+    background: var(--mo-canvas);
+    padding: 0.85rem 1rem 1rem;
+    display: grid;
+    gap: 0.55rem;
+    min-height: 7.5rem;
+  }
+
+  .cx-pane--con {
+    border-color: color-mix(in srgb, var(--mo-ok) 35%, var(--mo-line));
+    background: color-mix(in srgb, var(--mo-ok-soft, var(--mo-accent-soft)) 55%, var(--mo-canvas));
+  }
+
+  .cx-pane__label {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mo-muted);
+  }
+
+  .cx-pane__text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--mo-muted);
+  }
+
+  .cx-pane__text--strong {
+    color: var(--mo-ink);
+    font-weight: 600;
+  }
+
+  .cx-mock {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .cx-mock__notebook {
+    display: grid;
+    gap: 0.35rem;
+    width: 100%;
+  }
+
+  .cx-mock__notebook span {
+    display: block;
+    height: 0.35rem;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--mo-ink) 12%, transparent);
+  }
+
+  .cx-mock__notebook span:nth-child(2) {
+    width: 72%;
+  }
+
+  .cx-mock__notebook span:nth-child(3) {
+    width: 48%;
+  }
+
+  .cx-mock__memory {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .cx-mock__q {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--mo-muted);
+    opacity: 0.7;
+  }
+
+  .cx-mock__blur {
+    font-size: 0.95rem;
+    color: var(--mo-muted);
+    filter: blur(2px);
+    user-select: none;
+  }
+
+  .cx-mock__tally {
+    display: flex;
+    gap: 1rem;
+    font-family: var(--mo-mono, ui-monospace, monospace);
+    font-size: 1.1rem;
+    letter-spacing: 0.12em;
+    color: var(--mo-muted);
+  }
+
+  .cx-mock__bubbles {
+    display: grid;
+    gap: 0.35rem;
+    width: 100%;
+  }
+
+  .cx-mock__bubble {
+    display: inline-block;
+    max-width: 90%;
+    padding: 0.35rem 0.55rem;
+    border-radius: 10px 10px 10px 4px;
+    background: color-mix(in srgb, var(--mo-ink) 8%, var(--mo-canvas));
+    font-size: 0.72rem;
+    color: var(--mo-muted);
+  }
+
+  .cx-mock__bubble--out {
+    justify-self: end;
+    border-radius: 10px 10px 4px 10px;
+  }
+
+  .cx-mock__ticket {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem 0.75rem;
+    width: 100%;
+    padding: 0.45rem 0.65rem;
+    border-radius: var(--mo-radius-sm, 10px);
+    border: 1px solid var(--mo-line);
+    background: var(--mo-card, var(--mo-canvas));
+  }
+
+  .cx-mock__sku {
+    font-size: 0.78rem;
+    color: var(--mo-muted);
+  }
+
+  .cx-mock__amount {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--mo-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cx-mock__chip {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--mo-line-strong, var(--mo-line));
+    color: var(--mo-ink);
+    background: var(--mo-wash, var(--mo-canvas));
+  }
+
+  .cx-mock__chip--ok {
+    border-color: color-mix(in srgb, var(--mo-ok) 40%, var(--mo-line));
+    color: var(--mo-ok);
+    background: color-mix(in srgb, var(--mo-ok) 12%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cx-mock__blur {
+      filter: none;
+      opacity: 0.55;
+    }
+  }
+</style>

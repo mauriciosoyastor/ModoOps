@@ -10,7 +10,7 @@ interface Props {
 const { embedded = false } = Astro.props;
 ---
 
-<Section variant="linen" embedded={embedded}>
+<Section variant="linen" id="como-trabajamos" embedded={embedded}>
   <SectionHeading title={howWeWork.title} lead={howWeWork.lead} />
   <ul class="grid max-w-3xl gap-4 text-[length:var(--text-body-lg)]">
     {howWeWork.rules.map((rule) => <li>{rule}</li>)}

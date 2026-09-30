@@ -8,15 +8,193 @@ interface Props {
 }
 
 const { embedded = false } = Astro.props;
+
+const SIGN_MARK = ['Cajas', 'Lista', 'Compras'] as const;
 ---
 
 <Section variant="white" id="ejemplo" embedded={embedded}>
-  <p class="text-sm font-medium uppercase tracking-widest text-nebula-cyan">{ejemplo.eyebrow}</p>
-  <SectionHeading title={ejemplo.title} lead={`${ejemplo.body} (${ejemplo.fictitious}).`} />
-  <ul class="grid max-w-3xl gap-3">
-    {ejemplo.signs.map((sign) => (
-      <li class="galaxy-card rounded-[var(--radius-card)] p-4 text-[length:var(--text-body-lg)]">{sign}</li>
-    ))}
-  </ul>
-  <p class="mt-8 max-w-2xl text-[length:var(--text-body-lg)] text-core-cream">{ejemplo.closing}</p>
+  <div class="ej-grid">
+    <div class="ej-copy">
+      <p class="ej-eyebrow">{ejemplo.eyebrow}</p>
+      <SectionHeading title={ejemplo.title} lead={`${ejemplo.body} (${ejemplo.fictitious}).`} />
+      <ul class="ej-signs">
+        {
+          ejemplo.signs.map((sign, i) => (
+            <li class="ej-sign">
+              <span class="ej-sign__mark" aria-hidden="true">
+                {SIGN_MARK[i] ?? '·'}
+              </span>
+              <span class="ej-sign__text">{sign}</span>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="ej-closing">{ejemplo.closing}</p>
+    </div>
+
+    <aside class="ej-mock" aria-hidden="true">
+      <div class="ej-mock__storefront">
+        <p class="ej-mock__name">Pinturería Centro</p>
+        <p class="ej-mock__meta">1 sucursal · ejemplo</p>
+      </div>
+      <div class="ej-mock__row">
+        <span class="ej-mock__box">Caja 1</span>
+        <span class="ej-mock__box">Caja 2</span>
+      </div>
+      <div class="ej-mock__sheet">
+        <span /><span /><span class="is-short" />
+        <p class="ej-mock__sheet-label">Excel · desactualizado</p>
+      </div>
+      <p class="ej-mock__wa">WhatsApp · compras sueltas</p>
+    </aside>
+  </div>
 </Section>
+
+<style>
+  .ej-grid {
+    display: grid;
+    gap: 1.75rem;
+    align-items: start;
+  }
+
+  @media (min-width: 800px) {
+    .ej-grid {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 2rem;
+      align-items: center;
+    }
+  }
+
+  .ej-eyebrow {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mo-ok);
+  }
+
+  .ej-signs {
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+    max-width: 36rem;
+  }
+
+  .ej-sign {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius, 14px);
+    background: var(--mo-canvas);
+  }
+
+  .ej-sign__mark {
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mo-ok);
+    padding-top: 0.15rem;
+    min-width: 3.5rem;
+  }
+
+  .ej-sign__text {
+    font-size: var(--text-body-lg, 1.125rem);
+    line-height: 1.4;
+    color: var(--mo-ink);
+  }
+
+  .ej-closing {
+    margin: 1.25rem 0 0;
+    max-width: 36rem;
+    font-size: var(--text-body-lg, 1.125rem);
+    line-height: 1.5;
+    color: var(--mo-ink);
+  }
+
+  .ej-mock {
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius, 14px);
+    background: var(--mo-canvas);
+    padding: 1rem 1.1rem 1.15rem;
+    display: grid;
+    gap: 0.75rem;
+    max-width: 22rem;
+  }
+
+  .ej-mock__storefront {
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--mo-line);
+  }
+
+  .ej-mock__name {
+    margin: 0;
+    font-family: var(--mo-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--mo-ink);
+  }
+
+  .ej-mock__meta {
+    margin: 0.2rem 0 0;
+    font-size: 0.75rem;
+    color: var(--mo-muted);
+  }
+
+  .ej-mock__row {
+    display: flex;
+    gap: 0.45rem;
+  }
+
+  .ej-mock__box {
+    flex: 1;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 650;
+    padding: 0.55rem 0.4rem;
+    border-radius: var(--mo-radius-sm, 9px);
+    border: 1px solid var(--mo-line);
+    background: var(--mo-card, var(--mo-wash));
+    color: var(--mo-ink);
+  }
+
+  .ej-mock__sheet {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.65rem 0.7rem;
+    border-radius: var(--mo-radius-sm, 9px);
+    border: 1px dashed var(--mo-line-strong, var(--mo-line));
+    background: var(--mo-wash, var(--mo-card));
+  }
+
+  .ej-mock__sheet span {
+    display: block;
+    height: 0.35rem;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--mo-ink) 14%, transparent);
+  }
+
+  .ej-mock__sheet span.is-short {
+    width: 55%;
+  }
+
+  .ej-mock__sheet-label {
+    margin: 0.25rem 0 0;
+    font-size: 0.7rem;
+    color: var(--mo-muted);
+  }
+
+  .ej-mock__wa {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--mo-muted);
+  }
+</style>

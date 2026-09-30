@@ -8,17 +8,79 @@ interface Props {
 }
 
 const { embedded = false } = Astro.props;
+
+const CHIP: Record<string, string> = {
+  Mostrador: 'Caja',
+  'Depósito Inteligente': 'Depósito',
+  Compras: 'OC',
+  'Fiscal AR': 'Fiscal',
+  Contactos: 'Agenda',
+};
 ---
 
 <Section variant="white" id="solucion" embedded={embedded}>
   <SectionHeading title={solution.title} lead={solution.lead} />
-  <ul class="grid gap-3 md:grid-cols-2">
+  <ul class="sol-grid">
     {
       solution.highlights.map((item) => (
-        <li class="galaxy-card rounded-[var(--radius-card)] p-5">
-          <strong>{item.title}</strong>{item.detail ? ` — ${item.detail}` : ''}
+        <li class="sol-card">
+          <span class="sol-chip">{CHIP[item.title] ?? item.title}</span>
+          <p class="sol-title">{item.title}</p>
+          {item.detail && <p class="sol-detail">{item.detail}</p>}
         </li>
       ))
     }
   </ul>
 </Section>
+
+<style>
+  .sol-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 720px) {
+    .sol-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .sol-card {
+    display: grid;
+    gap: 0.45rem;
+    padding: 1.05rem 1.1rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius, 14px);
+    background: var(--mo-canvas);
+  }
+
+  .sol-chip {
+    justify-self: start;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--mo-ok) 35%, var(--mo-line));
+    color: var(--mo-ok);
+    background: var(--mo-ok-soft);
+  }
+
+  .sol-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--mo-ink);
+  }
+
+  .sol-detail {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--mo-muted);
+  }
+</style>
