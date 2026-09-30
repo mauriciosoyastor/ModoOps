@@ -18,6 +18,10 @@ const NOMBRES: Record<string, string> = {
   migracion_excel: 'Migración Excel',
   b2b_basico: 'B2B Básico',
   ia: 'IA ModoOps',
+  ecommerce: 'Ecommerce',
+  web: 'Página web',
+  crm: 'CRM',
+  otro: 'Otro',
 };
 const SIEMPRE = ['contactos', 'plataforma', 'puente_factura'];
 const objetos: Objeto3DId[] = [
@@ -37,199 +41,203 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   description={seoOficina.description}
   canonical="https://modoops.com.ar/oficina"
 >
-  <main class="mx-auto w-full max-w-7xl px-4 py-8 md:px-8" data-portal>
-    <p class="rounded-full border border-dashed px-3 py-1 text-xs text-zinc-400">
+  <main class="oficina" data-portal>
+    <p class="oficina-aviso">
       Borrador no vinculante · lo valida el consultor en el Descubrimiento · nada de acá crea tu sistema
     </p>
-    <h1 class="mt-2 text-3xl font-semibold">Tu oficina, tu borrador</h1>
-    <p class="mt-1 text-sm text-zinc-400">
+    <h1 class="oficina-titulo">Tu oficina, tu borrador</h1>
+    <p class="oficina-sub">
       Tres pasos: tu negocio, lo que necesitás hoy (ancla) y para dónde querés crecer.
     </p>
 
-    <div class="mt-4 grid gap-4">
-      <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4 md:p-6">
+    <nav class="oficina-pasos" aria-label="Pasos del borrador">
+      <button type="button" data-paso="0">Tu negocio</button>
+      <button type="button" data-paso="1">Ancla</button>
+      <button type="button" data-paso="2">Crecer</button>
+    </nav>
 
-        <section data-panel="0" class="mt-4">
-          <h2 class="text-lg font-semibold">Paso 1 — Tu negocio</h2>
-          <div class="mt-2 grid gap-3 lg:grid-cols-2">
-            <div class="flex h-full flex-col rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm md:p-4" data-conversa>
-              <h3 class="font-semibold">Armemos tu borrador conversando</h3>
-              <div class="mt-2 flex max-h-[36rem] min-h-[16rem] flex-1 flex-col gap-2 overflow-auto" data-chat-hilo aria-live="polite"></div>
-              <div class="mt-2 flex flex-wrap gap-1" data-chat-opciones></div>
-              <form data-chat-form class="mt-2 flex flex-col gap-2">
-                <label class="sr-only" for="chat-msg">Respondé en la conversación</label>
-                <textarea id="chat-msg" data-chat-msg rows="3" autocomplete="off" class="max-h-48 min-h-24 w-full rounded border border-white/10 bg-white/[0.06] p-3 text-base text-white placeholder:text-zinc-400" placeholder="Respondé o preguntame lo que sea…"></textarea>
-                <button type="submit" class="w-full rounded-full border px-4 py-3 text-sm font-semibold">Enviar</button>
-              </form>
-              <p class="mt-1 text-xs text-zinc-400">Respondé y también podés preguntarme lo que sea (ej: ¿qué incluye el sistema?). Solo nombre y un contacto son obligatorios. Todo queda en tu navegador hasta que lo envíes.</p>
-            </div>
-            <div class="relative flex h-full flex-col rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm md:p-4" data-hero>
-              <p class="text-sm font-semibold">Sectores de tu borrador</p>
-              <p class="text-xs text-zinc-400">Tocá un sector para ir a su ficha (también desde el chat).</p>
-              <div class="mt-2 flex flex-wrap gap-1" data-hero-sectores>
-                {objetos.map((id) => (
-                  <button type="button" data-hero-sector={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">
-                    {OBJETO_LABEL[id]}
-                  </button>
-                ))}
-              </div>
-              <p class="mt-2 px-1 py-1 text-xs text-zinc-400" data-hero-estado id="hero-ayuda">
-                El borrador se arma en el chat; los sectores saltan a cada ficha.
-              </p>
-            </div>
+    <div class="oficina-grilla">
+      <div class="oficina-trabajo">
+
+        <section data-panel="0">
+          <h2 class="oficina-h2">Paso 1 — Tu negocio</h2>
+          <div class="oficina-conversa" data-conversa>
+            <h3 class="oficina-h3">Armemos tu borrador conversando</h3>
+            <div class="oficina-hilo" data-chat-hilo aria-live="polite"></div>
+            <div class="oficina-opciones" data-chat-opciones></div>
+            <form data-chat-form class="oficina-form">
+              <label class="sr-only" for="chat-msg">Respondé en la conversación</label>
+              <textarea id="chat-msg" data-chat-msg rows="3" autocomplete="off" class="oficina-campo oficina-campo--chat" placeholder="Respondé o preguntame lo que sea…"></textarea>
+              <button type="submit" class="mo-btn mo-btn--primary">Enviar</button>
+            </form>
+            <p class="oficina-nota">Respondé y también podés preguntarme lo que sea (ej: ¿qué incluye el sistema?). Solo nombre y un contacto son obligatorios. Todo queda en tu navegador hasta que lo envíes.</p>
           </div>
 
-          <details class="mt-3 rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm">
-            <summary class="cursor-pointer font-semibold">Ver/editar todos los datos</summary>
-            <div class="mt-2 grid gap-2 text-sm">
+          <details class="oficina-details">
+            <summary>Ver/editar todos los datos</summary>
+            <div class="oficina-campos">
             <label>Nombre del negocio *
-              <input data-prospecto="nombre" autocomplete="organization" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Pinturería Centro" /></label>
-            <div class="grid gap-2 md:grid-cols-2">
+              <input data-prospecto="nombre" autocomplete="organization" class="oficina-campo" placeholder="Ej: Pinturería Centro" /></label>
+            <div class="oficina-par">
               <label>Tu nombre
-                <input data-prospecto="contacto_nombre" autocomplete="name" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Ana" /></label>
+                <input data-prospecto="contacto_nombre" autocomplete="name" class="oficina-campo" placeholder="Ej: Ana" /></label>
               <label>Teléfono *
-                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: 3547 000000" /></label>
+                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="oficina-campo" placeholder="Ej: 3547 000000" /></label>
             </div>
-            <div class="grid gap-2 md:grid-cols-2">
+            <div class="oficina-par">
               <label>Email
-                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: ana@negocio.com" /></label>
+                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="oficina-campo" placeholder="Ej: ana@negocio.com" /></label>
               <label>Rubro
-                <select data-prospecto="rubro" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500">
+                <select data-prospecto="rubro" class="oficina-campo">
                   <option value="retail">Retail mostrador</option>
                   <option value="distribucion">Distribución chica</option>
                   <option value="servicios">Servicios</option>
                 </select></label>
             </div>
-            <div class="grid grid-cols-3 gap-2">
-              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
+            <div class="oficina-tres">
+              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="oficina-campo" /></label>
+              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="oficina-campo" /></label>
+              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="oficina-campo" /></label>
             </div>
-            <div class="grid gap-2 md:grid-cols-2">
-              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-              <label class="flex items-center gap-2">¿Llevás stock en Excel hoy?
-                <input data-dato="tiene_excel" type="checkbox" class="h-4 w-4" /></label>
+            <div class="oficina-par">
+              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="oficina-campo" /></label>
+              <label class="oficina-check">¿Llevás stock en Excel hoy?
+                <input data-dato="tiene_excel" type="checkbox" /></label>
             </div>
-            <fieldset class="rounded border p-2">
-              <legend class="px-1 text-xs text-zinc-400">Tu parte técnica (solo sí/no)</legend>
-              <div class="flex flex-wrap gap-3">
-                <label class="flex items-center gap-2">¿Pagás hosting o servidor? <input data-infra="hosting_propio" type="checkbox" class="h-4 w-4" /></label>
-                <label class="flex items-center gap-2">¿Página con candadito (https)? <input data-infra="dominio_ssl" type="checkbox" class="h-4 w-4" /></label>
-                <label class="flex items-center gap-2">¿Copias de seguridad? <input data-infra="backups" type="checkbox" class="h-4 w-4" /></label>
+            <fieldset class="oficina-fieldset">
+              <legend>Tu parte técnica (solo sí/no)</legend>
+              <div class="oficina-checks">
+                <label class="oficina-check">¿Pagás hosting o servidor? <input data-infra="hosting_propio" type="checkbox" /></label>
+                <label class="oficina-check">¿Página con candadito (https)? <input data-infra="dominio_ssl" type="checkbox" /></label>
+                <label class="oficina-check">¿Copias de seguridad? <input data-infra="backups" type="checkbox" /></label>
               </div>
             </fieldset>
-            <p class="text-xs text-zinc-400">* Solo nombre y un contacto (teléfono o email) son obligatorios. Todo lo demás ayuda al consultor pero es opcional.</p>
+            <p class="oficina-nota">* Solo nombre y un contacto (teléfono o email) son obligatorios. Todo lo demás ayuda al consultor pero es opcional.</p>
             </div>
           </details>
         </section>
 
-        <section data-panel="1" class="mt-4" hidden>
-          <h2 class="text-lg font-semibold">Paso 2 — Tu ancla (combo cerrado)</h2>
-          <p class="text-sm text-zinc-400">Tildá lo que necesitás hoy. Siempre incluidos: {SIEMPRE.map((k) => NOMBRES[k]).join(' · ')}.</p>
+        <section data-panel="1" hidden>
+          <h2 class="oficina-h2">Paso 2 — Tu ancla (combo cerrado)</h2>
+          <p class="oficina-sub">Tildá lo que necesitás hoy. Siempre incluidos: {SIEMPRE.map((k) => NOMBRES[k]).join(' · ')}.</p>
 
-          <div class="mt-3 grid gap-3" data-fichas>
-            <article data-ficha="mostrador-3d" class="rounded-xl border p-3">
-              <label class="flex items-center gap-2 font-semibold">
-                <input data-incluir="mostrador-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['mostrador-3d']} → {NOMBRES.mostrador}</label>
-              <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
-                <label>¿Cuántas cajas? <input data-obj="mostrador-3d" data-campo="cajas" type="number" min="1" value="2" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-                <label class="flex items-center gap-2">¿Hacés descuento en caja? <input data-obj="mostrador-3d" data-campo="descuento" type="checkbox" class="h-4 w-4" /></label>
+          <div class="oficina-fichas" data-fichas>
+            <article data-ficha="mostrador-3d" class="oficina-ficha">
+              <label class="oficina-check oficina-check--titulo">
+                <input data-incluir="mostrador-3d" type="checkbox" /> {OBJETO_LABEL['mostrador-3d']} → {NOMBRES.mostrador}</label>
+              <div class="oficina-par">
+                <label>¿Cuántas cajas? <input data-obj="mostrador-3d" data-campo="cajas" type="number" min="1" value="2" class="oficina-campo" /></label>
+                <label class="oficina-check">¿Hacés descuento en caja? <input data-obj="mostrador-3d" data-campo="descuento" type="checkbox" /></label>
               </div>
             </article>
 
-            <article data-ficha="estanteria-3d" class="rounded-xl border p-3">
-              <label class="flex items-center gap-2 font-semibold">
-                <input data-incluir="estanteria-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['estanteria-3d']} → {NOMBRES.deposito}</label>
-              <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
-                <label>¿Cuántos depósitos? <input data-obj="estanteria-3d" data-campo="almacenes" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-                <label class="flex items-center gap-2">¿Ubicaciones por estante? <input data-obj="estanteria-3d" data-campo="ubicaciones" type="checkbox" class="h-4 w-4" /></label>
+            <article data-ficha="estanteria-3d" class="oficina-ficha">
+              <label class="oficina-check oficina-check--titulo">
+                <input data-incluir="estanteria-3d" type="checkbox" /> {OBJETO_LABEL['estanteria-3d']} → {NOMBRES.deposito}</label>
+              <div class="oficina-par">
+                <label>¿Cuántos depósitos? <input data-obj="estanteria-3d" data-campo="almacenes" type="number" min="1" value="1" class="oficina-campo" /></label>
+                <label class="oficina-check">¿Ubicaciones por estante? <input data-obj="estanteria-3d" data-campo="ubicaciones" type="checkbox" /></label>
               </div>
             </article>
 
-            <article data-ficha="gondola-3d" class="rounded-xl border p-3">
-              <label class="flex items-center gap-2 font-semibold">
-                <input data-incluir="gondola-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['gondola-3d']} → {NOMBRES.ventas}</label>
-              <div class="mt-2 text-sm">
-                <label>¿Cuántas listas de precio? <input data-obj="gondola-3d" data-campo="listas_precio" type="number" min="1" value="1" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
+            <article data-ficha="gondola-3d" class="oficina-ficha">
+              <label class="oficina-check oficina-check--titulo">
+                <input data-incluir="gondola-3d" type="checkbox" /> {OBJETO_LABEL['gondola-3d']} → {NOMBRES.ventas}</label>
+              <div>
+                <label>¿Cuántas listas de precio? <input data-obj="gondola-3d" data-campo="listas_precio" type="number" min="1" value="1" class="oficina-campo" /></label>
               </div>
             </article>
 
-            <article data-ficha="computadora-3d" class="rounded-xl border p-3">
-              <label class="flex items-center gap-2 font-semibold">
-                <input data-incluir="computadora-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['computadora-3d']} → {NOMBRES.compras}</label>
-              <div class="mt-2 grid gap-2 text-sm md:grid-cols-2">
-                <label>¿Cuántos proveedores? <input data-obj="computadora-3d" data-campo="proveedores" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
-                <label class="flex items-center gap-2">¿Usás orden de compra? <input data-obj="computadora-3d" data-campo="orden_compra" type="checkbox" class="h-4 w-4" /></label>
+            <article data-ficha="computadora-3d" class="oficina-ficha">
+              <label class="oficina-check oficina-check--titulo">
+                <input data-incluir="computadora-3d" type="checkbox" /> {OBJETO_LABEL['computadora-3d']} → {NOMBRES.compras}</label>
+              <div class="oficina-par">
+                <label>¿Cuántos proveedores? <input data-obj="computadora-3d" data-campo="proveedores" type="number" min="0" value="0" class="oficina-campo" /></label>
+                <label class="oficina-check">¿Usás orden de compra? <input data-obj="computadora-3d" data-campo="orden_compra" type="checkbox" /></label>
               </div>
             </article>
 
-            <article data-ficha="pizarron-fiscal-3d" class="rounded-xl border p-3">
-              <label class="flex items-center gap-2 font-semibold">
-                <input data-incluir="pizarron-fiscal-3d" type="checkbox" class="h-4 w-4" /> {OBJETO_LABEL['pizarron-fiscal-3d']} → {NOMBRES.fiscal_ar}</label>
-              <p class="mt-1 text-xs text-zinc-400">Borrador sin validez: el cierre real lo hacés con tu contador antes de salir en vivo.</p>
-              <fieldset class="mt-2 text-sm">
-                <legend class="text-xs text-zinc-400">¿Qué comprobantes creés que usás?</legend>
-                <div class="flex flex-wrap gap-2">
+            <article data-ficha="pizarron-fiscal-3d" class="oficina-ficha">
+              <label class="oficina-check oficina-check--titulo">
+                <input data-incluir="pizarron-fiscal-3d" type="checkbox" /> {OBJETO_LABEL['pizarron-fiscal-3d']} → {NOMBRES.fiscal_ar}</label>
+              <p class="oficina-nota">Borrador sin validez: el cierre real lo hacés con tu contador antes de salir en vivo.</p>
+              <fieldset class="oficina-fieldset">
+                <legend>¿Qué comprobantes creés que usás?</legend>
+                <div class="oficina-checks">
                   {COMPROBANTES.map((c) => (
-                    <label class="flex items-center gap-1 rounded border px-2 py-1 text-xs">
-                      <input data-obj="pizarron-fiscal-3d" data-campo="comprobantes" value={c} type="checkbox" class="h-3 w-3" /> {c}
+                    <label class="oficina-check oficina-check--chip">
+                      <input data-obj="pizarron-fiscal-3d" data-campo="comprobantes" value={c} type="checkbox" /> {c}
                     </label>
                   ))}
                 </div>
               </fieldset>
-              <label class="mt-2 block text-sm">Tu contador <input data-obj="pizarron-fiscal-3d" data-campo="contador" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" placeholder="Ej: Estudio López" /></label>
+              <label>Tu contador <input data-obj="pizarron-fiscal-3d" data-campo="contador" class="oficina-campo" placeholder="Ej: Estudio López" /></label>
             </article>
           </div>
         </section>
 
-        <section data-panel="2" class="mt-4" hidden>
-          <h2 class="text-lg font-semibold">Paso 3 — Para crecer (futuro, no ancla)</h2>
-          <p class="text-sm text-zinc-400">Lo que hoy no entra, pero querés dejar anotado.</p>
-          <article data-ficha="puerta-crecer-3d" class="mt-3 rounded-xl border border-dashed p-3">
-            <p class="font-semibold">{OBJETO_LABEL['puerta-crecer-3d']}</p>
-            <div class="mt-2 grid gap-2 text-sm">
+        <section data-panel="2" hidden>
+          <h2 class="oficina-h2">Paso 3 — Para crecer (futuro, no ancla)</h2>
+          <p class="oficina-sub">Lo que hoy no entra, pero querés dejar anotado.</p>
+          <article data-ficha="puerta-crecer-3d" class="oficina-ficha oficina-ficha--futuro">
+            <p class="oficina-h3">{OBJETO_LABEL['puerta-crecer-3d']}</p>
+            <div class="oficina-fichas">
               {PUERTA_FUTURO.map((k) => (
-                <label class="flex items-center gap-2 rounded border p-2">
-                  <input data-futuro={k} type="checkbox" class="h-4 w-4" /> {NOMBRES[k]}
+                <label class="oficina-check">
+                  <input data-futuro={k} type="checkbox" /> {NOMBRES[k]}
                 </label>
               ))}
             </div>
           </article>
 
-          <article data-ficha="zona-logistica-3d" class="mt-3 rounded-xl border border-dashed p-3">
-            <p class="font-semibold">{OBJETO_LABEL['zona-logistica-3d']}</p>
-            <p class="text-xs text-zinc-400">A desarrollar, a cotizar: la tripleta del chat la califica.</p>
-            <div class="mt-2 grid gap-2 text-sm">
-              <label class="block">Envíos por día <input data-obj="zona-logistica-3d" data-campo="envios_dia" type="number" min="0" value="0" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white" /></label>
-              <label class="flex items-center gap-2"><input data-obj="zona-logistica-3d" data-campo="flota_propia" type="checkbox" class="h-4 w-4" /> Flota propia (si no, correo)</label>
-              <label class="block">Zonas donde repartís <input data-obj="zona-logistica-3d" data-campo="zonas" type="text" placeholder="Ej: Capital y alrededores" class="mt-1 w-full rounded border border-white/10 bg-white/[0.06] p-2 text-white placeholder:text-zinc-500" /></label>
+          <article data-ficha="zona-logistica-3d" class="oficina-ficha oficina-ficha--futuro">
+            <p class="oficina-h3">{OBJETO_LABEL['zona-logistica-3d']}</p>
+            <p class="oficina-nota">A desarrollar, a cotizar: la tripleta del chat la califica.</p>
+            <div class="oficina-campos">
+              <label>Envíos por día <input data-obj="zona-logistica-3d" data-campo="envios_dia" type="number" min="0" value="0" class="oficina-campo" /></label>
+              <label class="oficina-check"><input data-obj="zona-logistica-3d" data-campo="flota_propia" type="checkbox" /> Flota propia (si no, correo)</label>
+              <label>Zonas donde repartís <input data-obj="zona-logistica-3d" data-campo="zonas" type="text" placeholder="Ej: Capital y alrededores" class="oficina-campo" /></label>
             </div>
           </article>
 
-          <div class="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-3">
-            <h3 class="font-semibold">Enviá tu borrador al consultor</h3>
-            <ul class="mt-1 text-sm text-red-700" data-errores aria-live="polite"></ul>
-            <div class="mt-2 flex flex-wrap gap-2">
-              <button data-copiar class="rounded-full border border-white/20 px-4 py-2 text-sm text-white">Copiar JSON</button>
-              <a data-whatsapp target="_blank" rel="noopener" class="rounded-full border border-green-600 px-4 py-2 text-sm text-green-300">Enviar por WhatsApp</a>
-              <button data-enviar class="rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-space-void">Enviar a ModoOps</button>
+          <div class="oficina-envio">
+            <h3 class="oficina-h3">Enviá tu borrador al consultor</h3>
+            <ul class="oficina-errores" data-errores aria-live="polite"></ul>
+            <div class="oficina-acciones">
+              <button data-enviar class="mo-btn mo-btn--primary" type="button">Enviar a ModoOps</button>
+              <a data-whatsapp target="_blank" rel="noopener" class="mo-btn mo-btn--ghost">Enviar por WhatsApp</a>
+              <button data-copiar class="mo-btn mo-btn--ghost" type="button">Copiar JSON</button>
             </div>
-            <p class="mt-1 text-xs text-zinc-400" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
-            <p class="mt-1 text-xs" data-enviado role="status" hidden></p>
+            <p class="oficina-nota" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
+            <p class="oficina-nota" data-enviado role="status" hidden></p>
           </div>
         </section>
       </div>
 
-      <aside hidden class="rounded-2xl border border-white/10 bg-white/[0.04] p-4" aria-live="polite">
-        <h2 class="text-lg font-semibold">Borrador vivo</h2>
-        <p class="text-xs text-zinc-400">Se guarda solo en tu navegador.</p>
-        <ul class="mt-2 flex flex-wrap gap-1" data-seleccion></ul>
-        <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-neutral-950 p-2 text-xs text-green-200" data-json>{}</pre>
-        <div class="mt-3 rounded-xl border p-3" data-cotizacion-panel>
-          <h3 class="font-semibold">Validación del servidor</h3>
-          <p class="text-xs text-zinc-400">Cotizá tu selección contra el catálogo vivo de Odoo (sin guardar nada).</p>
-          <button data-cotizar class="mt-2 rounded-full bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-space-void">Cotizar en servidor</button>
-          <div class="mt-2 text-sm" data-cotizacion aria-live="polite"></div>
+      <aside class="oficina-riel" aria-live="polite">
+        <div data-hero>
+          <p class="oficina-h3">Sectores de tu borrador</p>
+          <p class="oficina-nota">Tocá un sector para ir a su ficha (también desde el chat).</p>
+          <div class="oficina-sectores" data-hero-sectores>
+            {objetos.map((id) => (
+              <button type="button" data-hero-sector={id} class="oficina-sector" aria-pressed="false">
+                {OBJETO_LABEL[id]}
+              </button>
+            ))}
+          </div>
+          <p class="oficina-nota" data-hero-estado id="hero-ayuda">
+            El borrador se arma en el chat; los sectores saltan a cada ficha.
+          </p>
+        </div>
+        <h2 class="oficina-h3">Borrador vivo</h2>
+        <p class="oficina-nota">Se guarda solo en tu navegador.</p>
+        <ul class="oficina-chips" data-seleccion></ul>
+        <pre class="oficina-json" data-json>{}</pre>
+        <div class="oficina-cotizar" data-cotizacion-panel>
+          <h3 class="oficina-h3">Validación del servidor</h3>
+          <p class="oficina-nota">Cotizá tu selección contra el catálogo vivo de Odoo (sin guardar nada).</p>
+          <button data-cotizar class="mo-btn" type="button">Cotizar en servidor</button>
+          <div data-cotizacion aria-live="polite"></div>
         </div>
       </aside>
     </div>
@@ -237,14 +245,372 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 </BaseLayout>
 
 <style>
-  /* S5: inputs a 16px para que iOS no haga zoom al enfocar */
-  [data-portal] input:not([type='checkbox']):not([type='radio']),
-  [data-portal] select {
+  .oficina {
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 2.5rem;
+    color: var(--mo-ink);
+  }
+  .oficina-aviso,
+  .oficina-nota {
+    margin: 0.35rem 0 0;
+    color: var(--mo-muted);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+  .oficina-aviso {
+    margin-top: 0;
+  }
+  .oficina-titulo {
+    margin: 0.65rem 0 0;
+    font-family: var(--mo-display);
+    font-size: 1.35rem;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+  .oficina-sub {
+    margin: 0.3rem 0 0;
+    color: var(--mo-muted);
+    font-size: 0.92rem;
+  }
+  .oficina-h2 {
+    margin: 0 0 0.65rem;
+    font-size: 1rem;
+    font-weight: 650;
+  }
+  .oficina-h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 650;
+  }
+  .oficina-pasos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-top: 1rem;
+    border-bottom: 1px solid var(--mo-line);
+  }
+  .oficina-pasos button {
+    min-height: 44px;
+    margin-bottom: -1px;
+    padding: 0.35rem 0.9rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--mo-muted);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition:
+      transform 160ms var(--mo-ease-out),
+      color 140ms ease,
+      border-color 140ms ease;
+  }
+  .oficina-pasos button:active {
+    transform: scale(0.97);
+  }
+  .oficina-pasos button[aria-current="true"] {
+    border-bottom-color: var(--mo-accent);
+    color: var(--mo-ink);
+    font-weight: 650;
+  }
+  .oficina-trabajo [data-panel]:not([hidden]) {
+    opacity: 1;
+    transition: opacity 150ms var(--mo-ease-out);
+    @starting-style {
+      opacity: 0;
+    }
+  }
+  .oficina-grilla {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 1rem;
+  }
+  .oficina-conversa {
+    padding: 0.75rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+    background: var(--mo-canvas);
+  }
+  .oficina-hilo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 24rem;
+    margin-top: 0.65rem;
+    overflow: auto;
+  }
+  .oficina-burbuja {
+    margin: 0;
+    max-width: 85%;
+    padding: 0.5rem 0.65rem;
+    border-radius: var(--mo-radius-sm);
+    color: var(--mo-ink);
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+  .oficina-burbuja--bot {
+    background: var(--mo-card);
+  }
+  .oficina-burbuja--user {
+    align-self: end;
+    background: var(--mo-accent-soft);
+  }
+  .oficina-opciones,
+  .oficina-acciones,
+  .oficina-sectores,
+  .oficina-chips,
+  .oficina-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .oficina-opciones,
+  .oficina-form {
+    margin-top: 0.65rem;
+  }
+  .oficina-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .oficina-form .mo-btn {
+    width: 100%;
+  }
+  .oficina-campo {
+    width: 100%;
+    margin-top: 0.25rem;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    background: var(--mo-field);
+    color: var(--mo-ink);
+    font: inherit;
     font-size: 1rem;
   }
-  .ficha-flash {
-    outline: 2px solid #111;
+  .oficina-campo--chat {
+    min-height: 5.5rem;
+    max-height: 12rem;
+  }
+  .oficina-campo::placeholder {
+    color: var(--mo-muted);
+  }
+  .oficina-details {
+    margin-top: 0.85rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--mo-line);
+  }
+  .oficina-details summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .oficina-campos,
+  .oficina-fichas {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 0.65rem;
+  }
+  .oficina-par {
+    display: grid;
+    gap: 0.65rem;
+  }
+  .oficina-tres {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+  .oficina-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+  }
+  .oficina-check--titulo {
+    font-weight: 650;
+  }
+  .oficina-check--chip {
+    padding: 0 0.55rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+  }
+  .oficina-fieldset {
+    margin: 0;
+    padding: 0.35rem 0.65rem 0.65rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+  }
+  .oficina-fieldset legend {
+    padding: 0 0.25rem;
+    color: var(--mo-muted);
+    font-size: 0.8125rem;
+  }
+  .oficina-ficha {
+    padding: 0.75rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+    background: var(--mo-canvas);
+    scroll-margin-top: 5rem;
+    outline: 2px solid transparent;
     outline-offset: 2px;
+    transition: outline-color 160ms ease;
+  }
+  .oficina-ficha--futuro {
+    border-style: dashed;
+  }
+  .oficina-envio {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--mo-line);
+  }
+  .oficina-acciones {
+    margin-top: 0.65rem;
+  }
+  .oficina-errores {
+    margin: 0.35rem 0 0;
+    padding: 0;
+    color: var(--mo-danger);
+    font-size: 0.875rem;
+    list-style: none;
+  }
+  .oficina-errores:empty {
+    display: none;
+  }
+  .oficina-error {
+    color: var(--mo-danger);
+    font-weight: 650;
+  }
+  .oficina-ok {
+    color: var(--mo-ok);
+    font-weight: 650;
+  }
+  .oficina-inactivo {
+    opacity: 0.45;
+  }
+  .oficina-riel {
+    display: grid;
+    gap: 0.85rem;
+    align-content: start;
+    padding-top: 1rem;
+    border-top: 1px solid var(--mo-line);
+  }
+  .oficina-sector {
+    min-height: 44px;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    background: var(--mo-canvas);
+    color: var(--mo-ink);
+    font: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition:
+      transform 160ms var(--mo-ease-out),
+      background-color 140ms ease,
+      border-color 140ms ease;
+  }
+  .oficina-sector:active {
+    transform: scale(0.97);
+  }
+  .oficina-sector[aria-pressed="true"] {
+    border-color: var(--mo-accent);
+    background: var(--mo-accent-soft);
+  }
+  .oficina-opcion--on {
+    border-color: var(--mo-accent);
+    background: var(--mo-accent-soft);
+    color: var(--mo-ink);
+  }
+  .oficina-chips {
+    margin: 0.35rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .oficina-chip {
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    font-size: 0.75rem;
+  }
+  .oficina-chip--ancla {
+    border-color: var(--mo-ink);
+    background: var(--mo-ink);
+    color: var(--mo-wash);
+  }
+  .oficina-chip--futuro {
+    border-color: var(--mo-warn);
+    color: var(--mo-warn);
+  }
+  .oficina-json {
+    max-height: 16rem;
+    margin: 0.35rem 0 0;
+    padding: 0.5rem;
+    overflow: auto;
+    border-radius: var(--mo-radius-sm);
+    background: var(--mo-card);
+    color: var(--mo-ink);
+    font-size: 0.75rem;
+  }
+  .oficina-cotizar {
+    display: grid;
+    gap: 0.35rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--mo-line);
+  }
+  .ficha-flash {
+    outline-color: var(--mo-focus);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .oficina-pasos button:hover {
+      color: var(--mo-ink);
+    }
+    .oficina-sector:hover {
+      background: var(--mo-card);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .oficina .oficina-pasos button,
+    .oficina .oficina-sector,
+    .oficina .oficina-ficha,
+    .oficina .oficina-trabajo [data-panel]:not([hidden]) {
+      transition:
+        color 140ms ease,
+        border-color 140ms ease,
+        background-color 140ms ease,
+        outline-color 160ms ease,
+        opacity 150ms var(--mo-ease-out) !important;
+    }
+    .oficina .oficina-pasos button:active,
+    .oficina .oficina-sector:active {
+      transform: none;
+    }
+  }
+  @media (min-width: 48rem) {
+    .oficina {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+    .oficina-par {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (min-width: 64rem) {
+    .oficina-grilla {
+      grid-template-columns: minmax(0, 1.7fr) minmax(16rem, 22rem);
+      align-items: start;
+    }
+    .oficina-riel {
+      padding-top: 0;
+      padding-left: 1.25rem;
+      border-top: 0;
+      border-left: 1px solid var(--mo-line);
+    }
   }
 </style>
 
@@ -260,6 +626,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     mensajeWhatsApp,
     enlaceWhatsApp,
   } from '../lib/oficina-mapping';
+  import { desplazamientoDe } from '../lib/movimiento-oficina';
 
   const NOMBRES = {
     mostrador: 'Mostrador',
@@ -274,6 +641,10 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     migracion_excel: 'Migración Excel',
     b2b_basico: 'B2B Básico',
     ia: 'IA ModoOps',
+    ecommerce: 'Ecommerce',
+    web: 'Página web',
+    crm: 'CRM',
+    otro: 'Otro',
   };
   const SIEMPRE = ['contactos', 'plataforma', 'puente_factura'];
 
@@ -336,15 +707,15 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     // Movimiento reducido: los scrolls programáticos usan 'auto' (global CSS cubre el resto).
     const reduceMovimiento =
       typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    function desplaza(el) {
+    function desplaza(el, destino) {
       if (!(el instanceof HTMLElement)) return;
-      el.scrollIntoView({ behavior: reduceMovimiento ? "auto" : "smooth", block: "center" });
+      el.scrollIntoView({ behavior: desplazamientoDe(destino, reduceMovimiento), block: "center" });
     }
     // Error de validación: vuelve al paso 1, muestra el nombre y le da foco.
     function enfocaNombre() {
       irAPaso(0);
       const nombreEl = root.querySelector('[data-prospecto="nombre"]');
-      desplaza(nombreEl);
+      desplaza(nombreEl, "nombre");
       if (nombreEl instanceof HTMLElement) nombreEl.focus({ preventScroll: true });
     }
     const chips = root.querySelector('[data-seleccion]');    const json = root.querySelector('[data-json]');
@@ -366,7 +737,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         chips.innerHTML = '';
         for (const k of [...b.modulos_ancla, ...b.modulos_futuros]) {
           const li = document.createElement('li');
-          li.className = 'rounded-full border px-2 py-0.5 text-xs' + (esAncla(k) ? ' bg-black text-white' : ' bg-amber-100 text-black');
+          li.className = 'oficina-chip ' + (esAncla(k) ? 'oficina-chip--ancla' : 'oficina-chip--futuro');
           li.textContent = (NOMBRES[k] ?? k) + ' · ' + horasDe(k) + ' h';
           chips.appendChild(li);
         }
@@ -383,11 +754,11 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       const textoWa = mensajeWhatsApp(b);
       if (linkWa instanceof HTMLAnchorElement) {
         linkWa.href = enlaceWhatsApp(textoWa);
-        linkWa.classList.toggle('opacity-40', errores.length > 0);
+        linkWa.classList.toggle('oficina-inactivo', errores.length > 0);
         linkWa.setAttribute('aria-disabled', errores.length > 0 ? 'true' : 'false');
       }
       if (btnCopiar instanceof HTMLButtonElement) {
-        btnCopiar.classList.toggle('opacity-40', errores.length > 0);
+        btnCopiar.classList.toggle('oficina-inactivo', errores.length > 0);
       }
     }
 
@@ -430,8 +801,8 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     function avisaEnviado(texto, ok) {
       if (!(avisoEnviado instanceof HTMLElement)) return;
       avisoEnviado.textContent = texto;
-      avisoEnviado.classList.toggle('text-green-700', !!ok);
-      avisoEnviado.classList.toggle('text-red-700', !ok);
+      avisoEnviado.classList.toggle('oficina-ok', !!ok);
+      avisoEnviado.classList.toggle('oficina-error', !ok);
       avisoEnviado.hidden = false;
     }
     btnEnviar?.addEventListener('click', async () => {
@@ -502,7 +873,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         for (const w of q.warnings ?? []) caja.appendChild(lineaCotizacion('• ' + String(w)));
         for (const e of q.errors ?? []) {
           const p = lineaCotizacion('• ' + String(e), true);
-          p.classList.add('text-red-700');
+          p.classList.add('oficina-error');
           caja.appendChild(p);
         }
         if (!(q.errors ?? []).length && !(q.warnings ?? []).length) {
@@ -582,26 +953,22 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       if (modo === 'whatsapp') {
         convEnviarBtn.dataset.modo = 'whatsapp';
         convEnviarBtn.textContent = 'Enviar por WhatsApp';
-        convEnviarBtn.style.background = '#22c55e';
-        convEnviarBtn.style.borderColor = 'transparent';
-        convEnviarBtn.style.color = '#06130c';
+        convEnviarBtn.classList.remove('mo-btn--primary');
+        convEnviarBtn.classList.add('mo-btn--ghost');
       } else {
         convEnviarBtn.dataset.modo = 'chat';
         convEnviarBtn.textContent = 'Enviar';
-        convEnviarBtn.style.background = '';
-        convEnviarBtn.style.borderColor = '';
-        convEnviarBtn.style.color = '';
+        convEnviarBtn.classList.add('mo-btn--primary');
+        convEnviarBtn.classList.remove('mo-btn--ghost');
       }
     }
     function convBurbuja(rol, textoMsg) {
       if (!(convHilo instanceof HTMLElement)) return;
       const p = document.createElement('p');
-      p.className = 'rounded-xl border p-2 text-sm ' + (rol === 'user'
-        ? 'border-white/20 bg-white/[0.08] text-right'
-        : 'border-white/10 bg-white/[0.04]');
+      p.className = 'oficina-burbuja ' + (rol === 'user' ? 'oficina-burbuja--user' : 'oficina-burbuja--bot');
       p.textContent = String(textoMsg);
       convHilo.appendChild(p);
-      p.scrollIntoView({ behavior: reduceMovimiento ? 'auto' : 'smooth', block: 'nearest' });
+      p.scrollIntoView({ behavior: desplazamientoDe('hilo', reduceMovimiento), block: 'nearest' });
     }
     function convOpciones(lista) {
       if (!(convOpc instanceof HTMLElement)) return;
@@ -610,7 +977,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         const b = document.createElement('button');
         b.type = 'button';
         b.textContent = op.etiqueta;
-        b.className = 'rounded-full border border-white/20 px-3 py-1 text-xs font-semibold';
+        b.className = 'mo-btn';
         b.addEventListener('click', () => convResponder(op.valor));
         convOpc.appendChild(b);
       }
@@ -762,7 +1129,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         const b = document.createElement('button');
         b.type = 'button';
         b.textContent = (on ? '✓ ' : '') + op.etiqueta;
-        b.className = 'rounded-full border px-4 py-2 text-sm font-semibold' + (on ? ' border-transparent bg-[var(--color-star-warm)] text-space-void' : ' border-white/30 bg-white/[0.06] text-white');
+        b.className = 'mo-btn' + (on ? ' oficina-opcion--on' : '');
         b.setAttribute('aria-pressed', on ? 'true' : 'false');
         b.addEventListener('click', () => {
           if (p.sel.has(op.valor)) p.sel.delete(op.valor);
@@ -774,7 +1141,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       const listo = document.createElement('button');
       listo.type = 'button';
       listo.textContent = 'Listo (' + p.sel.size + ') →';
-      listo.className = 'rounded-full border border-transparent bg-[var(--color-star-warm)] px-4 py-2 text-sm font-semibold text-space-void';
+      listo.className = 'mo-btn mo-btn--primary';
       listo.addEventListener('click', () => convResponder('__listo'));
       convOpc.appendChild(listo);
     }
@@ -992,42 +1359,70 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 
     // Wizard
     let paso = 0;
+    try {
+      const inicial = Number(new URL(window.location.href).searchParams.get('paso'));
+      if (inicial === 1 || inicial === 2) paso = inicial;
+    } catch { /* sin URL: se arranca en el paso 0 */ }
     function pintaPaso() {
       root.querySelectorAll('[data-panel]').forEach((p) => {
         if (p instanceof HTMLElement) p.hidden = p.getAttribute('data-panel') !== String(paso);
       });
       root.querySelectorAll('[data-paso]').forEach((b) => {
-        if (b instanceof HTMLElement) b.classList.toggle('font-semibold', b.getAttribute('data-paso') === String(paso));
+        if (!(b instanceof HTMLElement)) return;
+        const on = b.getAttribute('data-paso') === String(paso);
+        if (on) b.setAttribute('aria-current', 'true');
+        else b.removeAttribute('aria-current');
       });
     }
     function irAPaso(n) {
       paso = Math.max(0, Math.min(2, n));
       pintaPaso();
+      try {
+        const url = new URL(window.location.href);
+        if (paso === 0) url.searchParams.delete('paso');
+        else url.searchParams.set('paso', String(paso));
+        window.history.replaceState(null, '', url);
+      } catch { /* sin URL: el paso queda solo en memoria */ }
     }
     root.querySelectorAll('[data-paso]').forEach((b) => {
       b.addEventListener('click', () => irAPaso(Number(b.getAttribute('data-paso')) || 0));
     });
-    // Navegación entre paneles solo desde el chat (irAPaso directo).
+    // Tabs y chat llaman a irAPaso. El paso queda en ?paso=.
 
     // Sector → ficha (sin escena 3D). S5: ?objeto= para compartir/refrescar.
+    const PANEL_FICHA = {
+      'mostrador-3d': 1,
+      'estanteria-3d': 1,
+      'gondola-3d': 1,
+      'computadora-3d': 1,
+      'pizarron-fiscal-3d': 1,
+      'puerta-crecer-3d': 2,
+      'zona-logistica-3d': 2,
+    };
+    function marcaSector(id) {
+      root.querySelectorAll('[data-hero-sector]').forEach((b) => {
+        if (!(b instanceof HTMLElement)) return;
+        b.setAttribute('aria-pressed', b.getAttribute('data-hero-sector') === id ? 'true' : 'false');
+      });
+    }
     function irAFicha(id) {
       try {
         const url = new URL(window.location.href);
         url.searchParams.set('objeto', id);
         window.history.replaceState(null, '', url);
       } catch { /* sin URL disponible: se sigue sin deep-link */ }
+      marcaSector(id);
+      irAPaso(PANEL_FICHA[id] ?? 1);
       const card = root.querySelector(`[data-ficha="${id}"]`);
-      if (id !== 'puerta-crecer-3d') {
+      if (id !== 'puerta-crecer-3d' && id !== 'zona-logistica-3d') {
         const check = root.querySelector(`[data-incluir="${id}"]`);
         if (check instanceof HTMLInputElement && !check.checked) {
           check.checked = true;
           pinta();
         }
-      } else {
-        irAPaso(2);
       }
       if (card instanceof HTMLElement) {
-        desplaza(card);
+        desplaza(card, "zona");
         card.classList.add('ficha-flash');
         setTimeout(() => card.classList.remove('ficha-flash'), 1600);
       }
