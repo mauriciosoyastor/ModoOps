@@ -11,19 +11,98 @@ const { embedded = false } = Astro.props;
 ---
 
 <Section variant="white" id="para-quien" embedded={embedded}>
-  <SectionHeading title={audience.title} />
-  <div class="grid gap-8 md:grid-cols-2">
-    <div>
-      <h3 class="text-[length:var(--text-subheading)] font-medium">{audience.yesTitle}</h3>
-      <ul class="mt-4 grid gap-2 text-[length:var(--text-body)]">
-        {audience.yes.map((item) => <li>✓ {item}</li>)}
+  <SectionHeading title={audience.title} lead={audience.lead} />
+  <div class="aud-grid">
+    <article class="aud-pane aud-pane--yes">
+      <h3 class="aud-pane__title">{audience.yesTitle}</h3>
+      <ul class="aud-list">
+        {audience.yes.map((item) => <li>{item}</li>)}
       </ul>
-    </div>
-    <div>
-      <h3 class="text-[length:var(--text-subheading)] font-medium">{audience.noTitle}</h3>
-      <ul class="mt-4 grid gap-2 text-[length:var(--text-body)] text-ash-gray">
-        {audience.no.map((item) => <li>✕ {item}</li>)}
+    </article>
+    <article class="aud-pane aud-pane--no">
+      <h3 class="aud-pane__title">{audience.noTitle}</h3>
+      <ul class="aud-list">
+        {audience.no.map((item) => <li>{item}</li>)}
       </ul>
-    </div>
+    </article>
   </div>
 </Section>
+
+<style>
+  .aud-grid {
+    display: grid;
+    gap: 0.85rem;
+    max-width: 48rem;
+  }
+
+  @media (min-width: 720px) {
+    .aud-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+  }
+
+  .aud-pane {
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius, 14px);
+    background: transparent;
+    padding: 1rem 1.1rem 1.15rem;
+  }
+
+  .aud-pane--yes {
+    background: var(--mo-canvas);
+    border-left-width: 3px;
+    border-left-color: var(--mo-ok);
+  }
+
+  .aud-pane__title {
+    margin: 0;
+    font-family: var(--mo-display);
+    font-size: 1.35rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--mo-ink);
+  }
+
+  .aud-pane--no .aud-pane__title {
+    color: var(--mo-muted);
+  }
+
+  .aud-list {
+    list-style: none;
+    margin: 0.85rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .aud-list li {
+    display: grid;
+    grid-template-columns: 0.45rem 1fr;
+    gap: 0.65rem;
+    align-items: start;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.45;
+    color: var(--mo-ink);
+  }
+
+  .aud-list li::before {
+    content: "";
+    width: 0.35rem;
+    height: 0.35rem;
+    margin-top: 0.45rem;
+    border-radius: 999px;
+    background: var(--mo-line-strong);
+  }
+
+  .aud-pane--yes .aud-list li::before {
+    background: var(--mo-ok);
+  }
+
+  .aud-pane--no .aud-list li {
+    color: var(--mo-muted);
+  }
+</style>

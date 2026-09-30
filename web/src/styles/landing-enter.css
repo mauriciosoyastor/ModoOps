@@ -16,6 +16,16 @@ html.lp-enter-js [data-lp-enter].is-in {
   transform: none;
 }
 
+html.lp-enter-js [data-lp-enter="from-hoy"] {
+  transform: translateY(-6px);
+}
+
+@media (min-width: 720px) {
+  html.lp-enter-js [data-lp-enter="from-hoy"] {
+    transform: translateX(-6px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html.lp-enter-js [data-lp-enter] {
     opacity: 0;

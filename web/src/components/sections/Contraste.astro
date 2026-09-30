@@ -56,13 +56,18 @@ const VISUAL = [
               <p class="cx-pane__text">{row.hoy}</p>
             </div>
             <div class="cx-arrow" aria-hidden="true">→</div>
-            <div class="cx-pane cx-pane--con" aria-label="Con ModoOps">
+            <div
+              class="cx-pane cx-pane--con"
+              aria-label="Con ModoOps"
+              data-lp-enter="from-hoy"
+              style={`--lp-enter-delay: ${160 + i * 40}ms`}
+            >
               <p class="cx-pane__label">Con ModoOps</p>
               <div class="cx-mock" data-kind={v.conKind}>
                 {v.conKind === 'price' && (
                   <div class="cx-mock__ticket" aria-hidden="true">
                     <span class="cx-mock__sku">Látex 20L</span>
-                    <strong class="cx-mock__amount">USD&nbsp;48</strong>
+                    <strong class="cx-mock__amount">$&nbsp;67.200</strong>
                   </div>
                 )}
                 {v.conKind === 'caja' && (
@@ -74,7 +79,7 @@ const VISUAL = [
                 {v.conKind === 'cierre' && (
                   <div class="cx-mock__ticket" aria-hidden="true">
                     <span class="cx-mock__sku">Cierre turno</span>
-                    <strong class="cx-mock__amount">USD&nbsp;1.240</strong>
+                    <strong class="cx-mock__amount">$&nbsp;1.736.000</strong>
                   </div>
                 )}
                 {v.conKind === 'orden' && (
