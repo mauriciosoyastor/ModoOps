@@ -317,18 +317,8 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     color: var(--mo-ink);
     font-weight: 650;
   }
-  .oficina-trabajo [data-panel] {
-    opacity: 1;
-    transition:
-      opacity 150ms var(--mo-ease-out),
-      display 150ms allow-discrete;
-    @starting-style {
-      opacity: 0;
-    }
-  }
   .oficina-trabajo [data-panel].oficina-panel--oculto {
     display: none;
-    opacity: 0;
   }
   .oficina-grilla {
     display: grid;
@@ -583,15 +573,13 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   @media (prefers-reduced-motion: reduce) {
     .oficina .oficina-pasos button,
     .oficina .oficina-sector,
-    .oficina .oficina-ficha,
-    .oficina .oficina-trabajo [data-panel] {
+    .oficina .oficina-ficha {
       transition:
         color 140ms ease,
         border-color 140ms ease,
         background-color 140ms ease,
         outline-color 160ms ease,
-        opacity 150ms var(--mo-ease-out),
-        display 150ms allow-discrete !important;
+        opacity 150ms var(--mo-ease-out) !important;
     }
     .oficina .oficina-pasos button:active,
     .oficina .oficina-sector:active {
@@ -1375,10 +1363,18 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       if (inicial === 1 || inicial === 2) paso = inicial;
     } catch { /* sin URL: se arranca en el paso 0 */ }
     function pintaPaso() {
+      const ease = getComputedStyle(root).getPropertyValue('--mo-ease-out').trim() || 'ease';
       root.querySelectorAll('[data-panel]').forEach((p) => {
-        if (p instanceof HTMLElement) {
-          p.classList.toggle('oficina-panel--oculto', p.getAttribute('data-panel') !== String(paso));
-        }
+        if (!(p instanceof HTMLElement)) return;
+        const mostrar = p.getAttribute('data-panel') === String(paso);
+        const estabaOculto = p.classList.contains('oficina-panel--oculto');
+        p.classList.toggle('oficina-panel--oculto', !mostrar);
+        if (!(mostrar && estabaOculto) || reduceMovimiento) return;
+        p.getAnimations().forEach((a) => a.cancel());
+        p.animate(
+          [{ opacity: 0 }, { opacity: 1 }],
+          { duration: 150, easing: ease, fill: 'both' },
+        );
       });
       root.querySelectorAll('[data-paso]').forEach((b) => {
         if (!(b instanceof HTMLElement)) return;
