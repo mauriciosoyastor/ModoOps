@@ -4,6 +4,7 @@ import {
   CATALOGO_KEYS,
   GUION_CHAT,
   OBJETO_A_MODULO,
+  OBJETO_LABEL,
   PUERTA_FUTURO,
   SIEMPRE_INCLUIDOS,
   borradorV1,
@@ -97,18 +98,26 @@ describe("oficina-mapping — seam único objeto↔módulo", () => {
     expect(b.datos.productos_aprox).toBe(350);
   });
 
+  it("la puerta a crecer usa comillas curvas", () => {
+    expect(OBJETO_LABEL["puerta-crecer-3d"]).toBe("Puerta «crecer» (futuro)");
+  });
+
   it("valida solo nombre y contacto; el resto es opcional", () => {
     expect(validarBorrador(construirBorrador(fichasBase()))).toEqual([]);
     const sinNombre = construirBorrador({
       ...fichasBase(),
       prospecto: { ...fichasBase().prospecto, nombre: "  " },
     });
-    expect(validarBorrador(sinNombre)).toHaveLength(1);
+    expect(validarBorrador(sinNombre)).toEqual([
+      "Falta el nombre del negocio. Completalo en Nombre del negocio.",
+    ]);
     const sinContacto = construirBorrador({
       ...fichasBase(),
       prospecto: { ...fichasBase().prospecto, telefono: "", email: "" },
     });
-    expect(validarBorrador(sinContacto)).toHaveLength(1);
+    expect(validarBorrador(sinContacto)).toEqual([
+      "Falta un contacto. Completá el teléfono o el email.",
+    ]);
   });
 
   it("persiste y recupera el borrador; corrupto o ausente da null", () => {

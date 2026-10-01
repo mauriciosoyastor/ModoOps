@@ -35,7 +35,7 @@ export const OBJETO_LABEL: Record<Objeto3DId, string> = {
   'gondola-3d': 'Góndola / ventas',
   'computadora-3d': 'Computadora / compras',
   'pizarron-fiscal-3d': 'Pizarrón fiscal',
-  'puerta-crecer-3d': 'Puerta "crecer" (futuro)',
+  'puerta-crecer-3d': 'Puerta «crecer» (futuro)',
   'zona-logistica-3d': 'Logística / reparto',
 };
 
@@ -485,9 +485,11 @@ export function traducirBorradorAGenerar(b: BorradorV1): GenerarInput {
  */
 export function validarBorrador(b: Pick<BorradorV1, 'prospecto'>): string[] {
   const errores: string[] = [];
-  if (!b.prospecto.nombre.trim()) errores.push('Falta el nombre del negocio');
+  if (!b.prospecto.nombre.trim()) {
+    errores.push('Falta el nombre del negocio. Completalo en Nombre del negocio.');
+  }
   if (!b.prospecto.telefono.trim() && !b.prospecto.email.trim()) {
-    errores.push('Falta un contacto (teléfono o email)');
+    errores.push('Falta un contacto. Completá el teléfono o el email.');
   }
   return errores;
 }

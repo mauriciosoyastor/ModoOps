@@ -67,7 +67,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <div class="oficina-opciones" data-chat-opciones></div>
             <form data-chat-form class="oficina-form">
               <label class="sr-only" for="chat-msg">Respondé en la conversación</label>
-              <textarea id="chat-msg" data-chat-msg rows="3" autocomplete="off" class="oficina-campo oficina-campo--chat" placeholder="Respondé o preguntame lo que sea…"></textarea>
+              <textarea id="chat-msg" name="mensaje" data-chat-msg rows="3" autocomplete="off" class="oficina-campo oficina-campo--chat" placeholder="Respondé o preguntame lo que sea…"></textarea>
               <button type="submit" class="mo-btn mo-btn--primary">Enviar</button>
             </form>
             <p class="oficina-nota">Respondé y también podés preguntarme lo que sea (ej: ¿qué incluye el sistema?). Solo nombre y un contacto son obligatorios. Todo queda en tu navegador hasta que lo envíes.</p>
@@ -77,39 +77,41 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <summary>Ver/editar todos los datos</summary>
             <div class="oficina-campos">
             <label>Nombre del negocio *
-              <input data-prospecto="nombre" autocomplete="organization" class="oficina-campo" placeholder="Ej: Pinturería Centro" /></label>
+              <input id="prospecto-nombre" name="nombre" data-prospecto="nombre" autocomplete="organization" class="oficina-campo" placeholder="Ej: Pinturería Centro…" aria-describedby="error-nombre" /></label>
+            <p id="error-nombre" class="oficina-error" data-error="nombre" hidden></p>
             <div class="oficina-par">
               <label>Tu nombre
-                <input data-prospecto="contacto_nombre" autocomplete="name" class="oficina-campo" placeholder="Ej: Ana" /></label>
+                <input name="contacto_nombre" data-prospecto="contacto_nombre" autocomplete="name" class="oficina-campo" placeholder="Ej: Ana…" /></label>
               <label>Teléfono *
-                <input data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="oficina-campo" placeholder="Ej: 3547 000000" /></label>
+                <input id="prospecto-telefono" name="telefono" data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="oficina-campo" placeholder="Ej: 3547 000000…" aria-describedby="error-contacto" /></label>
             </div>
+            <p id="error-contacto" class="oficina-error" data-error="contacto" hidden></p>
             <div class="oficina-par">
               <label>Email
-                <input data-prospecto="email" type="email" autocomplete="email" inputmode="email" class="oficina-campo" placeholder="Ej: ana@negocio.com" /></label>
+                <input id="prospecto-email" name="email" data-prospecto="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" class="oficina-campo" placeholder="Ej: ana@negocio.com…" aria-describedby="error-contacto" /></label>
               <label>Rubro
-                <select data-prospecto="rubro" class="oficina-campo">
+                <select name="rubro" data-prospecto="rubro" class="oficina-campo">
                   <option value="retail">Retail mostrador</option>
                   <option value="distribucion">Distribución chica</option>
                   <option value="servicios">Servicios</option>
                 </select></label>
             </div>
             <div class="oficina-tres">
-              <label>Sucursales <input data-prospecto="sucursales" type="number" min="1" value="1" class="oficina-campo" /></label>
-              <label>Cajas <input data-prospecto="cajas" type="number" min="1" value="2" class="oficina-campo" /></label>
-              <label>Usuarios <input data-prospecto="usuarios" type="number" min="1" value="5" class="oficina-campo" /></label>
+              <label>Sucursales <input name="sucursales" data-prospecto="sucursales" type="number" inputmode="numeric" min="1" value="1" class="oficina-campo" /></label>
+              <label>Cajas <input name="cajas" data-prospecto="cajas" type="number" inputmode="numeric" min="1" value="2" class="oficina-campo" /></label>
+              <label>Usuarios <input name="usuarios" data-prospecto="usuarios" type="number" inputmode="numeric" min="1" value="5" class="oficina-campo" /></label>
             </div>
             <div class="oficina-par">
-              <label>Productos aprox. <input data-dato="productos_aprox" type="number" min="0" value="0" class="oficina-campo" /></label>
+              <label>Productos aprox. <input name="productos_aprox" data-dato="productos_aprox" type="number" inputmode="numeric" min="0" value="0" class="oficina-campo" /></label>
               <label class="oficina-check">¿Llevás stock en Excel hoy?
-                <input data-dato="tiene_excel" type="checkbox" /></label>
+                <input name="tiene_excel" data-dato="tiene_excel" type="checkbox" /></label>
             </div>
             <fieldset class="oficina-fieldset">
               <legend>Tu parte técnica (solo sí/no)</legend>
               <div class="oficina-checks">
-                <label class="oficina-check">¿Pagás hosting o servidor? <input data-infra="hosting_propio" type="checkbox" /></label>
-                <label class="oficina-check">¿Página con candadito (https)? <input data-infra="dominio_ssl" type="checkbox" /></label>
-                <label class="oficina-check">¿Copias de seguridad? <input data-infra="backups" type="checkbox" /></label>
+                <label class="oficina-check">¿Pagás hosting o servidor? <input name="hosting_propio" data-infra="hosting_propio" type="checkbox" /></label>
+                <label class="oficina-check">¿Página con candadito (https)? <input name="dominio_ssl" data-infra="dominio_ssl" type="checkbox" /></label>
+                <label class="oficina-check">¿Copias de seguridad? <input name="backups" data-infra="backups" type="checkbox" /></label>
               </div>
             </fieldset>
             <p class="oficina-nota">* Solo nombre y un contacto (teléfono o email) son obligatorios. Todo lo demás ayuda al consultor pero es opcional.</p>
@@ -124,54 +126,54 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
           <div class="oficina-fichas" data-fichas>
             <article data-ficha="mostrador-3d" class="oficina-ficha">
               <label class="oficina-check oficina-check--titulo">
-                <input data-incluir="mostrador-3d" type="checkbox" /> {OBJETO_LABEL['mostrador-3d']} → {NOMBRES.mostrador}</label>
+                <input name="incluir-mostrador" data-incluir="mostrador-3d" type="checkbox" /> {OBJETO_LABEL['mostrador-3d']} → {NOMBRES.mostrador}</label>
               <div class="oficina-par">
-                <label>¿Cuántas cajas? <input data-obj="mostrador-3d" data-campo="cajas" type="number" min="1" value="2" class="oficina-campo" /></label>
-                <label class="oficina-check">¿Hacés descuento en caja? <input data-obj="mostrador-3d" data-campo="descuento" type="checkbox" /></label>
+                <label>¿Cuántas cajas? <input name="mostrador-cajas" data-obj="mostrador-3d" data-campo="cajas" type="number" inputmode="numeric" min="1" value="2" class="oficina-campo" /></label>
+                <label class="oficina-check">¿Hacés descuento en caja? <input name="mostrador-descuento" data-obj="mostrador-3d" data-campo="descuento" type="checkbox" /></label>
               </div>
             </article>
 
             <article data-ficha="estanteria-3d" class="oficina-ficha">
               <label class="oficina-check oficina-check--titulo">
-                <input data-incluir="estanteria-3d" type="checkbox" /> {OBJETO_LABEL['estanteria-3d']} → {NOMBRES.deposito}</label>
+                <input name="incluir-estanteria" data-incluir="estanteria-3d" type="checkbox" /> {OBJETO_LABEL['estanteria-3d']} → {NOMBRES.deposito}</label>
               <div class="oficina-par">
-                <label>¿Cuántos depósitos? <input data-obj="estanteria-3d" data-campo="almacenes" type="number" min="1" value="1" class="oficina-campo" /></label>
-                <label class="oficina-check">¿Ubicaciones por estante? <input data-obj="estanteria-3d" data-campo="ubicaciones" type="checkbox" /></label>
+                <label>¿Cuántos depósitos? <input name="estanteria-almacenes" data-obj="estanteria-3d" data-campo="almacenes" type="number" inputmode="numeric" min="1" value="1" class="oficina-campo" /></label>
+                <label class="oficina-check">¿Ubicaciones por estante? <input name="estanteria-ubicaciones" data-obj="estanteria-3d" data-campo="ubicaciones" type="checkbox" /></label>
               </div>
             </article>
 
             <article data-ficha="gondola-3d" class="oficina-ficha">
               <label class="oficina-check oficina-check--titulo">
-                <input data-incluir="gondola-3d" type="checkbox" /> {OBJETO_LABEL['gondola-3d']} → {NOMBRES.ventas}</label>
+                <input name="incluir-gondola" data-incluir="gondola-3d" type="checkbox" /> {OBJETO_LABEL['gondola-3d']} → {NOMBRES.ventas}</label>
               <div>
-                <label>¿Cuántas listas de precio? <input data-obj="gondola-3d" data-campo="listas_precio" type="number" min="1" value="1" class="oficina-campo" /></label>
+                <label>¿Cuántas listas de precio? <input name="gondola-listas" data-obj="gondola-3d" data-campo="listas_precio" type="number" inputmode="numeric" min="1" value="1" class="oficina-campo" /></label>
               </div>
             </article>
 
             <article data-ficha="computadora-3d" class="oficina-ficha">
               <label class="oficina-check oficina-check--titulo">
-                <input data-incluir="computadora-3d" type="checkbox" /> {OBJETO_LABEL['computadora-3d']} → {NOMBRES.compras}</label>
+                <input name="incluir-computadora" data-incluir="computadora-3d" type="checkbox" /> {OBJETO_LABEL['computadora-3d']} → {NOMBRES.compras}</label>
               <div class="oficina-par">
-                <label>¿Cuántos proveedores? <input data-obj="computadora-3d" data-campo="proveedores" type="number" min="0" value="0" class="oficina-campo" /></label>
-                <label class="oficina-check">¿Usás orden de compra? <input data-obj="computadora-3d" data-campo="orden_compra" type="checkbox" /></label>
+                <label>¿Cuántos proveedores? <input name="computadora-proveedores" data-obj="computadora-3d" data-campo="proveedores" type="number" inputmode="numeric" min="0" value="0" class="oficina-campo" /></label>
+                <label class="oficina-check">¿Usás orden de compra? <input name="computadora-orden" data-obj="computadora-3d" data-campo="orden_compra" type="checkbox" /></label>
               </div>
             </article>
 
             <article data-ficha="pizarron-fiscal-3d" class="oficina-ficha">
               <label class="oficina-check oficina-check--titulo">
-                <input data-incluir="pizarron-fiscal-3d" type="checkbox" /> {OBJETO_LABEL['pizarron-fiscal-3d']} → {NOMBRES.fiscal_ar}</label>
+                <input name="incluir-fiscal" data-incluir="pizarron-fiscal-3d" type="checkbox" /> {OBJETO_LABEL['pizarron-fiscal-3d']} → {NOMBRES.fiscal_ar}</label>
               <p class="oficina-nota">Borrador sin validez: el cierre real lo hacés con tu contador antes de salir en vivo.</p>
               <fieldset class="oficina-fieldset">
                 <legend>¿Qué comprobantes creés que usás?</legend>
                 <div class="oficina-checks">
                   {COMPROBANTES.map((c) => (
                     <label class="oficina-check oficina-check--chip">
-                      <input data-obj="pizarron-fiscal-3d" data-campo="comprobantes" value={c} type="checkbox" /> {c}
+                      <input name="comprobantes" data-obj="pizarron-fiscal-3d" data-campo="comprobantes" value={c} type="checkbox" /> {c}
                     </label>
                   ))}
                 </div>
               </fieldset>
-              <label>Tu contador <input data-obj="pizarron-fiscal-3d" data-campo="contador" class="oficina-campo" placeholder="Ej: Estudio López" /></label>
+              <label>Tu contador <input name="contador" data-obj="pizarron-fiscal-3d" data-campo="contador" class="oficina-campo" placeholder="Ej: Estudio López…" /></label>
             </article>
           </div>
         </section>
@@ -184,7 +186,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <div class="oficina-fichas">
               {PUERTA_FUTURO.map((k) => (
                 <label class="oficina-check">
-                  <input data-futuro={k} type="checkbox" /> {NOMBRES[k]}
+                  <input name={k} data-futuro={k} type="checkbox" /> {NOMBRES[k]}
                 </label>
               ))}
             </div>
@@ -194,9 +196,9 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <p class="oficina-h3">{OBJETO_LABEL['zona-logistica-3d']}</p>
             <p class="oficina-nota">A desarrollar, a cotizar: la tripleta del chat la califica.</p>
             <div class="oficina-campos">
-              <label>Envíos por día <input data-obj="zona-logistica-3d" data-campo="envios_dia" type="number" min="0" value="0" class="oficina-campo" /></label>
-              <label class="oficina-check"><input data-obj="zona-logistica-3d" data-campo="flota_propia" type="checkbox" /> Flota propia (si no, correo)</label>
-              <label>Zonas donde repartís <input data-obj="zona-logistica-3d" data-campo="zonas" type="text" placeholder="Ej: Capital y alrededores" class="oficina-campo" /></label>
+              <label>Envíos por día <input name="envios_dia" data-obj="zona-logistica-3d" data-campo="envios_dia" type="number" inputmode="numeric" min="0" value="0" class="oficina-campo" /></label>
+              <label class="oficina-check"><input name="flota_propia" data-obj="zona-logistica-3d" data-campo="flota_propia" type="checkbox" /> Flota propia (si no, correo)</label>
+              <label>Zonas donde repartís <input name="zonas" data-obj="zona-logistica-3d" data-campo="zonas" type="text" placeholder="Ej: Capital y alrededores…" class="oficina-campo" /></label>
             </div>
           </article>
 
@@ -204,19 +206,19 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <h3 class="oficina-h3">Enviá tu borrador al consultor</h3>
             <ul class="oficina-errores" data-errores aria-live="polite"></ul>
             <div class="oficina-acciones">
-              <button data-enviar class="mo-btn mo-btn--primary" type="button">Enviar a ModoOps</button>
-              <a data-whatsapp target="_blank" rel="noopener" class="mo-btn mo-btn--ghost">Enviar por WhatsApp</a>
+              <button data-enviar class="mo-btn mo-btn--primary" type="button">Enviar a <span translate="no">ModoOps</span></button>
+              <a data-whatsapp tabindex="-1" aria-disabled="true" target="_blank" rel="noopener" class="mo-btn mo-btn--ghost">Enviar por WhatsApp</a>
               <button data-copiar class="mo-btn mo-btn--ghost" type="button">Copiar JSON</button>
             </div>
-            <p class="oficina-nota" data-copiado hidden>¡Copiado! Pegalo donde te lo pidan.</p>
+            <p class="oficina-nota" data-copiado role="status" hidden></p>
             <p class="oficina-nota" data-enviado role="status" hidden></p>
           </div>
         </section>
       </div>
 
-      <aside class="oficina-riel" aria-live="polite">
+      <aside class="oficina-riel">
         <div data-hero>
-          <p class="oficina-h3">Sectores de tu borrador</p>
+          <h2 class="oficina-h3">Sectores de tu borrador</h2>
           <p class="oficina-nota">Tocá un sector para ir a su ficha (también desde el chat).</p>
           <div class="oficina-sectores" data-hero-sectores>
             {objetos.map((id) => (
@@ -235,7 +237,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         <pre class="oficina-json" data-json>{}</pre>
         <div class="oficina-cotizar" data-cotizacion-panel>
           <h3 class="oficina-h3">Validación del servidor</h3>
-          <p class="oficina-nota">Cotizá tu selección contra el catálogo vivo de Odoo (sin guardar nada).</p>
+          <p class="oficina-nota">Cotizá tu selección contra el Catálogo (sin guardar nada).</p>
           <button data-cotizar class="mo-btn" type="button">Cotizar en servidor</button>
           <div data-cotizacion aria-live="polite"></div>
         </div>
@@ -269,6 +271,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     font-weight: 650;
     letter-spacing: -0.03em;
     line-height: 1.15;
+    text-wrap: balance;
   }
   .oficina-sub {
     margin: 0.3rem 0 0;
@@ -279,11 +282,13 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     margin: 0 0 0.65rem;
     font-size: 1rem;
     font-weight: 650;
+    text-wrap: balance;
   }
   .oficina-h3 {
     margin: 0;
     font-size: 0.95rem;
     font-weight: 650;
+    text-wrap: balance;
   }
   .oficina-pasos {
     display: flex;
@@ -378,6 +383,8 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   }
   .oficina-campo {
     width: 100%;
+    min-height: 44px;
+    scroll-margin-top: 5rem;
     margin-top: 0.25rem;
     padding: 0.5rem 0.65rem;
     border: 1px solid var(--mo-line);
@@ -386,6 +393,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     color: var(--mo-ink);
     font: inherit;
     font-size: 1rem;
+    touch-action: manipulation;
   }
   .oficina-campo--chat {
     min-height: 5.5rem;
@@ -393,6 +401,11 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   }
   .oficina-campo::placeholder {
     color: var(--mo-muted);
+  }
+  .oficina-error {
+    margin: 0.2rem 0 0;
+    color: var(--mo-danger);
+    font-size: 0.8125rem;
   }
   .oficina-details {
     margin-top: 0.85rem;
@@ -608,6 +621,14 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     }
   }
 </style>
+<style is:global>
+  html:has(.oficina) {
+    scroll-padding-top: 5rem;
+  }
+  html:has(.oficina) .oficina-chip {
+    font-variant-numeric: tabular-nums;
+  }
+</style>
 
 <script>
   import {
@@ -726,6 +747,19 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     const avisoEnviado = root.querySelector('[data-enviado]');
     let borradorActual = null;
 
+    function marcaError(avisoSel, campoSel, mensaje) {
+      if (avisoSel) {
+        const aviso = root.querySelector(avisoSel);
+        if (aviso instanceof HTMLElement) {
+          aviso.hidden = !mensaje;
+          aviso.textContent = mensaje;
+        }
+      }
+      const campo = root.querySelector(campoSel);
+      if (campo instanceof HTMLElement) {
+        campo.setAttribute('aria-invalid', mensaje ? 'true' : 'false');
+      }
+    }
     function pinta() {
       const estado = leeEstado();
       const b = construirBorrador(estado);
@@ -750,11 +784,23 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
           listaErrores.appendChild(li);
         }
       }
+      const msgNombre = errores.find((e) => e.includes('nombre del negocio')) ?? '';
+      const msgContacto = errores.find((e) => e.includes('contacto')) ?? '';
+      marcaError('[data-error="nombre"]', '[data-prospecto="nombre"]', msgNombre);
+      marcaError('[data-error="contacto"]', '[data-prospecto="telefono"]', msgContacto);
+      marcaError(null, '[data-prospecto="email"]', msgContacto);
       const textoWa = mensajeWhatsApp(b);
       if (linkWa instanceof HTMLAnchorElement) {
-        linkWa.href = enlaceWhatsApp(textoWa);
-        linkWa.classList.toggle('oficina-inactivo', errores.length > 0);
-        linkWa.setAttribute('aria-disabled', errores.length > 0 ? 'true' : 'false');
+        const bloqueado = errores.length > 0;
+        linkWa.classList.toggle('oficina-inactivo', bloqueado);
+        linkWa.setAttribute('aria-disabled', bloqueado ? 'true' : 'false');
+        if (bloqueado) {
+          linkWa.removeAttribute('href');
+          linkWa.setAttribute('tabindex', '-1');
+        } else {
+          linkWa.href = enlaceWhatsApp(textoWa);
+          linkWa.removeAttribute('tabindex');
+        }
       }
       if (btnCopiar instanceof HTMLButtonElement) {
         btnCopiar.classList.toggle('oficina-inactivo', errores.length > 0);
@@ -780,6 +826,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         ta.remove();
       }
       if (avisoCopiado instanceof HTMLElement) {
+        avisoCopiado.textContent = '¡Copiado! Pegalo donde te lo pidan.';
         avisoCopiado.hidden = false;
         setTimeout(() => { avisoCopiado.hidden = true; }, 3000);
       }
@@ -787,6 +834,10 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     btnCopiar?.addEventListener('click', (e) => {
       if (borradorActual && validarBorrador(borradorActual).length > 0) {
         e.preventDefault();
+        if (avisoCopiado instanceof HTMLElement) {
+          avisoCopiado.textContent = 'Completá el nombre y un contacto antes de copiar.';
+          avisoCopiado.hidden = false;
+        }
         enfocaNombre();
         return;
       }
