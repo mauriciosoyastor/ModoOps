@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { desplazamientoDe } from "./movimiento-oficina";
+import { desplazamientoDe, revelarDatosAntesDe } from "./movimiento-oficina";
 
 describe("movimiento de la oficina", () => {
   it("el hilo del borrador se desplaza al instante", () => {
@@ -18,5 +18,14 @@ describe("movimiento de la oficina", () => {
     expect(desplazamientoDe("hilo", true)).toBe("auto");
     expect(desplazamientoDe("zona", true)).toBe("auto");
     expect(desplazamientoDe("nombre", true)).toBe("auto");
+  });
+
+  it("el nombre faltante abre los datos antes de saltar", () => {
+    expect(revelarDatosAntesDe("nombre")).toBe(true);
+  });
+
+  it("el hilo y la zona no abren los datos", () => {
+    expect(revelarDatosAntesDe("hilo")).toBe(false);
+    expect(revelarDatosAntesDe("zona")).toBe(false);
   });
 });

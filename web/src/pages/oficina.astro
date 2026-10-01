@@ -117,7 +117,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
           </details>
         </section>
 
-        <section data-panel="1" hidden>
+        <section data-panel="1" class="oficina-panel--oculto">
           <h2 class="oficina-h2">Paso 2 — Tu ancla (combo cerrado)</h2>
           <p class="oficina-sub">Tildá lo que necesitás hoy. Siempre incluidos: {SIEMPRE.map((k) => NOMBRES[k]).join(' · ')}.</p>
 
@@ -176,7 +176,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
           </div>
         </section>
 
-        <section data-panel="2" hidden>
+        <section data-panel="2" class="oficina-panel--oculto">
           <h2 class="oficina-h2">Paso 3 — Para crecer (futuro, no ancla)</h2>
           <p class="oficina-sub">Lo que hoy no entra, pero querés dejar anotado.</p>
           <article data-ficha="puerta-crecer-3d" class="oficina-ficha oficina-ficha--futuro">
@@ -317,12 +317,18 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     color: var(--mo-ink);
     font-weight: 650;
   }
-  .oficina-trabajo [data-panel]:not([hidden]) {
+  .oficina-trabajo [data-panel] {
     opacity: 1;
-    transition: opacity 150ms var(--mo-ease-out);
+    transition:
+      opacity 150ms var(--mo-ease-out),
+      display 150ms allow-discrete;
     @starting-style {
       opacity: 0;
     }
+  }
+  .oficina-trabajo [data-panel].oficina-panel--oculto {
+    display: none;
+    opacity: 0;
   }
   .oficina-grilla {
     display: grid;
@@ -578,13 +584,14 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     .oficina .oficina-pasos button,
     .oficina .oficina-sector,
     .oficina .oficina-ficha,
-    .oficina .oficina-trabajo [data-panel]:not([hidden]) {
+    .oficina .oficina-trabajo [data-panel] {
       transition:
         color 140ms ease,
         border-color 140ms ease,
         background-color 140ms ease,
         outline-color 160ms ease,
-        opacity 150ms var(--mo-ease-out) !important;
+        opacity 150ms var(--mo-ease-out),
+        display 150ms allow-discrete !important;
     }
     .oficina .oficina-pasos button:active,
     .oficina .oficina-sector:active {
@@ -626,7 +633,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     mensajeWhatsApp,
     enlaceWhatsApp,
   } from '../lib/oficina-mapping';
-  import { desplazamientoDe } from '../lib/movimiento-oficina';
+  import { desplazamientoDe, revelarDatosAntesDe } from '../lib/movimiento-oficina';
 
   const NOMBRES = {
     mostrador: 'Mostrador',
@@ -709,6 +716,10 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     function desplaza(el, destino) {
       if (!(el instanceof HTMLElement)) return;
+      if (revelarDatosAntesDe(destino)) {
+        const datos = el.closest("details");
+        if (datos instanceof HTMLDetailsElement) datos.open = true;
+      }
       el.scrollIntoView({ behavior: desplazamientoDe(destino, reduceMovimiento), block: "center" });
     }
     // Error de validación: vuelve al paso 1, muestra el nombre y le da foco.
@@ -1365,7 +1376,9 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     } catch { /* sin URL: se arranca en el paso 0 */ }
     function pintaPaso() {
       root.querySelectorAll('[data-panel]').forEach((p) => {
-        if (p instanceof HTMLElement) p.hidden = p.getAttribute('data-panel') !== String(paso);
+        if (p instanceof HTMLElement) {
+          p.classList.toggle('oficina-panel--oculto', p.getAttribute('data-panel') !== String(paso));
+        }
       });
       root.querySelectorAll('[data-paso]').forEach((b) => {
         if (!(b instanceof HTMLElement)) return;

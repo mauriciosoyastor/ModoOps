@@ -5,3 +5,8 @@ export function desplazamientoDe(destino: DestinoOficina, menosMovimiento: boole
   if (menosMovimiento || destino === "hilo") return "auto";
   return "smooth";
 }
+
+/** El nombre vive dentro de «Ver/editar todos los datos». Hay que abrirlo antes de saltar. */
+export function revelarDatosAntesDe(destino: DestinoOficina): boolean {
+  return destino === "nombre";
+}
