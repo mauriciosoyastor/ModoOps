@@ -1,6 +1,7 @@
-// Seam único Objeto3D ↔ Módulo ModoOps + constructor del borrador JSON v1.
-// Toda variante del portal (3D, plano 2D, recorrido) lee por acá; la validación
-// real (hard gate fiscal, techo de horas) vive en el Configurador, nunca en el browser.
+// Seam único zona ↔ Módulo ModoOps + constructor del borrador JSON v1.
+// El portal arma el borrador por chat (sectores/chips); los ids `*-3d` son
+// históricos del schema (origen portal-oficina-3d) y no implican WebGL.
+// Validación dura (gate fiscal, techo de horas) vive en el Configurador, nunca en el browser.
 // Fuente SSOT: modoops_catalogo/catalogo.json vía catalogo.generated.ts (ADR 0009).
 import {
   CATALOGO_HORAS,
@@ -34,7 +35,7 @@ export const OBJETO_LABEL: Record<Objeto3DId, string> = {
   'gondola-3d': 'Góndola / ventas',
   'computadora-3d': 'Computadora / compras',
   'pizarron-fiscal-3d': 'Pizarrón fiscal',
-  'puerta-crecer-3d': 'Puerta "crecer" (futuro)',
+  'puerta-crecer-3d': 'Puerta «crecer» (futuro)',
   'zona-logistica-3d': 'Logística / reparto',
 };
 
@@ -426,7 +427,7 @@ export function mensajeWhatsApp(b: BorradorV1): string {
   const contacto = [b.prospecto.telefono, b.prospecto.email].filter(Boolean).join(' · ');
   const lineas = [
     `Hola ModoOps, soy ${nombre} de ${b.prospecto.nombre} (${b.prospecto.rubro}${contacto ? `, ${contacto}` : ''}).`,
-    'Armé mi borrador no vinculante en la oficina virtual:',
+    'Armé mi borrador no vinculante conversando en el portal:',
   ];
   for (const k of b.modulos_ancla) {
     if (!(SIEMPRE_INCLUIDOS as readonly string[]).includes(k)) lineas.push(`- ${labelDe(k)}`);
@@ -482,13 +483,39 @@ export function traducirBorradorAGenerar(b: BorradorV1): GenerarInput {
  * (teléfono o email). Todo lo demás es opcional; las validaciones duras
  * (1 sucursal, 2 cajas, ~5 usuarios ICP) las hace el consultor en el Descubrimiento.
  */
-export function validarBorrador(b: Pick<BorradorV1, 'prospecto'>): string[] {
-  const errores: string[] = [];
-  if (!b.prospecto.nombre.trim()) errores.push('Falta el nombre del negocio');
+export type HuecoBorrador = "nombre" | "contacto";
+
+export interface FalloBorrador {
+  hueco: HuecoBorrador;
+  mensaje: string;
+}
+
+export function validarBorrador(b: Pick<BorradorV1, 'prospecto'>): FalloBorrador[] {
+  const errores: FalloBorrador[] = [];
+  if (!b.prospecto.nombre.trim()) {
+    errores.push({
+      hueco: "nombre",
+      mensaje: "Falta el nombre del negocio. Completalo en Nombre del negocio.",
+    });
+  }
   if (!b.prospecto.telefono.trim() && !b.prospecto.email.trim()) {
-    errores.push('Falta un contacto (teléfono o email)');
+    errores.push({
+      hueco: "contacto",
+      mensaje: "Falta un contacto. Completá el teléfono o el email.",
+    });
   }
   return errores;
+}
+
+/** Aviso de copiar: nombra solo el hueco que falta. */
+export function avisoAlCopiar(fallos: readonly FalloBorrador[]): string {
+  const huecos = new Set(fallos.map((f) => f.hueco));
+  const partes: string[] = [];
+  if (huecos.has("nombre")) partes.push("el nombre del negocio");
+  if (huecos.has("contacto")) partes.push("el teléfono o el email");
+  if (partes.length === 0) return "";
+  if (partes.length === 1) return `Completá ${partes[0]} antes de copiar.`;
+  return "Completá el nombre del negocio y el teléfono o el email antes de copiar.";
 }
 
 // ---- Persistencia local (cero backend) ----

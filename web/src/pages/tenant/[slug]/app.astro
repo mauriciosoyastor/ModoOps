@@ -1,4 +1,5 @@
 ---
+import { sessionCloseCopy } from '../../../lib/control-plane-vista.ts';
 import LightAppLayout from '../../../layouts/LightAppLayout.astro';
 import { BffError } from '../../../lib/bff/errors.ts';
 import { invalidateBffSession } from '../../../lib/bff/http.ts';
@@ -58,6 +59,7 @@ const homeRes = resumenHome({ tab: homeTabParam });
 const homeTabs = homeRes.ok ? homeRes.home.tabs : [];
 const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes.home.tab)?.label ?? '' : '';
 const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
+const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
 ---
 
 <LightAppLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Shell · ${slug}`} theme="papel">
@@ -80,7 +82,7 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
         <p class="meta">{userName}</p>
       </div>
       <div class="actions">
-        <a class="mo-btn" href="/admin/tenants">← Tenants</a>
+        <a class="mo-btn mo-btn--ghost" href="/admin/tenants">← Tenants</a>
         <button type="button" class="mo-btn mo-btn--ghost" data-logout>Cerrar sesión</button>
       </div>
     </header>
@@ -107,28 +109,6 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
           ))}
         </nav>
 
-        <p class="mo-count" data-home-estado aria-live="polite">Viendo: {homeTabLabel} — cargando números…</p>
-
-        <section class="widgets" aria-label="Resumen del día">
-          <article class="mo-kpi">
-            <p class="mo-kpi__label">Caja del día</p>
-            <p class="mo-kpi__value" data-home-caja style="font-variant-numeric: tabular-nums;">—</p>
-            <p class="mo-kpi__hint" data-home-vs></p>
-          </article>
-          <article class="mo-kpi">
-            <p class="mo-kpi__label">Por cobrar</p>
-            <p class="mo-kpi__value" data-home-porcobrar style="font-variant-numeric: tabular-nums;">—</p>
-          </article>
-          <article class="mo-kpi">
-            <p class="mo-kpi__label">Stock valorizado</p>
-            <p class="mo-kpi__value" data-home-stock style="font-variant-numeric: tabular-nums;">—</p>
-          </article>
-          <button type="button" class="mo-btn mo-btn--ghost ojito" data-home-ojito aria-pressed="false" aria-label="Ocultar montos">
-            Ojo
-          </button>
-          <span class="sr-only" aria-live="polite" data-home-ojito-msg></span>
-        </section>
-
         <section class="panel-block" aria-label="Atajos operativos">
           <div class="tiles">
             <button type="button" class="mo-tile" data-sheet="caja1">
@@ -136,29 +116,57 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
                 <p class="mo-tile__label">Abrir caja 1</p>
                 <p class="mo-tile__hint">Turno en curso · listo para cobrar</p>
               </span>
-              <span class="mo-btn mo-btn--primary">Abrir</span>
+              <span class="mo-pill mo-pill--quiet">Abrir →</span>
             </button>
             <button type="button" class="mo-tile" data-sheet="caja2">
               <span>
                 <p class="mo-tile__label">Abrir caja 2</p>
                 <p class="mo-tile__hint">Cerrada · listo para arrancar</p>
               </span>
-              <span class="mo-btn">Abrir</span>
+              <span class="mo-pill mo-pill--quiet">Abrir →</span>
             </button>
             <button type="button" class="mo-tile" data-sheet="stock">
               <span>
                 <p class="mo-tile__label">Consultar stock</p>
                 <p class="mo-tile__hint">Por código o nombre</p>
               </span>
-              <span class="mo-btn">Buscar</span>
+              <span class="mo-pill mo-pill--quiet">Buscar →</span>
             </button>
             <button type="button" class="mo-tile" data-sheet="cobrar">
               <span>
                 <p class="mo-tile__label">Cobrar una OT</p>
                 <p class="mo-tile__hint">Monto + efectivo/transferencia</p>
               </span>
-              <span class="mo-btn mo-btn--primary">Cobrar</span>
+              <span class="mo-pill mo-pill--quiet">Cobrar →</span>
             </button>
+          </div>
+        </section>
+
+        <section class="panel-block" aria-label="Resumen del día">
+          <p class="mo-count" data-home-estado aria-live="polite">Hoy · {homeTabLabel}</p>
+          <div class="widgets" data-home-skeleton>
+            <div class="mo-skeleton mo-skeleton--kpi" aria-hidden="true"></div>
+            <div class="mo-skeleton mo-skeleton--kpi" aria-hidden="true"></div>
+            <div class="mo-skeleton mo-skeleton--kpi" aria-hidden="true"></div>
+          </div>
+          <div class="widgets" data-home-ready hidden>
+            <article class="mo-kpi">
+              <p class="mo-kpi__label">Caja del día</p>
+              <p class="mo-kpi__value" data-home-caja style="font-variant-numeric: tabular-nums;">—</p>
+              <p class="mo-kpi__hint" data-home-vs></p>
+            </article>
+            <article class="mo-kpi">
+              <p class="mo-kpi__label">Por cobrar</p>
+              <p class="mo-kpi__value" data-home-porcobrar style="font-variant-numeric: tabular-nums;">—</p>
+            </article>
+            <article class="mo-kpi">
+              <p class="mo-kpi__label">Stock valorizado</p>
+              <p class="mo-kpi__value" data-home-stock style="font-variant-numeric: tabular-nums;">—</p>
+            </article>
+            <button type="button" class="mo-btn mo-btn--ghost ojito" data-home-ojito aria-pressed="false" aria-label="Ocultar montos">
+              Ojo
+            </button>
+            <span class="sr-only" aria-live="polite" data-home-ojito-msg></span>
           </div>
         </section>
 
@@ -209,14 +217,25 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
     ) : null}
   </div>
 
-  <div class="mo-toast-region" id="toast-region"></div>
+  <div class="mo-toast-region" id="toast-region" aria-relevant="additions"></div>
+
+  <div class="mo-dialog-backdrop" id="confirm-backdrop" hidden>
+    <div class="mo-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+      <h2 class="mo-dialog__title" id="confirm-title">{cerrarSesion.title}</h2>
+      <p class="mo-dialog__text" id="confirm-text">{cerrarSesion.text}</p>
+      <div class="mo-dialog__actions">
+        <button type="button" class="mo-btn mo-btn--ghost" id="confirm-cancel">{cerrarSesion.cancelLabel}</button>
+        <button type="button" class="mo-btn mo-btn--primary" id="confirm-ok">{cerrarSesion.okLabel}</button>
+      </div>
+    </div>
+  </div>
 
   <!-- FlowSheets -->
   <div class="mo-sheet-backdrop" id="sheet-cobrar" hidden>
     <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-cobrar-title">
       <div class="mo-sheet__top">
         <h2 class="mo-sheet__title" id="sheet-cobrar-title">Cobrar una OT</h2>
-        <button type="button" class="mo-btn" data-sheet-close>Cerrar</button>
+        <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
       </div>
       <p class="mo-sheet__hint">Registrá el cobro con monto en USD.</p>
       <form class="mo-sheet__body" id="form-cobrar">
@@ -248,7 +267,7 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
     <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja1-title">
       <div class="mo-sheet__top">
         <h2 class="mo-sheet__title" id="sheet-caja1-title">Abrir caja 1</h2>
-        <button type="button" class="mo-btn" data-sheet-close>Cerrar</button>
+        <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
       </div>
       <form class="mo-sheet__body" id="form-caja1">
         <div class="mo-field" id="field-fondo1">
@@ -267,7 +286,7 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
     <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja2-title">
       <div class="mo-sheet__top">
         <h2 class="mo-sheet__title" id="sheet-caja2-title">Abrir caja 2</h2>
-        <button type="button" class="mo-btn" data-sheet-close>Cerrar</button>
+        <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
       </div>
       <form class="mo-sheet__body" id="form-caja2">
         <div class="mo-field" id="field-fondo2">
@@ -286,7 +305,7 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
     <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-stock-title">
       <div class="mo-sheet__top">
         <h2 class="mo-sheet__title" id="sheet-stock-title">Consultar stock</h2>
-        <button type="button" class="mo-btn" data-sheet-close>Cerrar</button>
+        <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
       </div>
       <form class="mo-sheet__body" id="form-stock">
         <div class="mo-field" id="field-sku">
@@ -591,9 +610,43 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
       announce(`${hit.name}: ${hit.stock} unidades`);
     });
 
-    document.querySelector('[data-logout]')?.addEventListener('click', async () => {
+    document.querySelector('[data-logout]')?.addEventListener('click', () => {
+      const backdrop = document.getElementById('confirm-backdrop');
+      const confirmOk = document.getElementById('confirm-ok');
+      if (!backdrop) return;
+      lastFocus = document.activeElement as HTMLElement | null;
+      openWithEnter(backdrop);
+      confirmOk?.focus();
+    });
+    document.getElementById('confirm-cancel')?.addEventListener('click', () => {
+      const backdrop = document.getElementById('confirm-backdrop');
+      if (!backdrop) return;
+      closeWithLeave(backdrop, {
+        leaveMs: LEAVE_MS,
+        onDone: () => lastFocus?.focus?.(),
+      });
+    });
+    document.getElementById('confirm-ok')?.addEventListener('click', async () => {
+      const backdrop = document.getElementById('confirm-backdrop');
+      if (backdrop) {
+        closeWithLeave(backdrop, { leaveMs: LEAVE_MS });
+      }
+      showToast('Sesión cerrada', 'Cerraste la sesión de este comercio.', 'ok');
       await fetch('/api/auth/logout', { method: 'POST' });
-      window.location.assign('/login');
+      window.setTimeout(() => window.location.assign('/login'), 400);
+    });
+    document.getElementById('confirm-backdrop')?.addEventListener('keydown', (ev) => {
+      const backdrop = document.getElementById('confirm-backdrop');
+      if (!backdrop) return;
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        closeWithLeave(backdrop, {
+          leaveMs: LEAVE_MS,
+          onDone: () => lastFocus?.focus?.(),
+        });
+        return;
+      }
+      trapTabKey(backdrop, ev);
     });
 
     // Install modules (BFF)
@@ -721,6 +774,12 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
         const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
         let montos: { cajaHoy: number; porCobrar: number; stockValorizado: number; vsAyerPct: number } | null = null;
         let oculto = false;
+        const skeleton = document.querySelector('[data-home-skeleton]');
+        const ready = document.querySelector('[data-home-ready]');
+        const showReady = () => {
+          if (skeleton instanceof HTMLElement) skeleton.hidden = true;
+          if (ready instanceof HTMLElement) ready.hidden = false;
+        };
         const pinta = () => {
           const txt = (v: number) => (oculto ? 'USD ∗∗∗' : fmt.format(v));
           cajaEl.textContent = montos ? txt(montos.cajaHoy) : '—';
@@ -745,10 +804,12 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
             const data = (await res.json()) as { home?: typeof montos };
             if (!data.home) throw new Error('sin home');
             montos = data.home;
-            estadoEl.textContent = 'Números al día.';
+            estadoEl.textContent = `Hoy · números al día.`;
+            showReady();
             pinta();
           } catch {
             estadoEl.textContent = 'No se pudieron cargar los números.';
+            showReady();
           }
         })();
       }

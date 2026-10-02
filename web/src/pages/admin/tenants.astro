@@ -45,6 +45,18 @@ const qs = (e: string, query: string) => {
   const s = p.toString();
   return s ? `/admin/tenants?${s}` : '/admin/tenants';
 };
+
+const vistaJson = JSON.stringify(
+  filtered.map((t) => ({
+    id: t.id,
+    name: t.name,
+    slug: t.slug,
+    state: t.state,
+    modules: t.modules_installed_count,
+    due: t.abono_due_date || '',
+    saldoUsd: t.saldo_pendiente_usd,
+  })),
+);
 ---
 
 <LightAppLayout title="Tenants — ModoOps" description="Control Plane — tenants" theme="papel">
@@ -58,8 +70,8 @@ const qs = (e: string, query: string) => {
           <p class="mo-muted-line">{userName}</p>
         </div>
         <div class="hero-actions">
-          <a class="mo-btn" href="/admin/leads">Leads</a>
-          <a class="mo-btn" href="/app">← App</a>
+          <a class="mo-btn mo-btn--ghost" href="/admin/leads">Leads</a>
+          <a class="mo-btn mo-btn--ghost" href="/app">← App</a>
           <button type="button" class="mo-btn mo-btn--primary" id="btn-nuevo" aria-expanded="false" aria-controls="panel-nuevo">
             + Nuevo tenant
           </button>
@@ -83,6 +95,7 @@ const qs = (e: string, query: string) => {
           value={qRaw}
         />
       </form>
+      <button type="button" class="mo-btn mo-btn--ghost" id="btn-export">Exportar</button>
       <nav class="filters mo-pill-group" aria-label="Filtro estado">
         <a class="mo-pill" href={qs('todos', qRaw)} aria-current={estado === 'todos' ? 'true' : undefined}>Todos</a>
         <a class="mo-pill" href={qs('activo', qRaw)} aria-current={estado === 'activo' ? 'true' : undefined}>Activo</a>
@@ -102,7 +115,7 @@ const qs = (e: string, query: string) => {
             <p class="mo-banner__text">Hay abonos vencidos. Priorizá el contacto antes de suspender.</p>
           </div>
           <div class="mo-banner__actions">
-            <a class="mo-btn" href={qs('moroso', '')}>Ver mora</a>
+            <a class="mo-btn mo-btn--ghost" href={qs('moroso', '')}>Ver mora</a>
           </div>
         </aside>
       ) : susp > 0 && estado === 'todos' && mora === 0 ? (
@@ -113,7 +126,7 @@ const qs = (e: string, query: string) => {
             <p class="mo-banner__text">No operan hasta reactivarlos.</p>
           </div>
           <div class="mo-banner__actions">
-            <a class="mo-btn" href={qs('suspendido', '')}>Ver suspendidos</a>
+            <a class="mo-btn mo-btn--ghost" href={qs('suspendido', '')}>Ver suspendidos</a>
           </div>
         </aside>
       ) : (
@@ -147,7 +160,7 @@ const qs = (e: string, query: string) => {
           </div>
           <div class="create-panel__actions">
             <button type="submit" class="mo-btn mo-btn--primary" id="btn-crear">Crear tenant</button>
-            <button type="button" class="mo-btn" id="btn-cancelar-nuevo">Cancelar</button>
+            <button type="button" class="mo-btn mo-btn--ghost" id="btn-cancelar-nuevo">Cancelar</button>
             <span id="create-msg" class="mo-field__hint"></span>
           </div>
         </form>
@@ -163,7 +176,7 @@ const qs = (e: string, query: string) => {
               {tenants.length === 0 ? (
                 <button type="button" class="mo-btn mo-btn--primary" id="btn-empty-nuevo">+ Nuevo tenant</button>
               ) : (
-                <a class="mo-btn" href="/admin/tenants">Limpiar filtros</a>
+                <a class="mo-btn mo-btn--ghost" href="/admin/tenants">Limpiar filtros</a>
               )}
             </div>
           </div>
@@ -172,6 +185,10 @@ const qs = (e: string, query: string) => {
             <table class="mo-table">
               <thead>
                 <tr>
+                  <th class="check">
+                    <label class="sr-only" for="check-all">Seleccionar todos</label>
+                    <input type="checkbox" id="check-all" />
+                  </th>
                   <th>Tenant</th>
                   <th>Estado</th>
                   <th class="num">Módulos</th>
@@ -183,6 +200,17 @@ const qs = (e: string, query: string) => {
               <tbody>
                 {filtered.map((t) => (
                   <tr>
+                    <td class="check">
+                      <label class="sr-only" for={`chk-${t.id}`}>Seleccionar {t.name}</label>
+                      <input
+                        class="row-check"
+                        id={`chk-${t.id}`}
+                        type="checkbox"
+                        value={String(t.id)}
+                        data-state={t.state}
+                        data-name={t.name}
+                      />
+                    </td>
                     <td>
                       <strong>{t.name}</strong>
                       <div class="slug">{t.slug} · <code>{t.db_name}</code></div>
@@ -195,48 +223,73 @@ const qs = (e: string, query: string) => {
                     <td class="num">{t.saldo_pendiente_usd ? t.saldo_pendiente_usd : '—'}</td>
                     <td>
                       <div class="mo-row-actions">
-                        <a class="mo-btn" href={`/tenant/${t.slug}/app`}>Abrir</a>
-                        <button
-                          type="button"
-                          class="mo-btn"
-                          data-install-open
-                          data-tenant-id={t.id}
-                          data-db={t.db_name}
-                        >
-                          Instalar
-                        </button>
-                        {t.state === 'activo' ? (
+                        <a class="mo-btn mo-btn--ghost" href={`/tenant/${t.slug}/app`}>Abrir</a>
+                        <div class="mo-overflow">
                           <button
                             type="button"
-                            class="mo-btn mo-btn--danger"
-                            data-state
-                            data-tenant-id={t.id}
-                            data-action="suspend"
-                            data-name={t.name}
+                            class="mo-btn mo-btn--icon"
+                            data-overflow-toggle
+                            aria-haspopup="menu"
+                            aria-expanded="false"
+                            aria-label={`Más acciones para ${t.name}`}
                           >
-                            Suspender
+                            …
                           </button>
-                        ) : null}
-                        {t.state === 'suspendido' ? (
-                          <button
-                            type="button"
-                            class="mo-btn mo-btn--primary"
-                            data-state
-                            data-tenant-id={t.id}
-                            data-action="reactivate"
-                            data-name={t.name}
-                          >
-                            Reactivar
-                          </button>
-                        ) : null}
+                          <div class="mo-overflow__menu" role="menu" hidden>
+                            <button
+                              type="button"
+                              class="mo-overflow__item"
+                              role="menuitem"
+                              data-install-open
+                              data-tenant-id={t.id}
+                              data-db={t.db_name}
+                            >
+                              Instalar
+                            </button>
+                            {t.state !== 'suspendido' ? (
+                              <button
+                                type="button"
+                                class="mo-overflow__item mo-overflow__item--danger"
+                                role="menuitem"
+                                data-state
+                                data-tenant-id={t.id}
+                                data-action="suspend"
+                                data-name={t.name}
+                              >
+                                Suspender
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                class="mo-overflow__item"
+                                role="menuitem"
+                                data-state
+                                data-tenant-id={t.id}
+                                data-action="reactivate"
+                                data-name={t.name}
+                              >
+                                Reactivar
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            <div class="mo-bulk" id="bulk-bar" hidden>
+              <p class="mo-bulk__count" id="bulk-count">0 seleccionados</p>
+              <div class="mo-bulk__actions">
+                <button type="button" class="mo-btn mo-btn--ghost" id="bulk-clear">Limpiar selección</button>
+                <button type="button" class="mo-btn mo-btn--danger" id="bulk-suspend">Suspender</button>
+                <button type="button" class="mo-btn mo-btn--primary" id="bulk-reactivate">Reactivar</button>
+              </div>
+            </div>
           </div>
         )}
+        <script type="application/json" id="tenants-vista" is:inline set:html={vistaJson}></script>
       </section>
     </main>
   </div>
@@ -272,7 +325,7 @@ const qs = (e: string, query: string) => {
           </select>
         </label>
         <button type="submit" class="mo-btn mo-btn--primary" id="install-submit">Confirmar</button>
-        <button type="button" class="mo-btn" id="install-cancel">Cancelar</button>
+        <button type="button" class="mo-btn mo-btn--ghost" id="install-cancel">Cancelar</button>
       </div>
       <pre id="install-preview" class="mo-install-preview"></pre>
       <span id="install-msg" class="mo-field__hint"></span>
@@ -283,7 +336,6 @@ const qs = (e: string, query: string) => {
     .shell { min-height: 100dvh; }
     .hero-band {
       padding: 1.35rem 1.35rem 1.1rem;
-      border-bottom: 1px solid var(--mo-line);
       background: color-mix(in srgb, var(--mo-canvas) 88%, transparent);
     }
     .hero-band__row {
@@ -314,8 +366,9 @@ const qs = (e: string, query: string) => {
     .table-wrap { overflow: auto; }
     .create-panel {
       border: 1px solid var(--mo-line);
+      border-left: 3px solid var(--mo-accent);
       border-radius: var(--mo-radius);
-      background: var(--mo-canvas);
+      background: var(--mo-card);
       padding: 1rem 1.1rem;
       display: grid;
       gap: 0.75rem;
@@ -364,8 +417,17 @@ const qs = (e: string, query: string) => {
       openWithEnter,
       closeWithLeave,
       showToast as mountToast,
+      setFadedVisible,
       trapTabKey,
     } from '../../scripts/light-app-chrome.ts';
+    import {
+      bulkReactivateIds,
+      bulkSuspendIds,
+      selectionCountLabel,
+      sessionCloseCopy,
+      tenantsCsv,
+      type TenantVista,
+    } from '../../lib/control-plane-vista.ts';
 
     const CATALOGO = Object.entries(CATALOGO_LABELS) as unknown as readonly (readonly [string, string])[];
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -449,18 +511,30 @@ const qs = (e: string, query: string) => {
       setTimeout(() => window.location.reload(), 600);
     });
 
-    document.querySelector('[data-logout]')?.addEventListener('click', async () => {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      window.location.assign('/login');
+    document.querySelector('[data-logout]')?.addEventListener('click', () => {
+      const copy = sessionCloseCopy('control-plane');
+      openConfirm({
+        title: copy.title,
+        text: copy.text,
+        okLabel: copy.okLabel,
+        cancelLabel: copy.cancelLabel,
+        danger: false,
+        onConfirm: async () => {
+          showToast('Sesión cerrada', copy.text, 'ok');
+          await fetch('/api/auth/logout', { method: 'POST' });
+          window.setTimeout(() => window.location.assign('/login'), 400);
+        },
+      });
     });
 
-    function openConfirm(opts: { title: string; text: string; okLabel: string; danger: boolean; onConfirm: () => void }) {
-      if (!backdrop || !confirmTitle || !confirmText || !confirmOk) return;
+    function openConfirm(opts: { title: string; text: string; okLabel: string; cancelLabel?: string; danger: boolean; onConfirm: () => void }) {
+      if (!backdrop || !confirmTitle || !confirmText || !confirmOk || !confirmCancel) return;
       lastFocus = document.activeElement as HTMLElement | null;
       pendingAction = opts.onConfirm;
       confirmTitle.textContent = opts.title;
       confirmText.textContent = opts.text;
       confirmOk.textContent = opts.okLabel;
+      confirmCancel.textContent = opts.cancelLabel || 'Cancelar';
       confirmOk.className = opts.danger ? 'mo-btn mo-btn--danger' : 'mo-btn mo-btn--primary';
       openWithEnter(backdrop);
       confirmOk.focus();
@@ -497,6 +571,7 @@ const qs = (e: string, query: string) => {
 
     document.querySelectorAll('[data-state]').forEach((btn) => {
       btn.addEventListener('click', () => {
+        closeAllOverflow();
         const el = btn as HTMLElement;
         const id = Number(el.dataset.tenantId);
         const action = String(el.dataset.action || '');
@@ -531,6 +606,161 @@ const qs = (e: string, query: string) => {
         });
       });
     });
+
+    function closeAllOverflow(except?: Element) {
+      document.querySelectorAll('.mo-overflow__menu').forEach((menu) => {
+        if (except && menu === except) return;
+        if (menu.hasAttribute('hidden') && !menu.classList.contains('is-in')) return;
+        const toggle = menu.parentElement?.querySelector('[data-overflow-toggle]');
+        closeWithLeave(menu as HTMLElement, {
+          leaveMs: LEAVE_MS,
+          inClass: 'is-in',
+          leavingClass: 'is-out',
+          onDone: () => toggle?.setAttribute('aria-expanded', 'false'),
+        });
+      });
+    }
+
+    document.addEventListener('click', (ev) => {
+      const raw = ev.target;
+      const target = raw instanceof Element ? raw : raw instanceof Node ? raw.parentElement : null;
+      if (!target) return;
+      const toggle = target.closest('[data-overflow-toggle]');
+      if (toggle) {
+        const wrap = toggle.closest('.mo-overflow');
+        const menu = wrap?.querySelector('.mo-overflow__menu');
+        const open = menu instanceof HTMLElement && menu.hidden;
+        closeAllOverflow(open ? menu : undefined);
+        if (menu instanceof HTMLElement) {
+          if (open) {
+            openWithEnter(menu, { inClass: 'is-in' });
+            toggle.setAttribute('aria-expanded', 'true');
+          } else {
+            closeWithLeave(menu, {
+              leaveMs: LEAVE_MS,
+              inClass: 'is-in',
+              leavingClass: 'is-out',
+              onDone: () => toggle.setAttribute('aria-expanded', 'false'),
+            });
+          }
+        }
+        return;
+      }
+      if (!target.closest('.mo-overflow')) closeAllOverflow();
+    });
+
+    const vistaEl = document.getElementById('tenants-vista');
+    document.getElementById('btn-export')?.addEventListener('click', () => {
+      let rows: TenantVista[] = [];
+      try {
+        rows = JSON.parse(vistaEl?.textContent || '[]') as TenantVista[];
+      } catch {
+        rows = [];
+      }
+      const csv = tenantsCsv(rows);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'tenants.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Export listo', 'El CSV tiene los filtros de esta vista.', 'ok');
+    });
+
+    const bulkBar = document.getElementById('bulk-bar');
+    const bulkCount = document.getElementById('bulk-count');
+    const checkAll = document.getElementById('check-all') as HTMLInputElement | null;
+
+    function selectedRows(): HTMLInputElement[] {
+      return [...document.querySelectorAll<HTMLInputElement>('.row-check:checked')];
+    }
+
+    function syncBulk() {
+      const rows = selectedRows();
+      if (bulkBar) setFadedVisible(bulkBar, rows.length > 0, LEAVE_MS);
+      if (bulkCount) bulkCount.textContent = selectionCountLabel(rows.length);
+      const all = document.querySelectorAll<HTMLInputElement>('.row-check');
+      if (checkAll) {
+        checkAll.checked = all.length > 0 && rows.length === all.length;
+        checkAll.indeterminate = rows.length > 0 && rows.length < all.length;
+      }
+    }
+
+    async function postState(id: number, action: 'suspend' | 'reactivate') {
+      const res = await fetch('/api/admin/tenants/state', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id, action }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+        throw new Error(data?.error?.message || 'No se pudo cambiar el estado');
+      }
+    }
+
+    checkAll?.addEventListener('change', () => {
+      document.querySelectorAll<HTMLInputElement>('.row-check').forEach((box) => {
+        box.checked = Boolean(checkAll.checked);
+      });
+      syncBulk();
+    });
+    document.querySelectorAll('.row-check').forEach((box) => {
+      box.addEventListener('change', syncBulk);
+    });
+    document.getElementById('bulk-clear')?.addEventListener('click', () => {
+      document.querySelectorAll<HTMLInputElement>('.row-check').forEach((box) => {
+        box.checked = false;
+      });
+      if (checkAll) {
+        checkAll.checked = false;
+        checkAll.indeterminate = false;
+      }
+      syncBulk();
+    });
+
+    function runBulk(action: 'suspend' | 'reactivate') {
+      const picked = selectedRows().map((box) => ({
+        id: Number(box.value),
+        state: String(box.dataset.state || ''),
+      }));
+      const ids = action === 'suspend' ? bulkSuspendIds(picked) : bulkReactivateIds(picked);
+      if (ids.length === 0) {
+        showToast(
+          action === 'suspend' ? 'Nada para suspender' : 'Nada para reactivar',
+          action === 'suspend'
+            ? 'Los seleccionados ya están suspendidos.'
+            : 'Seleccioná tenants suspendidos.',
+          'danger',
+        );
+        return;
+      }
+      const danger = action === 'suspend';
+      openConfirm({
+        title: danger ? `¿Suspender ${ids.length} tenant${ids.length === 1 ? '' : 's'}?` : `¿Reactivar ${ids.length} tenant${ids.length === 1 ? '' : 's'}?`,
+        text: danger
+          ? 'Esos comercios dejan de operar hasta que los reactives.'
+          : 'Vuelven a estado activo y pueden operar de inmediato.',
+        okLabel: danger ? 'Suspender selección' : 'Reactivar selección',
+        danger,
+        onConfirm: async () => {
+          try {
+            for (const id of ids) await postState(id, action);
+            showToast(
+              danger ? 'Suspensión masiva' : 'Reactivación masiva',
+              `${ids.length} tenant${ids.length === 1 ? '' : 's'}.`,
+              danger ? 'danger' : 'ok',
+            );
+            window.setTimeout(() => window.location.reload(), 500);
+          } catch (err) {
+            showToast('No se pudo completar', (err as Error).message || 'Error', 'danger');
+          }
+        },
+      });
+    }
+
+    document.getElementById('bulk-suspend')?.addEventListener('click', () => runBulk('suspend'));
+    document.getElementById('bulk-reactivate')?.addEventListener('click', () => runBulk('reactivate'));
 
     const dlg = document.getElementById('install-dialog') as HTMLDialogElement | null;
     const grid = document.getElementById('install-grid') as HTMLDivElement | null;
@@ -568,6 +798,7 @@ const qs = (e: string, query: string) => {
 
     document.querySelectorAll('[data-install-open]').forEach((btn) => {
       btn.addEventListener('click', () => {
+        closeAllOverflow();
         activeTenantId = Number((btn as HTMLElement).dataset.tenantId);
         activeDb = (btn as HTMLElement).dataset.db || 'modoops_<slug>';
         if (titleEl) titleEl.textContent = `Instalar en #${activeTenantId}`;

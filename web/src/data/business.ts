@@ -61,7 +61,7 @@ export function whatsappWithUtm(source: string): string {
 }
 
 export const footer = {
-  contactLead: 'Escribinos por WhatsApp o email. Arrancamos cuando hay fit.',
+  contactLead: 'Escribinos por WhatsApp o email. Si el local entra, arrancamos.',
   newsletterLead: 'Novedades sobre ModoOps — sin spam.',
   copyright: `© ${new Date().getFullYear()} ModoOps — Sistema de Gestión Modular.`,
 } as const;
@@ -128,19 +128,20 @@ export const path = {
 
 export const audience = {
   title: '¿Es para vos?',
-  yesTitle: 'Sí, si…',
+  lead: 'Arrancamos con un local de mostrador. Si después crecés, no te quedás afuera: se anota y se cotiza.',
+  yesTitle: 'Arranque',
   yes: [
-    'Tenés un comercio de una sucursal: pinturería, ferretería, distribución chica o venta presencial.',
-    'Son un equipo chico, unas 5 personas.',
-    'Querés caja, depósito y compras en un solo lugar.',
-    'Aceptás arrancar con el Descubrimiento antes del proyecto.',
+    'Vendés en una sucursal y querés la caja, el depósito y las compras en un solo lugar.',
+    'Pinturería, ferretería u otro comercio de mostrador: el arranque es el mismo.',
+    'El equipo puede ser chico. No hace falta una estructura grande.',
+    'El primer paso es el Descubrimiento, antes de comprometer el proyecto.',
   ],
-  noTitle: 'No es para vos si…',
+  noTitle: 'Después',
   no: [
-    'Necesitás muchas sucursales o venta mayorista compleja desde el día 1.',
-    'Querés solo conectar otro sistema, sin ordenar tu operación acá.',
-    'Buscás trabajo a medida sin alcance.',
-    'No podés dedicar tiempo a datos, fiscal con tu contador e infra propia.',
+    'Más sucursales o un mayorista complejo. Se deja anotado para cuando llegue.',
+    'Tienda online o conectar otro sistema.',
+    'Desarrollo a medida.',
+    'Te acompañamos en tu proceso de crecimiento.',
   ],
 } as const;
 
@@ -257,15 +258,15 @@ export const garantia = {
 } as const;
 
 export const puenteOficina = {
-  title: 'Recorré tu local antes de comprar nada',
-  lead: 'Armamos tu borrador conversando: tu negocio, lo que necesitás hoy y para dónde querés crecer.',
-  cta: 'Entrar a mi oficina',
-  href: '/oficina#camino',
-  note: 'La oficina no te vende nada: es tu borrador, lo valida el consultor en el Descubrimiento.',
+  title: 'Armá tu borrador antes de comprar nada',
+  lead: 'Conversamos: tu negocio, lo que necesitás hoy y para dónde querés crecer. Sin recorrido 3D.',
+  cta: 'Armar mi borrador',
+  href: '/oficina',
+  note: 'El chat no te vende nada: es tu borrador, lo valida el consultor en el Descubrimiento.',
 } as const;
 
 export const nav = [
-  { href: '/oficina', label: 'Recorré tu oficina' },
+  { href: '/oficina', label: 'Armá tu borrador' },
   { href: '#camino', label: 'Camino' },
   { href: '#contacto', label: 'Contacto' },
 ] as const;
@@ -288,7 +289,7 @@ export const seo = {
 } as const;
 
 export const seoOficina = {
-  title: 'Recorré tu oficina — armá tu borrador | ModoOps',
+  title: 'Armá tu borrador conversando | ModoOps',
   description:
-    'Recorré la oficina ModoOps, cargá los datos de tu negocio por objeto y enviá tu borrador no vinculante al consultor.',
+    'Respondé en el chat, tildá lo que necesitás hoy y enviá tu borrador no vinculante al consultor.',
 } as const;

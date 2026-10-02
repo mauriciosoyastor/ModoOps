@@ -3,23 +3,10 @@ import { BFF_COOKIE } from "./lib/bff/config.ts";
 import { sessionStore } from "./lib/bff/session-store.ts";
 import { getGateCache } from "./lib/bff/tenant-status.ts";
 import { isValidTenantSlug } from "./lib/bff/tenant-slug.ts";
+import { isProtectedPath } from "./lib/bff/guardia-rutas.ts";
 
 // Deep module seam único para Guardia Auth (locality: 7 guards → 1)
 // Tapa chica: callers (pages/api) solo conocen locals.odooSessionId, no BffError ni sessionStore.
-
-const PROTECTED_PAGE_PREFIXES = ["/admin", "/app", "/tenant", "/hub"];
-const PROTECTED_API_PREFIXES = ["/api/admin", "/api/launcher", "/api/hub"];
-const PUBLIC_PATHS = ["/login", "/", "/api/auth"];
-
-function isProtectedPage(pathname: string): boolean {
-  if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
-    // /api/auth es público aunque matchee /api/admin? No, /api/auth no está en protected api
-    if (pathname.startsWith("/api/auth")) return false;
-  }
-  if (PROTECTED_PAGE_PREFIXES.some((pre) => pathname === pre || pathname.startsWith(pre + "/"))) return true;
-  if (PROTECTED_API_PREFIXES.some((pre) => pathname === pre || pathname.startsWith(pre + "/"))) return true;
-  return false;
-}
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { request, cookies, locals, redirect, url } = context;
@@ -31,7 +18,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  if (!isProtectedPage(pathname)) {
+  if (!isProtectedPath(pathname)) {
     return next();
   }
 

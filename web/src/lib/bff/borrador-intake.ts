@@ -27,7 +27,9 @@ export function validarFormaBorrador(body: unknown): FormaBorradorOk | FormaBorr
   if (!prospecto || typeof prospecto !== "object") {
     errores.push("Falta el prospecto");
   } else {
-    errores.push(...validarBorrador({ prospecto: prospecto as BorradorV1["prospecto"] }));
+    errores.push(
+      ...validarBorrador({ prospecto: prospecto as BorradorV1["prospecto"] }).map((f) => f.mensaje),
+    );
   }
   if (errores.length) return { ok: false, errores };
   return { ok: true, borrador: b as unknown as BorradorV1 };

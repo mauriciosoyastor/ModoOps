@@ -12,11 +12,45 @@ const { embedded = false } = Astro.props;
 ---
 
 <Section variant="dark" id="oficina" embedded={embedded}>
-  <SectionHeading title={puenteOficina.title} lead={puenteOficina.lead} invert />
-  <div class="mt-2 flex flex-wrap gap-4">
-    <Button href={puenteOficina.href} variant="primary" data-cta="cta_oficina" data-source="puente">{puenteOficina.cta}</Button>
+  <div class="po-grid">
+    <div class="po-copy">
+      <SectionHeading title={puenteOficina.title} lead={puenteOficina.lead} invert />
+      <div class="po-actions">
+        <Button href={puenteOficina.href} variant="primary" data-cta="cta_oficina" data-source="puente">
+          {puenteOficina.cta}
+        </Button>
+      </div>
+      <p class="po-note">{puenteOficina.note}</p>
+    </div>
+
+    <aside class="po-preview" data-lp-enter aria-label="Vista previa del borrador en chat">
+      <div class="po-preview__chrome">
+        <span class="po-preview__dot" aria-hidden="true" />
+        <span class="po-preview__dot" aria-hidden="true" />
+        <span class="po-preview__dot" aria-hidden="true" />
+        <p class="po-preview__title" translate="no">ModoOps · borrador</p>
+      </div>
+      <div class="po-preview__thread">
+        <p class="po-msg po-msg--bot">
+          Contame el rubro y cuántas cajas usás en el mostrador.
+        </p>
+        <p class="po-msg po-msg--user">
+          Pinturería, dos cajas. Quiero depósito y compras juntos.
+        </p>
+        <p class="po-msg po-msg--bot">
+          Anotado. Armamos borrador de mostrador + depósito + compras. Sin compromiso.
+        </p>
+        <div class="po-preview__draft" role="status">
+          <p class="po-preview__draft-label">Borrador</p>
+          <ul class="po-preview__chips">
+            <li>Mostrador · 2 cajas</li>
+            <li>Depósito</li>
+            <li>Compras</li>
+          </ul>
+        </div>
+      </div>
+    </aside>
   </div>
-  <p class="mt-6 max-w-2xl text-sm text-ash-gray">{puenteOficina.note}</p>
 </Section>
 
 <script>
@@ -24,3 +58,131 @@ const { embedded = false } = Astro.props;
     el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_oficina', {props:{source:'puente'}}));
   });
 </script>
+
+<style>
+  .po-grid {
+    display: grid;
+    gap: 1.75rem;
+    align-items: start;
+  }
+
+  @media (min-width: 860px) {
+    .po-grid {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 2rem;
+      align-items: center;
+    }
+  }
+
+  .po-actions {
+    margin-top: 0.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .po-note {
+    margin: 1rem 0 0;
+    max-width: 36rem;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--mo-muted);
+  }
+
+  .po-preview {
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius, 14px);
+    background: var(--mo-canvas);
+    overflow: hidden;
+    max-width: 26rem;
+  }
+
+  .po-preview__chrome {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid var(--mo-line);
+    background: var(--mo-wash, var(--mo-card));
+  }
+
+  .po-preview__dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--mo-ink) 22%, transparent);
+  }
+
+  .po-preview__title {
+    margin: 0 0 0 auto;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--mo-muted);
+  }
+
+  .po-preview__thread {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.9rem 0.85rem 1rem;
+  }
+
+  .po-msg {
+    margin: 0;
+    max-width: 92%;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    border-radius: 12px;
+  }
+
+  .po-msg--bot {
+    justify-self: start;
+    border-radius: 12px 12px 12px 4px;
+    background: color-mix(in srgb, var(--mo-ink) 6%, var(--mo-canvas));
+    color: var(--mo-ink);
+    border: 1px solid var(--mo-line);
+  }
+
+  .po-msg--user {
+    justify-self: end;
+    border-radius: 12px 12px 4px 12px;
+    background: var(--color-star-warm);
+    color: var(--mo-ink);
+  }
+
+  .po-preview__draft {
+    margin-top: 0.25rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: var(--mo-radius-sm, 10px);
+    border: 1px dashed var(--mo-line-strong, var(--mo-line));
+    background: var(--mo-wash, var(--mo-card));
+  }
+
+  .po-preview__draft-label {
+    margin: 0 0 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 650;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--mo-muted);
+  }
+
+  .po-preview__chips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .po-preview__chips li {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--mo-line);
+    color: var(--mo-ink);
+    background: var(--mo-card, var(--mo-canvas));
+  }
+</style>

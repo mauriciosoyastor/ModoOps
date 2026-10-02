@@ -4,6 +4,7 @@ import {
   CATALOGO_KEYS,
   GUION_CHAT,
   OBJETO_A_MODULO,
+  OBJETO_LABEL,
   PUERTA_FUTURO,
   SIEMPRE_INCLUIDOS,
   borradorV1,
@@ -21,6 +22,7 @@ import {
   responderGuion,
   seleccionDeGuion,
   validarBorrador,
+  avisoAlCopiar,
   traducirBorradorAGenerar,
   mensajeWhatsApp,
   enlaceWhatsApp,
@@ -97,18 +99,52 @@ describe("oficina-mapping — seam único objeto↔módulo", () => {
     expect(b.datos.productos_aprox).toBe(350);
   });
 
+  it("la puerta a crecer usa comillas curvas", () => {
+    expect(OBJETO_LABEL["puerta-crecer-3d"]).toBe("Puerta «crecer» (futuro)");
+  });
+
   it("valida solo nombre y contacto; el resto es opcional", () => {
     expect(validarBorrador(construirBorrador(fichasBase()))).toEqual([]);
     const sinNombre = construirBorrador({
       ...fichasBase(),
       prospecto: { ...fichasBase().prospecto, nombre: "  " },
     });
-    expect(validarBorrador(sinNombre)).toHaveLength(1);
+    expect(validarBorrador(sinNombre)).toEqual([
+      {
+        hueco: "nombre",
+        mensaje: "Falta el nombre del negocio. Completalo en Nombre del negocio.",
+      },
+    ]);
     const sinContacto = construirBorrador({
       ...fichasBase(),
       prospecto: { ...fichasBase().prospecto, telefono: "", email: "" },
     });
-    expect(validarBorrador(sinContacto)).toHaveLength(1);
+    expect(validarBorrador(sinContacto)).toEqual([
+      {
+        hueco: "contacto",
+        mensaje: "Falta un contacto. Completá el teléfono o el email.",
+      },
+    ]);
+  });
+
+  it("el aviso al copiar nombra solo el dato que falta", () => {
+    const soloNombre = validarBorrador(construirBorrador({
+      ...fichasBase(),
+      prospecto: { ...fichasBase().prospecto, nombre: "  " },
+    }));
+    expect(avisoAlCopiar(soloNombre)).toBe("Completá el nombre del negocio antes de copiar.");
+    const soloContacto = validarBorrador(construirBorrador({
+      ...fichasBase(),
+      prospecto: { ...fichasBase().prospecto, telefono: "", email: "" },
+    }));
+    expect(avisoAlCopiar(soloContacto)).toBe("Completá el teléfono o el email antes de copiar.");
+    const ambos = validarBorrador(construirBorrador({
+      ...fichasBase(),
+      prospecto: { ...fichasBase().prospecto, nombre: "", telefono: "", email: "" },
+    }));
+    expect(avisoAlCopiar(ambos)).toBe(
+      "Completá el nombre del negocio y el teléfono o el email antes de copiar.",
+    );
   });
 
   it("persiste y recupera el borrador; corrupto o ausente da null", () => {
@@ -164,6 +200,9 @@ describe("oficina-mapping — seam único objeto↔módulo", () => {
     expect(texto).toContain("Pinturería Centro");
     expect(texto).toContain("no vinculante");
     expect(texto).toContain("Descubrimiento");
+    expect(texto).toContain("conversando en el portal");
+    expect(texto.toLowerCase()).not.toContain("oficina virtual");
+    expect(texto.toLowerCase()).not.toContain("3d");
     expect(texto).not.toContain("$800");
     expect(texto).not.toContain("$155");
     expect(texto.toLowerCase()).not.toContain("oferta");

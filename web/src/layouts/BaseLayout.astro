@@ -1,5 +1,6 @@
 ---
 import '../styles/light-app.css';
+import '../styles/landing-enter.css';
 import '../styles/global.css';
 import SiteHeader from '../components/ui/SiteHeader.astro';
 import FloatingWhatsApp from '../components/ui/FloatingWhatsApp.astro';
@@ -90,6 +91,10 @@ const ogImageUrl = new URL(ogImage ?? '/images/galaxy-hero.png', imgBase).toStri
       <slot />
     </div>
     <FloatingWhatsApp />
+    <script>
+      import { initLandingEnter } from '../scripts/landing-enter';
+      initLandingEnter();
+    </script>
   </body>
 </html>
 

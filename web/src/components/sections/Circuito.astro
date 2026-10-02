@@ -8,16 +8,111 @@ interface Props {
 }
 
 const { embedded = false } = Astro.props;
+
+const SHORT = ['Depósito', 'Salón', 'Venta', 'Cobro', 'Factura'] as const;
 ---
 
 <Section variant="linen" id="circuito" embedded={embedded}>
   <SectionHeading title={circuito.title} lead={circuito.lead} />
-  <ol class="grid max-w-3xl gap-3">
-    {circuito.steps.map((step, i) => (
-      <li class="galaxy-card flex items-baseline gap-4 rounded-[var(--radius-card)] p-4">
-        <span class="text-[length:var(--text-subheading)] font-semibold text-nebula-cyan" aria-hidden="true">{i + 1}</span>
-        <span class="text-[length:var(--text-body-lg)]">{step}</span>
-      </li>
-    ))}
+
+  <ol class="ci-flow" aria-label="Circuito del local">
+    {
+      circuito.steps.map((step, i) => (
+        <li class="ci-step" data-lp-enter style={`--lp-enter-delay: ${i * 40}ms`}>
+          {i > 0 && <span class="ci-connector" aria-hidden="true" />}
+          <div class="ci-node">
+            <span class="ci-node__num" aria-hidden="true">
+              {i + 1}
+            </span>
+            <span class="ci-node__short">{SHORT[i] ?? `Paso ${i + 1}`}</span>
+          </div>
+          <p class="ci-step__text">{step}</p>
+        </li>
+      ))
+    }
   </ol>
 </Section>
+
+<style>
+  .ci-flow {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+    max-width: 52rem;
+  }
+
+  @media (min-width: 900px) {
+    .ci-flow {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.5rem;
+      align-items: start;
+    }
+  }
+
+  .ci-step {
+    position: relative;
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.85rem 0.9rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius, 14px);
+    background: var(--mo-card, var(--mo-canvas));
+  }
+
+  .ci-connector {
+    display: none;
+  }
+
+  @media (min-width: 900px) {
+    .ci-step {
+      padding-top: 1rem;
+    }
+
+    .ci-connector {
+      display: block;
+      position: absolute;
+      left: -0.55rem;
+      top: 1.85rem;
+      width: 0.55rem;
+      height: 2px;
+      background: color-mix(in srgb, var(--mo-ok) 55%, var(--mo-line));
+    }
+  }
+
+  .ci-node {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .ci-node__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--mo-accent-ink, var(--mo-ink));
+    background: var(--mo-accent);
+  }
+
+  .ci-node__short {
+    font-size: 0.78rem;
+    font-weight: 650;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--mo-ok);
+  }
+
+  .ci-step__text {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: var(--mo-ink);
+  }
+</style>

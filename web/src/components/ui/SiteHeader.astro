@@ -11,13 +11,16 @@ import { nav, brand } from '../../data/business';
           <a href={item.href}>{item.label}</a>
         ))
       }
+      <a href="/login" class="lp-header__login" data-cta="cta_login" data-source="header">
+        Trabajo en ModoOps
+      </a>
       <a
-        href="/login"
+        href="#contacto"
         class="lp-header__cta"
-        data-cta="cta_login"
+        data-cta="cta_propuesta"
         data-source="header"
       >
-        Trabajo en ModoOps
+        Pedir propuesta
       </a>
     </nav>
   </div>
@@ -80,24 +83,56 @@ import { nav, brand } from '../../data/business';
     color: var(--mo-ink);
   }
 
+  .lp-header__login {
+    min-height: 44px;
+  }
+
   .lp-header__cta {
-    border: 1px solid var(--mo-line-strong);
+    min-height: 44px;
+    border: 0;
     border-radius: 999px;
-    padding: 0.4rem 0.9rem;
-    color: var(--mo-ink) !important;
+    padding: 0.45rem 1rem;
+    font-weight: 600;
+    /* ADR 0011: Acento ModoOps + tinta del acento */
+    background: var(--mo-accent) !important;
+    color: var(--mo-accent-ink) !important;
     transition:
-      border-color 0.15s ease-out,
-      background-color 0.15s ease-out;
+      background-color 0.15s ease-out,
+      color 0.15s ease-out,
+      transform 160ms var(--mo-ease-out, cubic-bezier(0.23, 1, 0.32, 1));
   }
 
   .lp-header__cta:hover {
-    border-color: var(--mo-accent);
-    background: var(--mo-accent-soft);
+    background: var(--mo-accent-hover) !important;
+    color: var(--mo-accent-ink) !important;
+  }
+
+  .lp-header__cta:active {
+    transform: scale(0.97);
+  }
+
+  .lp-header__cta:focus-visible {
+    outline: 2px solid var(--mo-focus, var(--mo-ink));
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lp-header__cta {
+      transition: background-color 0.12s ease-out, color 0.12s ease-out, opacity 0.12s ease-out;
+    }
+
+    .lp-header__cta:active {
+      transform: none;
+      opacity: 0.92;
+    }
   }
 </style>
 
 <script>
   document.querySelectorAll('a[data-cta="cta_login"][data-source="header"]').forEach((el) => {
     el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_login', {props:{source:'header'}}));
+  });
+  document.querySelectorAll('a[data-cta="cta_propuesta"][data-source="header"]').forEach((el) => {
+    el.addEventListener('click', () => (window as any).plausible && (window as any).plausible('cta_propuesta', {props:{source:'header'}}));
   });
 </script>

@@ -1,7 +1,6 @@
 ---
- // Panel-chat único (ticket 03): una sola conversación por guion v2 (sin LLM),
- // la oficina muta por respuesta (apagado/fantasma/encendido), estado en URL,
-// borrador vivo + retomar, cierre sin precio (ticket 04 lo ordena al final).
+// Panel-chat único: conversación por guion v2 (sin LLM), sectores por chips,
+// estado en URL, borrador vivo + retomar. Sin escena WebGL.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import {
   GUION_CHAT,
@@ -24,14 +23,14 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
 ---
 
 <BaseLayout
-  title="Chat — armá tu borrador mirando tu oficina | ModoOps"
-  description="Respondé en criollo, mirá cómo muta tu oficina y enviá tu borrador no vinculante por WhatsApp."
+  title="Chat — armá tu borrador | ModoOps"
+  description="Respondé en criollo, mirá cómo avanza tu borrador y enviálo no vinculante por WhatsApp."
 >
   <main class="mx-auto w-full max-w-6xl px-4 py-8 md:px-8" data-chat>
     <p class="rounded-full border border-dashed px-3 py-1 text-xs text-zinc-400">
       Borrador no vinculante · lo valida el consultor en el Descubrimiento · nada de acá crea tu sistema
     </p>
-    <h1 class="mt-2 text-3xl font-semibold">Contanos tu negocio, mirá tu oficina</h1>
+    <h1 class="mt-2 text-3xl font-semibold">Contanos tu negocio, armá tu borrador</h1>
     <p class="mt-1 text-sm text-zinc-400" data-progreso aria-live="polite">Pregunta 1 de 19 · Tu negocio</p>
 
     <div class="mt-4 grid gap-4" data-layout-wrap>
@@ -100,32 +99,16 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         <p class="mt-2 text-xs text-zinc-400">Siempre incluidos, sin pedirlos: {SIEMPRE_INCLUIDOS.map(labelDe).join(' · ')}</p>
       </section>
 
-      <section aria-label="Oficina en vivo">
+      <section aria-label="Sectores del borrador">
         <div class="md:sticky md:top-4">
-          <canvas
-            data-canvas
-            class="block w-full rounded-xl"
-            style="aspect-ratio: 16/10;"
-            aria-label="Tu oficina mutando: tocá un mueble para ir a su pregunta"
-          ></canvas>
-          <p class="px-1 py-1 text-xs text-zinc-400" data-estado aria-live="polite">Activando escena…</p>
-          <div data-fallback hidden class="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-            <p class="text-sm font-semibold">Sectores (sin 3D)</p>
-            <div class="mt-2 flex flex-wrap gap-1">
-              {objetos.map((id) => (
-                <button data-fb={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">{OBJETO_LABEL[id]}</button>
-              ))}
-            </div>
+          <p class="text-sm font-semibold">Sectores</p>
+          <p class="text-xs text-zinc-400" data-estado aria-live="polite">Tocá un sector para ir a su pregunta.</p>
+          <div class="mt-2 flex flex-wrap gap-1" data-sectores>
+            {objetos.map((id) => (
+              <button type="button" data-fb={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">{OBJETO_LABEL[id]}</button>
+            ))}
           </div>
-          <details class="mt-2 rounded-xl border border-white/10 bg-white/[0.04] p-3">
-            <summary class="cursor-pointer text-sm font-semibold">Elegir sector sin 3D (teclado)</summary>
-            <div class="mt-2 flex flex-wrap gap-1">
-              {objetos.map((id) => (
-                <button data-fb={id} class="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs">{OBJETO_LABEL[id]}</button>
-              ))}
-            </div>
-          </details>
-          <ul class="mt-2 flex flex-wrap gap-1 text-xs" data-construidos aria-label="Estado de tu oficina"></ul>
+          <ul class="mt-2 flex flex-wrap gap-1 text-xs" data-construidos aria-label="Estado de tu borrador"></ul>
         </div>
       </section>
     </div>
@@ -161,7 +144,6 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
   import { agregarTurno, type Turno } from '../lib/orquestador/prospecto.ts';
 
   const objetoAPregunta = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.id]));
-  const preguntaAObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.id, g.objeto]));
   const entradaDe = (id) => GUION_CHAT.find((g) => g.id === id);
   const TOTAL_PASOS = 19; // 18 sub-preguntas (ancla + logística) + crecer
 
@@ -185,7 +167,6 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
     let estado = estadoInicialGuion();
     let crecer = new Set();
     let foco = 'mostrador';
-    let escena = null;
     let borradorActual = null;
     // Ficha logística (opcional, lenguaje comerciante): vive fuera del guion
     // sí/no; viaja en objetos['zona-logistica-3d'] del borrador.
@@ -217,9 +198,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
     const btnEnviar = root.querySelector('[data-enviar]');
     const avisoEnviado = root.querySelector('[data-enviado]');
     const avisoCopiado = root.querySelector('[data-copiado]');
-    const canvas = root.querySelector('[data-canvas]');
     const est = root.querySelector('[data-estado]');
-    const fb = root.querySelector('[data-fallback]');
 
     function decir(textoMsg) {
       if (!(hilo instanceof HTMLElement)) return;
@@ -379,7 +358,6 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
           cb.addEventListener('change', () => {
             if (cb.checked) crecer.add(k);
             else crecer.delete(k);
-            marcarTodo();
             pinta();
             renderModulos();
           });
@@ -440,21 +418,12 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       if (estado[id].join() === antes) return;
       const g = entradaDe(id);
       if (q === 0) {
-        decir(valor === 'si' ? `Anotado: ${labelDe(g.keys[0])}. Mirá tu oficina →` : `${labelDe(g.keys[0])} queda fuera: objeto en fantasma.`);
+        decir(valor === 'si' ? `Anotado: ${labelDe(g.keys[0])}.` : `${labelDe(g.keys[0])} queda fuera.`);
       }
-      marcarTodo();
       pinta();
       renderModulos();
       if (completo(id)) foco = primerIncompleto();
       render();
-    }
-
-    function marcarTodo() {
-      if (!escena || typeof escena.marcar !== 'function') return;
-      for (const id of ORDEN_GUION) {
-        escena.marcar(preguntaAObjeto[id], estadoObjetoGuion(estado, id));
-      }
-      escena.marcar('puerta-crecer-3d', crecer.size > 0 ? 'encendido' : 'apagado');
     }
 
     function leeEstado() {
@@ -503,14 +472,14 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         listaErrores.innerHTML = '';
         for (const e of errores) {
           const li = document.createElement('li');
-          li.textContent = '• ' + e;
+          li.textContent = '• ' + e.mensaje;
           listaErrores.appendChild(li);
         }
       }
       const errNombre = root.querySelector('[data-error="nombre"]');
       const errContacto = root.querySelector('[data-error="contacto"]');
-      const msgNombre = errores.find((e) => e.includes('nombre del negocio'));
-      const msgContacto = errores.find((e) => e.includes('contacto'));
+      const msgNombre = errores.find((e) => e.hueco === 'nombre')?.mensaje;
+      const msgContacto = errores.find((e) => e.hueco === 'contacto')?.mensaje;
       if (errNombre instanceof HTMLElement) {
         errNombre.textContent = msgNombre ?? '';
         errNombre.hidden = !msgNombre;
@@ -711,7 +680,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       pinta();
       const aNombre = root.querySelector('[data-prospecto="nombre"]');
       const aTel = root.querySelector('[data-prospecto="telefono"]');
-      const destino = errores.some((e) => e.includes('nombre del negocio')) ? aNombre : aTel;
+      const destino = errores.some((e) => e.hueco === 'nombre') ? aNombre : aTel;
       if (destino instanceof HTMLElement) {
         destino.scrollIntoView({ behavior: reduc ? 'auto' : 'smooth', block: 'center' });
         destino.focus({ preventScroll: true });
@@ -794,26 +763,9 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       }
     });
 
-    // Escena: click en mueble va a su pregunta (3D→chat); respuestas la mutan (chat→3D).
-    if (canvas instanceof HTMLCanvasElement && !canvas.dataset.mounted) {
-      const io = new IntersectionObserver(async (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        io.disconnect();
-        try {
-          const { mountOficinaScene } = await import('../scripts/oficina-scene');
-          escena = mountOficinaScene(canvas, (objeto) => {
-            if (objetoAPregunta[objeto]) irAModulo(objeto);
-          });
-          window.addEventListener('pagehide', () => escena && escena(), { once: true });
-          marcarTodo();
-          if (est instanceof HTMLElement) est.textContent = 'Escena 3D activa: respondé y mirá cómo muta · click en un mueble para ir a su pregunta.';
-        } catch {
-          canvas.style.display = 'none';
-          if (fb instanceof HTMLElement) fb.hidden = false;
-          if (est instanceof HTMLElement) est.textContent = 'Sin WebGL: usá los sectores para ir a cada pregunta.';
-        }
-      }, { rootMargin: '200px' });
-      io.observe(canvas);
+    // Sectores → pregunta (sin escena 3D).
+    if (est instanceof HTMLElement) {
+      est.textContent = 'Tocá un sector para ir a su pregunta · teclas 1 = Sí, 2 = No.';
     }
     pinta();
     renderModulos();
