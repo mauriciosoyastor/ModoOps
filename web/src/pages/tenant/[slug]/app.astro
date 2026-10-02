@@ -62,7 +62,7 @@ const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
 const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
 ---
 
-<LightAppLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Shell · ${slug}`} theme="papel">
+<LightAppLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Shell · ${slug}`} theme="papel" ops>
   <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
 
   <div class="shell" id="contenido">
@@ -96,11 +96,10 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
 
     {tenant && !tenantError ? (
       <>
-        <nav class="mo-pill-group tabs" aria-label="Módulos" role="tablist">
+        <nav class="mo-tabs tabs" aria-label="Módulos" role="tablist">
           {homeTabs.map((t) => (
             <a
               role="tab"
-              class="mo-pill"
               href={tabHref(t.id)}
               aria-selected={t.active ? 'true' : 'false'}
               aria-current={t.active ? 'true' : undefined}
@@ -111,45 +110,57 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
         </nav>
 
         <section class="panel-block" aria-label="Atajos operativos">
-          <div class="tiles">
-            <button type="button" class="mo-tile" data-sheet="caja1">
+          <p class="mo-section-label">Empezá por acá</p>
+          <div class="work">
+            <button type="button" class="mo-tile mo-tile--now" data-sheet="caja1">
               <span>
                 <p class="mo-tile__label">Abrir caja 1</p>
                 <p class="mo-tile__hint">Turno en curso · listo para cobrar</p>
               </span>
-              <span class="mo-pill mo-pill--quiet">Abrir →</span>
+              <span class="mo-tile__go" aria-hidden="true">Abrir</span>
             </button>
-            <button type="button" class="mo-tile" data-sheet="caja2">
-              <span>
-                <p class="mo-tile__label">Abrir caja 2</p>
-                <p class="mo-tile__hint">Cerrada · listo para arrancar</p>
-              </span>
-              <span class="mo-pill mo-pill--quiet">Abrir →</span>
-            </button>
-            <button type="button" class="mo-tile" data-sheet="stock">
-              <span>
-                <p class="mo-tile__label">Consultar stock</p>
-                <p class="mo-tile__hint">Por código o nombre</p>
-              </span>
-              <span class="mo-pill mo-pill--quiet">Buscar →</span>
-            </button>
-            <button type="button" class="mo-tile" data-sheet="cobrar">
-              <span>
-                <p class="mo-tile__label">Cobrar una OT</p>
-                <p class="mo-tile__hint">Monto + efectivo/transferencia</p>
-              </span>
-              <span class="mo-pill mo-pill--quiet">Cobrar →</span>
-            </button>
+            <div class="tiles">
+              <button type="button" class="mo-tile" data-sheet="caja2">
+                <span>
+                  <p class="mo-tile__label">Abrir caja 2</p>
+                  <p class="mo-tile__hint">Cerrada · listo para arrancar</p>
+                </span>
+                <span class="mo-pill mo-pill--quiet" aria-hidden="true">Abrir</span>
+              </button>
+              <button type="button" class="mo-tile" data-sheet="stock">
+                <span>
+                  <p class="mo-tile__label">Consultar stock</p>
+                  <p class="mo-tile__hint">Por código o nombre</p>
+                </span>
+                <span class="mo-pill mo-pill--quiet" aria-hidden="true">Buscar</span>
+              </button>
+              <button type="button" class="mo-tile" data-sheet="cobrar">
+                <span>
+                  <p class="mo-tile__label">Cobrar una OT</p>
+                  <p class="mo-tile__hint">Monto + efectivo/transferencia</p>
+                </span>
+                <span class="mo-pill mo-pill--quiet" aria-hidden="true">Cobrar</span>
+              </button>
+            </div>
           </div>
         </section>
 
         <section class="panel-block" aria-label="Resumen del día">
-          <p class="mo-count" data-home-estado aria-live="polite">Hoy · {homeTabLabel}</p>
+          <div class="day-head">
+            <p class="mo-section-label" data-home-estado>Hoy · {homeTabLabel}</p>
+            <button type="button" class="mo-btn mo-btn--ghost day-head__toggle" data-home-ojito hidden aria-pressed="false">
+              Ocultar montos
+            </button>
+            <span class="sr-only" aria-live="polite" data-home-ojito-msg></span>
+          </div>
           <div class="widgets" data-home-skeleton>
             <div class="mo-skeleton mo-skeleton--kpi" aria-hidden="true"></div>
             <div class="mo-skeleton mo-skeleton--kpi" aria-hidden="true"></div>
             <div class="mo-skeleton mo-skeleton--kpi" aria-hidden="true"></div>
           </div>
+          <p class="mo-banner mo-banner--danger" data-home-error role="alert" hidden>
+            No se pudieron cargar los números. Recargá la página.
+          </p>
           <div class="widgets" data-home-ready hidden>
             <article class="mo-kpi">
               <p class="mo-kpi__label">Caja del día</p>
@@ -164,18 +175,14 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
               <p class="mo-kpi__label">Stock valorizado</p>
               <p class="mo-kpi__value" data-home-stock>—</p>
             </article>
-            <button type="button" class="mo-btn mo-btn--ghost ojito" data-home-ojito aria-pressed="false">
-              Ocultar montos
-            </button>
-            <span class="sr-only" aria-live="polite" data-home-ojito-msg></span>
           </div>
         </section>
 
-        <section class="panel-block mo-panel" id="launcher" aria-label="Módulos del launcher">
-          <h2 class="section-title">Launcher · {tiles.length} tiles</h2>
+        <section class="panel-block region" id="launcher" aria-label="Aplicaciones">
+          <h2 class="mo-section-label">Aplicaciones <span class="mo-count">{tiles.length}</span></h2>
           {launcherError ? <p class="mo-banner mo-banner--danger" role="status">{launcherError}</p> : null}
           {tiles.length === 0 && !launcherError ? (
-            <p class="mo-empty__text">Sin tiles visibles para este usuario en este tenant.</p>
+            <p class="mo-empty__text">Sin aplicaciones visibles para este usuario.</p>
           ) : (
             <div class="launcher-grid">
               {tiles.map((t) => (
@@ -191,8 +198,8 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
           )}
         </section>
 
-        <section class="panel-block mo-panel">
-          <h2 class="section-title">Armar sistema</h2>
+        <section class="panel-block region">
+          <h2 class="mo-section-label">Armar sistema</h2>
           <p class="mo-empty__text">Instalá o quitá módulos de este comercio.</p>
           <div id="tenant-install-root" data-tenant-id={tenant.id} data-db={tenant.db_name} data-installed={tenant.modules_installed ?? ''}></div>
           <div class="actions">
@@ -201,7 +208,7 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
           </div>
           {hasIA ? (
             <div class="chat" id="ia-chat-root" data-db={tenant.db_name}>
-              <h2 class="section-title">Chat IA</h2>
+              <h2 class="mo-section-label">Chat IA</h2>
               <div id="ia-chat-log" class="chat-log" aria-live="polite"></div>
               <form id="ia-chat-form" class="chat-form">
                 <label class="sr-only" for="ia-chat-input">Mensaje</label>
@@ -434,48 +441,86 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
         max(1.35rem, env(safe-area-inset-left));
     }
     .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.75rem; }
-    .tabs { margin: 0.5rem 0 0.75rem; }
+    .tabs {
+      width: 100%;
+      margin: 0.25rem 0 0.15rem;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .tabs a:hover { color: var(--mo-ink); }
+    }
     .widgets {
       display: grid;
       gap: 0.5rem;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr;
       align-items: start;
     }
-    .widgets[hidden] { display: none; }
-    @media (min-width: 720px) {
-      .widgets { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
+    .widgets[hidden],
+    .mo-banner[hidden] { display: none; }
+    @media (min-width: 640px) {
+      .widgets { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     .mo-kpi__value { font-variant-numeric: tabular-nums; }
-    .ojito { justify-self: start; }
-    .panel-block { margin-top: 1rem; }
-    .tiles { display: grid; gap: 0.75rem; grid-template-columns: 1fr; }
-    @media (min-width: 640px) {
-      .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .day-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.25rem 1rem;
     }
-    .section-title {
-      margin: 0 0 0.5rem;
-      font-family: var(--mo-display);
-      font-size: 1.25rem;
+    .day-head .mo-section-label { margin: 0; }
+    .day-head__toggle {
+      min-height: 44px;
+      padding-inline: 0.5rem;
+    }
+    .day-head__toggle[hidden] { display: none; }
+    .panel-block { margin-top: 1rem; }
+    .region {
+      margin-top: 1.15rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--mo-line);
+    }
+    .work { display: grid; gap: 0.5rem; }
+    .mo-tile--now {
+      border-left: 3px solid var(--mo-accent);
+      background: var(--mo-canvas);
+    }
+    .mo-tile__go {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0.5rem 1rem;
+      border-radius: var(--mo-radius-sm);
+      background: var(--mo-accent);
+      color: var(--mo-accent-ink);
       font-weight: 650;
-      text-wrap: balance;
+      font-size: 0.92rem;
+    }
+    .tiles { display: grid; gap: 0.5rem; grid-template-columns: 1fr; }
+    @media (min-width: 720px) {
+      .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     .launcher-grid {
       display: grid;
-      gap: 0.75rem;
-      grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+      gap: 0 1.5rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .launcher-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     .launcher-row {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 0.5rem 1rem;
-      align-items: center;
-      min-height: 4.5rem;
-      padding: 0.75rem 1rem;
-      border-radius: var(--mo-radius-sm);
-      background: var(--mo-field);
+      gap: 0.15rem 0.75rem;
+      align-items: baseline;
+      min-height: 44px;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--mo-line);
+      border-radius: 0;
+      background: transparent;
     }
-    .launcher-row__label { margin: 0; font-weight: 650; font-size: 1rem; }
-    .launcher-row__hint { margin: 0.25rem 0 0; color: var(--mo-muted); font-size: 0.85rem; }
+    .launcher-row__label { margin: 0; font-weight: 650; font-size: 0.92rem; }
+    .launcher-row__hint { margin: 0.1rem 0 0; color: var(--mo-muted); font-size: 0.78rem; }
     .launcher-row__value { font-variant-numeric: tabular-nums; font-weight: 650; }
     .pay-options { display: flex; flex-wrap: wrap; gap: 0.75rem; }
     .pay-options label {
@@ -1040,6 +1085,7 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
         const showReady = () => {
           if (skeleton instanceof HTMLElement) skeleton.hidden = true;
           if (ready instanceof HTMLElement) ready.hidden = false;
+          ojoBtn.hidden = false;
         };
         const pinta = () => {
           const txt = (v: number) => (oculto ? 'USD ∗∗∗' : fmt.format(v));
@@ -1065,12 +1111,12 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
             const data = (await res.json()) as { home?: typeof montos };
             if (!data.home) throw new Error('sin home');
             montos = data.home;
-            estadoEl.textContent = `Hoy · números al día.`;
             showReady();
             pinta();
           } catch {
-            estadoEl.textContent = 'No se pudieron cargar los números.';
-            showReady();
+            if (skeleton instanceof HTMLElement) skeleton.hidden = true;
+            const err = document.querySelector('[data-home-error]');
+            if (err instanceof HTMLElement) err.hidden = false;
           }
         })();
       }
