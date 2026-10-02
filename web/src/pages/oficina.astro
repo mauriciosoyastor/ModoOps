@@ -272,7 +272,8 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   }
   [data-copiado] {
     position: sticky;
-    top: 10rem;
+    top: var(--oficina-bajo-encabezado);
+    /* Debajo del encabezado (z-index 20). */
     z-index: 15;
     background: var(--mo-wash);
   }
@@ -396,7 +397,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   .oficina-campo {
     width: 100%;
     min-height: 44px;
-    scroll-margin-top: 10rem;
+    scroll-margin-top: var(--oficina-bajo-encabezado);
     margin-top: 0.25rem;
     padding: 0.5rem 0.65rem;
     border: 1px solid var(--mo-line);
@@ -478,7 +479,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     border: 1px solid var(--mo-line);
     border-radius: var(--mo-radius);
     background: var(--mo-canvas);
-    scroll-margin-top: 10rem;
+    scroll-margin-top: var(--oficina-bajo-encabezado);
     outline: 2px solid transparent;
     outline-offset: 2px;
     transition: outline-color 160ms ease;
@@ -637,7 +638,8 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 </style>
 <style is:global>
   html:has(.oficina) {
-    scroll-padding-top: 10rem;
+    --oficina-bajo-encabezado: 10rem;
+    scroll-padding-top: var(--oficina-bajo-encabezado);
   }
   html:has(.oficina) .oficina-chip {
     font-variant-numeric: tabular-nums;

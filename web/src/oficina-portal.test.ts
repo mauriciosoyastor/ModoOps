@@ -68,7 +68,7 @@ describe("portal del borrador", () => {
     expect(copiado).toBeLessThan(text.indexOf('data-panel="2"'));
     expect(text).toMatch(/data-copiado[^>]*role="status"/);
     expect(text).toMatch(/\[data-copiado\]\s*\{[^}]*position:\s*sticky/);
-    expect(text).toMatch(/\[data-copiado\]\s*\{[^}]*top:\s*10rem/);
+    expect(text).toMatch(/\[data-copiado\]\s*\{[^}]*top:\s*var\(--oficina-bajo-encabezado\)/);
     expect(text).not.toContain("anunciaCopia(fallosEnvio");
   });
 
@@ -79,7 +79,8 @@ describe("portal del borrador", () => {
     expect(text).toContain('<h2 class="oficina-h3">Sectores de tu borrador</h2>');
     expect(text).toMatch(/\.oficina-chip\s*\{[^}]*font-variant-numeric:\s*tabular-nums/);
     expect(text).toMatch(/\.oficina-titulo\s*\{[^}]*text-wrap:\s*balance/);
-    expect(text).toContain("scroll-padding-top: 10rem");
-    expect(text).toContain("scroll-margin-top: 10rem");
+    expect(text.match(/--oficina-bajo-encabezado:\s*10rem/g)).toHaveLength(1);
+    expect(text).toContain("scroll-padding-top: var(--oficina-bajo-encabezado)");
+    expect(text).toContain("scroll-margin-top: var(--oficina-bajo-encabezado)");
   });
 });
