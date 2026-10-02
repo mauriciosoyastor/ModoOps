@@ -65,31 +65,32 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
 <LightAppLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Shell · ${slug}`} theme="papel">
   <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
 
-  <div class="page" id="contenido">
-    <header class="top">
-      <div>
-        <p class="mo-brand mo-brand--eyebrow" translate="no">ModoOps</p>
-        <p class="mo-saludo">
+  <div class="shell" id="contenido">
+    <header class="app-bar">
+      <div class="app-bar__identity">
+        <p class="app-bar__brand" translate="no">ModoOps</p>
+        <h1 class="app-bar__title">
           {tenant ? `Así viene tu día en ${tenant.name}.` : 'Shell del tenant'}
-        </p>
-        <p class="tenant-name">
-          {tenant?.name ?? slug}
-          <code class="db">{tenant?.db_name ?? `modoops_${slug}`}</code>
+        </h1>
+        <p class="app-bar__meta">
+          <span translate="no">{tenant?.name ?? slug}</span>
           {tenant ? (
             <span class:list={['mo-badge', `is-${tenant.state}`]}>{tenant.state}</span>
           ) : null}
+          {userName ? <span>{userName}</span> : null}
         </p>
-        <p class="meta">{userName}</p>
       </div>
-      <div class="actions">
-        <a class="mo-btn mo-btn--ghost" href="/admin/tenants">← Tenants</a>
-        <button type="button" class="mo-btn mo-btn--ghost" data-logout>Cerrar sesión</button>
-      </div>
+      <nav class="app-bar__nav" aria-label="Cuenta">
+        <a class="app-link" href="/admin/tenants">← Tenants</a>
+        <button type="button" class="app-link app-link--session" data-logout>Cerrar sesión</button>
+      </nav>
     </header>
+
+    <div class="page">
 
     {tenantError ? (
       <p class="mo-banner mo-banner--danger" role="alert">
-        {tenantError} — <a href="/admin/tenants">volver a lista</a>
+        {tenantError} — <a class="app-link" href="/admin/tenants">volver a lista</a>
       </p>
     ) : null}
 
@@ -152,19 +153,19 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
           <div class="widgets" data-home-ready hidden>
             <article class="mo-kpi">
               <p class="mo-kpi__label">Caja del día</p>
-              <p class="mo-kpi__value" data-home-caja style="font-variant-numeric: tabular-nums;">—</p>
+              <p class="mo-kpi__value" data-home-caja>—</p>
               <p class="mo-kpi__hint" data-home-vs></p>
             </article>
             <article class="mo-kpi">
               <p class="mo-kpi__label">Por cobrar</p>
-              <p class="mo-kpi__value" data-home-porcobrar style="font-variant-numeric: tabular-nums;">—</p>
+              <p class="mo-kpi__value" data-home-porcobrar>—</p>
             </article>
             <article class="mo-kpi">
               <p class="mo-kpi__label">Stock valorizado</p>
-              <p class="mo-kpi__value" data-home-stock style="font-variant-numeric: tabular-nums;">—</p>
+              <p class="mo-kpi__value" data-home-stock>—</p>
             </article>
-            <button type="button" class="mo-btn mo-btn--ghost ojito" data-home-ojito aria-pressed="false" aria-label="Ocultar montos">
-              Ojo
+            <button type="button" class="mo-btn mo-btn--ghost ojito" data-home-ojito aria-pressed="false">
+              Ocultar montos
             </button>
             <span class="sr-only" aria-live="polite" data-home-ojito-msg></span>
           </div>
@@ -178,12 +179,12 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
           ) : (
             <div class="launcher-grid">
               {tiles.map((t) => (
-                <div class="mo-tile launcher-tile">
+                <div class="launcher-row">
                   <span>
-                    <p class="mo-tile__label">{t.label}</p>
-                    <p class="mo-tile__hint">{t.hint}</p>
+                    <p class="launcher-row__label">{t.label}</p>
+                    <p class="launcher-row__hint">{t.hint}</p>
                   </span>
-                  <span class="mo-tile__value">{t.value ?? '—'}</span>
+                  <span class="launcher-row__value">{t.value ?? '—'}</span>
                 </div>
               ))}
             </div>
@@ -192,22 +193,22 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
 
         <section class="panel-block mo-panel">
           <h2 class="section-title">Armar sistema</h2>
-          <p class="mo-empty__text">Instalá o quitá módulos para <code>{tenant.db_name}</code>.</p>
+          <p class="mo-empty__text">Instalá o quitá módulos de este comercio.</p>
           <div id="tenant-install-root" data-tenant-id={tenant.id} data-db={tenant.db_name} data-installed={tenant.modules_installed ?? ''}></div>
-          <div class="actions" style="margin-top:0.75rem">
-            <button type="button" id="tenant-install-open" class="mo-btn mo-btn--primary">Gestionar módulos</button>
+          <div class="actions">
+            <button type="button" id="tenant-install-open" class="mo-btn mo-btn--ghost" aria-expanded="false" aria-controls="tenant-install-dialog">Gestionar módulos</button>
             <span class="mo-count">{tenant.modules_installed ? `Instalados: ${tenant.modules_installed}` : '0 módulos'}</span>
           </div>
           {hasIA ? (
             <div class="chat" id="ia-chat-root" data-db={tenant.db_name}>
-              <h3 class="section-title">Chat IA</h3>
+              <h2 class="section-title">Chat IA</h2>
               <div id="ia-chat-log" class="chat-log" aria-live="polite"></div>
               <form id="ia-chat-form" class="chat-form">
                 <label class="sr-only" for="ia-chat-input">Mensaje</label>
-                <input class="mo-field__control" id="ia-chat-input" name="message" placeholder="Ej: stock producto 42" autocomplete="off" />
-                <button type="submit" class="mo-btn mo-btn--primary">Enviar</button>
+                <input class="mo-field__control" id="ia-chat-input" name="message" placeholder="Ej.: stock del producto 42…" autocomplete="off" spellcheck="false" aria-describedby="ia-chat-error" />
+                <button type="submit" class="mo-btn mo-btn--ghost" id="ia-chat-send">Enviar</button>
+                <p id="ia-chat-error" class="mo-field__error" role="alert" hidden></p>
               </form>
-              <pre id="ia-chat-debug" class="chat-debug"></pre>
             </div>
           ) : (
             <p class="mo-empty__text">IA no instalada — tildala en Gestionar módulos.</p>
@@ -215,6 +216,7 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
         </section>
       </>
     ) : null}
+    </div>
   </div>
 
   <div class="mo-toast-region" id="toast-region" aria-relevant="additions"></div>
@@ -223,6 +225,7 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
     <div class="mo-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
       <h2 class="mo-dialog__title" id="confirm-title">{cerrarSesion.title}</h2>
       <p class="mo-dialog__text" id="confirm-text">{cerrarSesion.text}</p>
+      <p id="confirm-error" class="mo-banner mo-banner--danger" role="alert" hidden></p>
       <div class="mo-dialog__actions">
         <button type="button" class="mo-btn mo-btn--ghost" id="confirm-cancel">{cerrarSesion.cancelLabel}</button>
         <button type="button" class="mo-btn mo-btn--primary" id="confirm-ok">{cerrarSesion.okLabel}</button>
@@ -241,13 +244,13 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       <form class="mo-sheet__body" id="form-cobrar">
         <div class="mo-field" id="field-ot">
           <label class="mo-field__label" for="ot-num">Número de OT</label>
-          <input class="mo-field__control" id="ot-num" name="ot" inputmode="numeric" autocomplete="off" />
-          <p class="mo-field__error" id="err-ot" hidden></p>
+          <input class="mo-field__control" id="ot-num" name="ot" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="err-ot" />
+          <p class="mo-field__error" id="err-ot" role="alert" hidden></p>
         </div>
         <div class="mo-field" id="field-monto">
           <label class="mo-field__label" for="ot-monto">Monto (USD)</label>
-          <input class="mo-field__control" id="ot-monto" name="monto" inputmode="decimal" autocomplete="off" />
-          <p class="mo-field__error" id="err-monto" hidden></p>
+          <input class="mo-field__control" id="ot-monto" name="monto" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="err-monto" />
+          <p class="mo-field__error" id="err-monto" role="alert" hidden></p>
         </div>
         <fieldset class="mo-field">
           <legend class="mo-field__label">Medio de pago</legend>
@@ -272,8 +275,8 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       <form class="mo-sheet__body" id="form-caja1">
         <div class="mo-field" id="field-fondo1">
           <label class="mo-field__label" for="fondo1">Fondo inicial (USD)</label>
-          <input class="mo-field__control" id="fondo1" name="fondo" inputmode="decimal" />
-          <p class="mo-field__error" id="err-fondo1" hidden></p>
+          <input class="mo-field__control" id="fondo1" name="fondo" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="err-fondo1" />
+          <p class="mo-field__error" id="err-fondo1" role="alert" hidden></p>
         </div>
         <div class="mo-sheet__actions">
           <button type="submit" class="mo-btn mo-btn--primary">Abrir caja</button>
@@ -291,8 +294,8 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       <form class="mo-sheet__body" id="form-caja2">
         <div class="mo-field" id="field-fondo2">
           <label class="mo-field__label" for="fondo2">Fondo inicial (USD)</label>
-          <input class="mo-field__control" id="fondo2" name="fondo" inputmode="decimal" />
-          <p class="mo-field__error" id="err-fondo2" hidden></p>
+          <input class="mo-field__control" id="fondo2" name="fondo" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="err-fondo2" />
+          <p class="mo-field__error" id="err-fondo2" role="alert" hidden></p>
         </div>
         <div class="mo-sheet__actions">
           <button type="submit" class="mo-btn mo-btn--primary">Abrir caja</button>
@@ -310,8 +313,8 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       <form class="mo-sheet__body" id="form-stock">
         <div class="mo-field" id="field-sku">
           <label class="mo-field__label" for="sku-q">Código o nombre</label>
-          <input class="mo-field__control" id="sku-q" name="q" autocomplete="off" />
-          <p class="mo-field__error" id="err-sku" hidden></p>
+          <input class="mo-field__control" id="sku-q" name="q" autocomplete="off" spellcheck="false" placeholder="Código o nombre…" aria-describedby="err-sku" />
+          <p class="mo-field__error" id="err-sku" role="alert" hidden></p>
         </div>
         <div class="sheet-result" id="stock-result" hidden>
           <strong id="stock-name"></strong>
@@ -324,14 +327,13 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
     </div>
   </div>
 
-  <dialog id="tenant-install-dialog" class="mo-install-dialog">
+  <dialog id="tenant-install-dialog" class="mo-install-dialog" aria-labelledby="tenant-install-title">
     <form method="dialog" id="tenant-install-form">
-      <h3 class="mo-dialog__title">Gestionar módulos — {tenant?.name}</h3>
-      <p class="db">{tenant?.db_name}</p>
+      <h2 class="mo-dialog__title" id="tenant-install-title">Gestionar módulos — {tenant?.name}</h2>
       <div class="mo-dialog__grid" id="tenant-install-grid"></div>
       <div class="mo-field">
         <label class="mo-field__label" for="tenant-notes">Notas</label>
-        <input class="mo-field__control" id="tenant-notes" name="notes" placeholder="ticket, motivo" />
+        <input class="mo-field__control" id="tenant-notes" name="notes" placeholder="Ticket, motivo…" spellcheck="false" autocomplete="off" />
       </div>
       <div class="mo-dialog__actions">
         <label class="mo-field__label">
@@ -341,99 +343,215 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
             <option value="remove">Quitar</option>
           </select>
         </label>
-        <button type="submit" class="mo-btn mo-btn--primary">Confirmar</button>
-        <button type="button" class="mo-btn" id="tenant-install-cancel">Cancelar</button>
+        <button type="submit" class="mo-btn mo-btn--primary" id="tenant-install-submit">Aplicar módulos</button>
+        <button type="button" class="mo-btn mo-btn--ghost" id="tenant-install-cancel">Cancelar</button>
       </div>
-      <pre id="tenant-install-preview" class="mo-install-preview"></pre>
-      <span id="tenant-install-msg" class="mo-field__hint"></span>
+      <p id="tenant-install-msg" class="mo-banner mo-banner--danger" role="alert" hidden></p>
     </form>
   </dialog>
 
   <style>
-    .page { max-width: 70rem; margin: 0 auto; padding: 0 1.25rem 2.75rem; }
-    .top {
-      display: flex; flex-wrap: wrap; justify-content: space-between;
-      gap: 1rem; align-items: flex-start; padding: 1.25rem 0 0.75rem;
+    .shell { min-height: 100dvh; }
+    .app-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      align-items: center;
+      padding:
+        max(0.85rem, env(safe-area-inset-top))
+        max(1.35rem, env(safe-area-inset-right))
+        0.85rem
+        max(1.35rem, env(safe-area-inset-left));
+      max-width: 72rem;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--mo-line);
     }
-    .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-    .tenant-name { margin: 0.15rem 0 0; font-size: 0.95rem; font-weight: 650; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
-    .db { font-size: 0.75rem; font-weight: 500; color: var(--mo-muted); }
-    .meta { margin: 0.25rem 0 0; font-size: 0.85rem; color: var(--mo-muted); }
+    .app-bar__brand {
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--mo-muted);
+    }
+    .app-bar__title {
+      margin: 0.25rem 0 0;
+      font-family: var(--mo-font);
+      font-size: 1.25rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      text-wrap: balance;
+    }
+    .app-bar__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 0.25rem 0 0;
+      font-size: 0.85rem;
+      color: var(--mo-muted);
+    }
+    .app-bar__nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 0.5rem;
+      align-items: center;
+      margin-left: auto;
+    }
+    .app-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 0.5rem;
+      border: 0;
+      background: transparent;
+      color: var(--mo-muted);
+      font: inherit;
+      text-decoration: underline;
+      text-decoration-color: var(--mo-line-strong);
+      text-underline-offset: 0.22em;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: color 140ms var(--mo-ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .app-link:hover { color: var(--mo-ink); }
+    }
+    .app-link--session {
+      margin-left: 0.25rem;
+      padding-left: 0.75rem;
+      border-left: 1px solid var(--mo-line);
+    }
+    .page {
+      max-width: 72rem;
+      margin: 0 auto;
+      padding:
+        0.75rem
+        max(1.35rem, env(safe-area-inset-right))
+        max(2.75rem, env(safe-area-inset-bottom))
+        max(1.35rem, env(safe-area-inset-left));
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.75rem; }
     .tabs { margin: 0.5rem 0 0.75rem; }
     .widgets {
-      display: grid; gap: 0.55rem;
+      display: grid;
+      gap: 0.5rem;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-items: start;
     }
+    .widgets[hidden] { display: none; }
     @media (min-width: 720px) {
       .widgets { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
     }
+    .mo-kpi__value { font-variant-numeric: tabular-nums; }
     .ojito { justify-self: start; }
-    .panel-block { margin-top: 1.05rem; }
-    .tiles { display: grid; gap: 0.65rem; grid-template-columns: 1fr; }
+    .panel-block { margin-top: 1rem; }
+    .tiles { display: grid; gap: 0.75rem; grid-template-columns: 1fr; }
     @media (min-width: 640px) {
       .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     .section-title {
       margin: 0 0 0.5rem;
       font-family: var(--mo-display);
-      font-size: 1.15rem;
+      font-size: 1.25rem;
       font-weight: 650;
+      text-wrap: balance;
     }
     .launcher-grid {
       display: grid;
-      gap: 0.65rem;
+      gap: 0.75rem;
       grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
     }
-    .launcher-tile { min-height: 4.5rem; }
+    .launcher-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem 1rem;
+      align-items: center;
+      min-height: 4.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--mo-radius-sm);
+      background: var(--mo-field);
+    }
+    .launcher-row__label { margin: 0; font-weight: 650; font-size: 1rem; }
+    .launcher-row__hint { margin: 0.25rem 0 0; color: var(--mo-muted); font-size: 0.85rem; }
+    .launcher-row__value { font-variant-numeric: tabular-nums; font-weight: 650; }
     .pay-options { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .pay-options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 44px;
+    }
     .sheet-result {
       border: 1px solid var(--mo-line);
       border-radius: var(--mo-radius-sm);
       background: var(--mo-card);
-      padding: 0.75rem 0.9rem;
-      display: grid; gap: 0.25rem;
+      padding: 0.75rem 1rem;
+      display: grid;
+      gap: 0.25rem;
     }
     .sheet-result[hidden] { display: none; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .mo-dialog,
+    .mo-sheet,
+    .mo-install-dialog { overscroll-behavior: contain; }
     .mo-install-dialog {
       border: 1px solid var(--mo-line);
       border-radius: var(--mo-radius);
-      padding: 1.2rem;
+      padding: 1.25rem;
       background: var(--mo-canvas);
       color: var(--mo-ink);
       max-width: 36rem;
-      width: 90%;
+      width: min(36rem, calc(100% - 2rem));
     }
     .mo-install-dialog::backdrop { background: color-mix(in srgb, var(--mo-ink) 45%, transparent); }
-    .mo-dialog__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin: 0.5rem 0; }
-    .mo-install-preview {
-      background: var(--mo-field);
-      border: 1px solid var(--mo-line);
-      border-radius: var(--mo-radius-sm);
-      padding: 0.6rem;
-      font-size: 0.75rem;
-      white-space: pre-wrap;
-    }
+    .mo-dialog__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin: 0.5rem 0; }
     .chat { margin-top: 1rem; display: grid; gap: 0.5rem; }
     .chat-log {
-      min-height: 6rem; max-height: 14rem; overflow: auto;
-      border: 1px solid var(--mo-line); border-radius: var(--mo-radius-sm);
-      padding: 0.6rem; background: var(--mo-field);
+      min-height: 6rem;
+      max-height: 14rem;
+      overflow: auto;
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius-sm);
+      padding: 0.75rem;
+      background: var(--mo-field);
     }
-    .chat-form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .chat-form .mo-field__control { flex: 1 1 12rem; }
-    .chat-debug {
-      background: var(--mo-field); border: 1px solid var(--mo-line);
-      border-radius: var(--mo-radius-sm); padding: 0.5rem; font-size: 0.7rem;
-      white-space: pre-wrap; min-height: 2rem;
+    .chat-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius-sm);
+      background: var(--mo-canvas);
+      padding: 0.25rem 0.25rem 0.25rem 0.75rem;
     }
-    .mo-check {
-      display: flex; gap: 0.35rem; align-items: center; font-size: 0.85rem;
-      border: 1px solid var(--mo-line); border-radius: var(--mo-radius-sm);
-      padding: 0.4rem 0.5rem; background: var(--mo-field);
+    .chat-form:focus-within {
+      outline: 2px solid var(--mo-focus);
+      outline-offset: 2px;
     }
-    .mo-check code { font-size: 0.7rem; color: var(--mo-muted); margin-left: auto; }
+    .chat-form .mo-field__control {
+      flex: 1 1 12rem;
+      border: 0;
+      background: transparent;
+      min-height: 44px;
+      font-size: 16px;
+    }
+    .chat-form .mo-field__control:focus-visible { outline: none; }
+    .chat-form .mo-field__error { flex: 1 1 100%; }
+    .mo-dialog__grid :global(label) {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      min-height: 44px;
+      font-size: 0.85rem;
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius-sm);
+      padding: 0.5rem 0.75rem;
+      background: var(--mo-field);
+    }
   </style>
 
   <script>
@@ -452,8 +570,38 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
     const LEAVE_MS = resolveLeaveMs(reduceMotion, 140);
     const live = document.getElementById('live-polite');
     const toastRegion = document.getElementById('toast-region');
+    const FLUJOS = new Set(['caja1', 'caja2', 'stock', 'cobrar']);
     let lastFocus: HTMLElement | null = null;
     let openSheetEl: HTMLElement | null = null;
+
+    function patchQuery(patch: { flujo?: string | null; modulos?: string | null }) {
+      const url = new URL(window.location.href);
+      if ('flujo' in patch) {
+        if (patch.flujo) url.searchParams.set('flujo', patch.flujo);
+        else url.searchParams.delete('flujo');
+      }
+      if ('modulos' in patch) {
+        if (patch.modulos) url.searchParams.set('modulos', '1');
+        else url.searchParams.delete('modulos');
+      }
+      history.replaceState(null, '', `${url.pathname}${url.search}`);
+    }
+
+    function shellDirty(): boolean {
+      const fields = document.querySelectorAll('.mo-sheet input, #tenant-notes, #ia-chat-input');
+      for (const node of fields) {
+        if (!(node instanceof HTMLInputElement)) continue;
+        if (node.type === 'radio' || node.type === 'checkbox' || node.type === 'hidden') continue;
+        if (node.value.trim()) return true;
+      }
+      return Boolean(document.querySelector('#tenant-install-grid [data-mod]:checked'));
+    }
+
+    window.addEventListener('beforeunload', (ev) => {
+      if (!shellDirty()) return;
+      ev.preventDefault();
+      ev.returnValue = '';
+    });
 
     if (!sessionStorage.getItem('mo-tile-staggered') && !reduceMotion) {
       document.documentElement.classList.add('mo-tiles-stagger');
@@ -479,10 +627,29 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       mountToast({ region: toastRegion, title, text, kind, leaveMs: LEAVE_MS, announce });
     }
 
-    function openSheet(id: string) {
+    function resetSheet(el: HTMLElement) {
+      el.querySelectorAll('input').forEach((node) => {
+        if (!(node instanceof HTMLInputElement)) return;
+        if (node.type === 'radio') return;
+        node.value = '';
+        node.removeAttribute('aria-invalid');
+      });
+      el.querySelectorAll('.is-invalid').forEach((field) => field.classList.remove('is-invalid'));
+      el.querySelectorAll('.mo-field__error').forEach((err) => {
+        if (!(err instanceof HTMLElement)) return;
+        err.hidden = true;
+        err.textContent = '';
+      });
+      const result = el.querySelector('#stock-result');
+      if (result instanceof HTMLElement) result.hidden = true;
+    }
+
+    function openSheet(id: string, fromUrl = false) {
       const el = document.getElementById(`sheet-${id}`);
       if (!el) return;
-      closeSheet(true);
+      closeModules(true);
+      closeSheet(true, true);
+      if (!fromUrl) patchQuery({ flujo: id, modulos: null });
       lastFocus = document.activeElement as HTMLElement | null;
       openSheetEl = el;
       openWithEnter(el);
@@ -494,10 +661,12 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       announce(`Flujo ${id} abierto`);
     }
 
-    function closeSheet(immediate?: boolean) {
+    function closeSheet(immediate?: boolean, keepQuery = false) {
       if (!openSheetEl) return;
       const el = openSheetEl;
       openSheetEl = null;
+      resetSheet(el);
+      if (!keepQuery) patchQuery({ flujo: null });
       const restore = !immediate;
       closeWithLeave(el, {
         leaveMs: immediate ? 0 : LEAVE_MS,
@@ -540,6 +709,9 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
         err.hidden = true;
         err.textContent = '';
       }
+      document.getElementById(fieldId)?.querySelectorAll('input').forEach((node) => {
+        if (node instanceof HTMLInputElement) node.removeAttribute('aria-invalid');
+      });
     }
     function setErr(fieldId: string, errId: string, msg: string, input?: HTMLElement | null) {
       document.getElementById(fieldId)?.classList.add('is-invalid');
@@ -548,7 +720,11 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
         err.hidden = false;
         err.textContent = msg;
       }
-      input?.focus();
+      if (input instanceof HTMLInputElement) {
+        input.setAttribute('aria-invalid', 'true');
+        input.setAttribute('aria-describedby', errId);
+        input.focus();
+      }
     }
 
     document.getElementById('form-cobrar')?.addEventListener('submit', (ev) => {
@@ -566,8 +742,11 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
         setErr('field-monto', 'err-monto', 'Escribí el monto.', monto);
         return;
       }
+      const otNum = ot.value.trim();
+      const montoNum = monto.value.trim();
+      const pagoVal = pago?.value || 'efectivo';
       closeSheet();
-      showToast('Cobro registrado', `OT ${ot.value.trim()} · USD ${monto.value.trim()} · ${pago?.value || 'efectivo'}`);
+      showToast('Cobro registrado', `OT ${otNum} · USD ${montoNum} · ${pagoVal}`);
     });
 
     function bindCaja(formId: string, fieldId: string, errId: string, inputId: string, label: string) {
@@ -579,8 +758,9 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
           setErr(fieldId, errId, 'Indicá el fondo inicial.', fondo);
           return;
         }
+        const fondoVal = fondo.value.trim();
         closeSheet();
-        showToast(`${label} abierta`, `Fondo inicial USD ${fondo.value.trim()}.`);
+        showToast(`${label} abierta`, `Fondo inicial USD ${fondoVal}.`);
       });
     }
     bindCaja('form-caja1', 'field-fondo1', 'err-fondo1', 'fondo1', 'Caja 1');
@@ -627,13 +807,26 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       });
     });
     document.getElementById('confirm-ok')?.addEventListener('click', async () => {
-      const backdrop = document.getElementById('confirm-backdrop');
-      if (backdrop) {
-        closeWithLeave(backdrop, { leaveMs: LEAVE_MS });
+      const confirmOk = document.getElementById('confirm-ok') as HTMLButtonElement | null;
+      const confirmErr = document.getElementById('confirm-error');
+      if (!confirmOk) return;
+      const label = confirmOk.textContent || 'Cerrar sesión';
+      confirmOk.disabled = true;
+      confirmOk.textContent = 'Cerrando…';
+      if (confirmErr instanceof HTMLElement) confirmErr.hidden = true;
+      try {
+        const res = await fetch('/api/auth/logout', { method: 'POST' });
+        if (!res.ok) throw new Error('fail');
+        window.location.assign('/login');
+      } catch {
+        confirmOk.disabled = false;
+        confirmOk.textContent = label;
+        if (confirmErr instanceof HTMLElement) {
+          confirmErr.hidden = false;
+          confirmErr.textContent = 'No se pudo cerrar la sesión. Probá de nuevo.';
+        }
+        confirmOk.focus();
       }
-      showToast('Sesión cerrada', 'Cerraste la sesión de este comercio.', 'ok');
-      await fetch('/api/auth/logout', { method: 'POST' });
-      window.setTimeout(() => window.location.assign('/login'), 400);
     });
     document.getElementById('confirm-backdrop')?.addEventListener('keydown', (ev) => {
       const backdrop = document.getElementById('confirm-backdrop');
@@ -653,109 +846,177 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
     const root = document.getElementById('tenant-install-root') as HTMLDivElement | null;
     const dlg = document.getElementById('tenant-install-dialog') as HTMLDialogElement | null;
     const grid = document.getElementById('tenant-install-grid') as HTMLDivElement | null;
-    const previewEl = document.getElementById('tenant-install-preview') as HTMLPreElement | null;
-    const msgEl = document.getElementById('tenant-install-msg') as HTMLSpanElement | null;
+    const msgEl = document.getElementById('tenant-install-msg') as HTMLElement | null;
     const form = document.getElementById('tenant-install-form') as HTMLFormElement | null;
     const openBtn = document.getElementById('tenant-install-open') as HTMLButtonElement | null;
     const cancelBtn = document.getElementById('tenant-install-cancel') as HTMLButtonElement | null;
+    const submitBtn = document.getElementById('tenant-install-submit') as HTMLButtonElement | null;
     const tenantId = root ? Number(root.dataset.tenantId) : NaN;
-    const db = root ? String(root.dataset.db || 'modoops_<slug>') : 'modoops_<slug>';
+    const db = root ? String(root.dataset.db || '') : '';
+    const APPLY_LABEL = 'Aplicar módulos';
+    let pollActiva = false;
 
     function renderGrid() {
       if (!grid) return;
-      grid.innerHTML = '';
+      grid.replaceChildren();
       for (const [key, label] of CATALOGO) {
         const lbl = document.createElement('label');
-        lbl.className = 'mo-check';
-        lbl.innerHTML = `<input type="checkbox" value="${key}" data-mod /> ${label} <code>${key}</code>`;
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.className = 'mo-check';
+        input.value = key;
+        input.setAttribute('data-mod', '');
+        lbl.append(input, document.createTextNode(` ${label}`));
         grid.appendChild(lbl);
       }
     }
     renderGrid();
 
-    function updatePreview() {
-      if (!grid || !previewEl || !form) return;
-      const mods = [...grid.querySelectorAll<HTMLInputElement>('[data-mod]:checked')].map((i) => i.value);
-      const action = (form.querySelector('select[name="action"]') as HTMLSelectElement)?.value || 'install';
-      const flag = action === 'install' ? '-i' : '-u';
-      previewEl.textContent = mods.length
-        ? `odoo-bin -d ${db} ${flag} ${mods.join(', ')}  # batch ${mods.length}`
-        : '— seleccioná módulos —';
+    function showInstallNote(msg: string, alert = false) {
+      if (!msgEl) return;
+      msgEl.hidden = false;
+      msgEl.textContent = msg;
+      msgEl.setAttribute('role', alert ? 'alert' : 'status');
+      msgEl.classList.toggle('mo-banner', alert);
+      msgEl.classList.toggle('mo-banner--danger', alert);
+      msgEl.classList.toggle('mo-field__hint', !alert);
     }
-    grid?.addEventListener('change', updatePreview);
-    form?.querySelector('select[name="action"]')?.addEventListener('change', updatePreview);
-    openBtn?.addEventListener('click', () => {
-      if (!dlg || !grid || !previewEl || !msgEl) return;
+
+    function clearInstallError() {
+      if (!msgEl) return;
+      msgEl.hidden = true;
       msgEl.textContent = '';
-      previewEl.textContent = '— seleccioná módulos —';
-      grid.querySelectorAll<HTMLInputElement>('[data-mod]').forEach((i) => (i.checked = false));
+      grid?.querySelectorAll('input').forEach((node) => node.removeAttribute('aria-invalid'));
+    }
+
+    function showInstallError(msg: string) {
+      showInstallNote(msg, true);
+      const first = grid?.querySelector('input');
+      if (first instanceof HTMLInputElement) {
+        first.setAttribute('aria-invalid', 'true');
+        first.setAttribute('aria-describedby', 'tenant-install-msg');
+        first.focus();
+      }
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = APPLY_LABEL;
+      }
+    }
+
+    function resetInstall() {
+      pollActiva = false;
+      clearInstallError();
+      const notes = document.getElementById('tenant-notes');
+      if (notes instanceof HTMLInputElement) notes.value = '';
+      grid?.querySelectorAll<HTMLInputElement>('[data-mod]').forEach((i) => {
+        i.checked = false;
+      });
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = APPLY_LABEL;
+      }
+    }
+
+    function openModules(fromUrl = false) {
+      if (!dlg) return;
+      closeSheet(true, true);
+      if (!fromUrl) patchQuery({ modulos: '1', flujo: null });
+      resetInstall();
+      openBtn?.setAttribute('aria-expanded', 'true');
       dlg.showModal();
+      const first = grid?.querySelector('input');
+      if (first instanceof HTMLInputElement) first.focus();
+    }
+
+    function closeModules(_keepQuery = false) {
+      if (!dlg?.open) return;
+      pollActiva = false;
+      dlg.close();
+    }
+
+    dlg?.addEventListener('close', () => {
+      pollActiva = false;
+      resetInstall();
+      patchQuery({ modulos: null });
+      openBtn?.setAttribute('aria-expanded', 'false');
+      if (document.activeElement === document.body) openBtn?.focus();
     });
-    let pollActiva = false;
+
+    openBtn?.addEventListener('click', () => openModules(false));
+    cancelBtn?.addEventListener('click', () => closeModules());
+
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!Number.isFinite(tenantId) || !grid || !msgEl || !previewEl || !form) return;
+      if (!Number.isFinite(tenantId) || !grid || !msgEl || !form || !submitBtn) return;
       const mods = [...grid.querySelectorAll<HTMLInputElement>('[data-mod]:checked')].map((i) => i.value);
       if (!mods.length) {
-        msgEl.textContent = 'Seleccioná al menos un módulo';
+        showInstallError('Seleccioná al menos un módulo y volvé a aplicar.');
         return;
       }
       const fd = new FormData(form);
       const action = String(fd.get('action') || 'install');
       const notes = String(fd.get('notes') || '');
-      msgEl.textContent = 'Ejecutando…';
-      const res = await fetch(`/api/admin/tenants/${tenantId}/install`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ modules: mods, action, notes }),
-      });
+      clearInstallError();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Aplicando…';
+      showInstallNote('Aplicando…');
+      let res: Response;
+      try {
+        res = await fetch(`/api/admin/tenants/${tenantId}/install`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ modules: mods, action, notes }),
+        });
+      } catch {
+        showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
+        return;
+      }
       const data = (await res.json().catch(() => ({}))) as {
-        preview_command?: string;
         job_id?: number | null;
         job_state?: string;
         error?: { message?: string };
       };
       if (!res.ok) {
-        msgEl.textContent = data?.error?.message || 'Error';
+        showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
         return;
       }
-      previewEl.textContent = data.preview_command || previewEl.textContent;
       if (typeof data.job_id !== 'number') {
-        msgEl.textContent = 'OK — recargando…';
+        showInstallNote('Listo. Recargando…');
         setTimeout(() => window.location.reload(), 700);
         return;
       }
       const jobId = data.job_id;
       pollActiva = true;
-      msgEl.textContent = describeJobState(data.job_state || 'pendiente');
+      showInstallNote(describeJobState(data.job_state || 'pendiente'));
       while (pollActiva) {
         await new Promise((r) => setTimeout(r, 5000));
         if (!pollActiva) return;
         try {
           const jr = await fetch(`/api/admin/tenants/${tenantId}/install/${jobId}`);
-          const jd = (await jr.json().catch(() => ({}))) as { state?: string; output?: string };
+          const jd = (await jr.json().catch(() => ({}))) as { state?: string };
           if (!jr.ok) {
-            msgEl.textContent = 'No se pudo leer el job';
+            pollActiva = false;
+            showInstallError('No se pudo leer el avance. Probá de nuevo.');
             return;
           }
           const estado = String(jd.state || '');
-          msgEl.textContent = describeJobState(estado);
-          if (jd.output) previewEl.textContent = String(jd.output).slice(-1500);
+          if (estado === 'error') {
+            pollActiva = false;
+            showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
+            return;
+          }
+          showInstallNote(describeJobState(estado));
           if (!shouldPollJob(estado)) {
             if (estado === 'hecho') {
-              msgEl.textContent = describeJobState(estado) + ' Recargando…';
+              showInstallNote(`${describeJobState(estado)} Recargando…`);
               setTimeout(() => window.location.reload(), 900);
             }
             return;
           }
         } catch {
-          msgEl.textContent = 'Sin conexión — reintentando…';
+          showInstallNote('Sin conexión. Reintentando…');
         }
       }
-    });
-    cancelBtn?.addEventListener('click', () => {
-      pollActiva = false;
-      dlg?.close();
     });
 
     // Home viva
@@ -793,7 +1054,7 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
         ojoBtn.addEventListener('click', () => {
           oculto = !oculto;
           ojoBtn.setAttribute('aria-pressed', String(oculto));
-          ojoBtn.setAttribute('aria-label', oculto ? 'Mostrar montos' : 'Ocultar montos');
+          ojoBtn.textContent = oculto ? 'Mostrar montos' : 'Ocultar montos';
           if (ojoMsg) ojoMsg.textContent = oculto ? 'Montos ocultos.' : 'Montos visibles.';
           pinta();
         });
@@ -820,7 +1081,8 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
     const chatLog = document.getElementById('ia-chat-log') as HTMLDivElement | null;
     const chatForm = document.getElementById('ia-chat-form') as HTMLFormElement | null;
     const chatInput = document.getElementById('ia-chat-input') as HTMLInputElement | null;
-    const chatDebug = document.getElementById('ia-chat-debug') as HTMLPreElement | null;
+    const chatSend = document.getElementById('ia-chat-send') as HTMLButtonElement | null;
+    const chatErr = document.getElementById('ia-chat-error');
     const chatDb = chatRoot?.dataset.db || db;
     function uuidv4() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -829,21 +1091,52 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
         return v.toString(16);
       });
     }
-    function appendChat(role: string, text: string) {
+    function appendChat(text: string) {
       if (!chatLog) return;
       const div = document.createElement('div');
-      div.className = `chat-msg is-${role}`;
-      div.textContent = `${role}: ${text}`;
+      div.className = 'chat-msg';
+      div.textContent = text;
       chatLog.appendChild(div);
       chatLog.scrollTop = chatLog.scrollHeight;
+    }
+    function notaAgente(data: { output?: { echo?: unknown } }): string {
+      const echo = data.output?.echo;
+      if (typeof echo === 'string' && echo.trim()) return echo.trim();
+      if (echo && typeof echo === 'object') {
+        const rec = echo as Record<string, unknown>;
+        if (typeof rec.message === 'string' && rec.message.trim()) return rec.message.trim();
+        if (typeof rec.text === 'string' && rec.text.trim()) return rec.text.trim();
+      }
+      return 'Listo.';
+    }
+    function chatFail(msg: string) {
+      if (chatErr instanceof HTMLElement) {
+        chatErr.hidden = false;
+        chatErr.textContent = msg;
+      }
+      chatInput?.setAttribute('aria-invalid', 'true');
+      chatInput?.focus();
+      if (chatSend) {
+        chatSend.disabled = false;
+        chatSend.textContent = 'Enviar';
+      }
     }
     chatForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = (chatInput?.value || '').trim();
-      if (!msg) return;
-      appendChat('user', msg);
-      if (chatInput) chatInput.value = '';
-      if (chatDebug) chatDebug.textContent = 'pensando…';
+      if (chatErr instanceof HTMLElement) {
+        chatErr.hidden = true;
+        chatErr.textContent = '';
+      }
+      chatInput?.removeAttribute('aria-invalid');
+      if (!msg) {
+        chatFail('Escribí un mensaje.');
+        return;
+      }
+      if (chatSend) {
+        chatSend.disabled = true;
+        chatSend.textContent = 'Enviando…';
+      }
       const requestId = uuidv4();
       try {
         const res = await fetch(`/api/modoops/${chatDb}/agent/run`, {
@@ -851,26 +1144,29 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ message: msg, requestId }),
         });
-        const data = (await res.json()) as {
-          status?: string;
-          output?: { tool?: string; echo?: unknown; llmSource?: string };
-          llmSource?: string;
+        const data = (await res.json().catch(() => ({}))) as {
+          output?: { echo?: unknown };
           error?: string;
-          tool?: string;
         };
         if (!res.ok) {
-          appendChat('error', data.error || `HTTP ${res.status}`);
-          if (chatDebug) chatDebug.textContent = JSON.stringify(data, null, 2);
+          chatFail('No se pudo enviar. Probá de nuevo.');
           return;
         }
-        const tool = data.output?.tool || data.tool || '—';
-        const src = data.llmSource || data.output?.llmSource || '—';
-        appendChat('agent', `tool=${tool} (llm:${src}) → ${JSON.stringify(data.output?.echo ?? data.output)}`);
-        if (chatDebug) chatDebug.textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        appendChat('error', String(err));
-        if (chatDebug) chatDebug.textContent = String(err);
+        if (chatInput) chatInput.value = '';
+        appendChat(msg);
+        appendChat(notaAgente(data));
+        if (chatSend) {
+          chatSend.disabled = false;
+          chatSend.textContent = 'Enviar';
+        }
+      } catch {
+        chatFail('No se pudo enviar. Probá de nuevo.');
       }
     });
+
+    const boot = new URLSearchParams(window.location.search);
+    const flujoBoot = boot.get('flujo') || '';
+    if (FLUJOS.has(flujoBoot)) openSheet(flujoBoot, true);
+    else if (boot.get('modulos') === '1') openModules(true);
   </script>
 </LightAppLayout>
