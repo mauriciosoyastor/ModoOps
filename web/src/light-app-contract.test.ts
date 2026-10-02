@@ -36,4 +36,28 @@ describe('contrato light-app papel (#215)', () => {
     expect(text).not.toContain('FloatingWhatsApp');
     expect(text).not.toMatch(/import\s+SiteHeader/);
   });
+
+  it('el Control Plane confirma el cierre, exporta la vista y opera la selección', () => {
+    const text = read('pages/admin/tenants.astro');
+    expect(text).toContain("sessionCloseCopy('control-plane')");
+    expect(text).toContain('id="btn-export"');
+    expect(text).toContain('id="bulk-bar"');
+    expect(text).toContain('Más acciones para');
+    expect(text).toContain('tenantsCsv');
+    const logout = text.indexOf("querySelector('[data-logout]')");
+    const confirm = text.indexOf("sessionCloseCopy('control-plane')");
+    expect(logout).toBeGreaterThan(-1);
+    expect(confirm).toBeGreaterThan(logout);
+  });
+
+  it('el Shell pone los atajos antes que el resumen y confirma el cierre', () => {
+    const text = read('pages/tenant/[slug]/app.astro');
+    const atajos = text.indexOf('aria-label="Atajos operativos"');
+    const resumen = text.indexOf('aria-label="Resumen del día"');
+    expect(atajos).toBeGreaterThan(-1);
+    expect(resumen).toBeGreaterThan(atajos);
+    expect(text).toContain('data-home-skeleton');
+    expect(text).toContain('mo-skeleton--kpi');
+    expect(text).toContain("sessionCloseCopy('shell'");
+  });
 });
