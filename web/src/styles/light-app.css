@@ -1,7 +1,7 @@
 /**
  * Light-app — prototipos (#187/#188/#190).
  * Variantes: warm (marca) | papel (humano) | denso (editorial).
- * Landing dark-galaxia NO se toca (global.css).
+ * Tema papel. La landing consume estos tokens vía BaseLayout; el chrome de producto vive en LightAppLayout.
  *
  * Roles (mapa Radix/Carbon/Atlassian → mo):
  *   wash/canvas/card = capas · ink/muted/line = texto/borde

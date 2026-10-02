@@ -79,8 +79,8 @@
   }
 
   ::selection {
-    background-color: color-mix(in srgb, var(--color-galaxy-blue) 55%, transparent);
-    color: var(--color-star-white);
+    background-color: color-mix(in srgb, var(--mo-accent) 45%, transparent);
+    color: var(--mo-ink);
   }
 }
 

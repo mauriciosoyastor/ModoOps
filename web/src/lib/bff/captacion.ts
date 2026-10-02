@@ -46,3 +46,21 @@ export function formatFechaCaptura(value: string | false | null | undefined): st
   const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
   return new Intl.DateTimeFormat("es-AR", { day: "numeric", month: "short", year: "numeric" }).format(date);
 }
+
+/** Teléfono del Lead con espacio de no separación entre grupos. */
+export function formatTelefono(value: string | false | null | undefined): string {
+  if (!value) return "—";
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "—";
+  if (digits.length === 11) {
+    return `${digits.slice(0, 4)}\u00A0${digits.slice(4, 7)}\u00A0${digits.slice(7)}`;
+  }
+  const groups: string[] = [];
+  let rest = digits;
+  while (rest.length > 3) {
+    groups.unshift(rest.slice(-3));
+    rest = rest.slice(0, -3);
+  }
+  if (rest) groups.unshift(rest);
+  return groups.join("\u00A0");
+}

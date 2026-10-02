@@ -137,6 +137,7 @@ const { embedded = false } = Astro.props;
 
   .po-msg--bot {
     justify-self: start;
+    transform-origin: 0 100%;
     border-radius: 12px 12px 12px 4px;
     background: color-mix(in srgb, var(--mo-ink) 6%, var(--mo-canvas));
     color: var(--mo-ink);
@@ -145,13 +146,15 @@ const { embedded = false } = Astro.props;
 
   .po-msg--user {
     justify-self: end;
+    transform-origin: 100% 100%;
     border-radius: 12px 12px 4px 12px;
-    background: var(--color-star-warm);
-    color: var(--mo-ink);
+    background: var(--mo-accent);
+    color: var(--mo-accent-ink);
   }
 
   .po-preview__draft {
     margin-top: 0.25rem;
+    transform-origin: 50% 0;
     padding: 0.65rem 0.75rem;
     border-radius: var(--mo-radius-sm, 10px);
     border: 1px dashed var(--mo-line-strong, var(--mo-line));
@@ -185,4 +188,5 @@ const { embedded = false } = Astro.props;
     color: var(--mo-ink);
     background: var(--mo-card, var(--mo-canvas));
   }
+
 </style>
