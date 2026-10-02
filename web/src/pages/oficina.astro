@@ -56,6 +56,8 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       <button type="button" data-paso="2">Crecer</button>
     </nav>
 
+    <p class="oficina-nota" data-copiado role="status" hidden></p>
+
     <div class="oficina-grilla">
       <div class="oficina-trabajo">
 
@@ -78,17 +80,22 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
             <div class="oficina-campos">
             <label>Nombre del negocio *
               <input id="prospecto-nombre" name="nombre" data-prospecto="nombre" autocomplete="organization" class="oficina-campo" placeholder="Ej: Pinturería Centro…" aria-describedby="error-nombre" /></label>
-            <p id="error-nombre" class="oficina-error" data-error="nombre" hidden></p>
+            <p id="error-nombre" class="oficina-falla" data-error="nombre" role="alert" hidden></p>
             <div class="oficina-par">
               <label>Tu nombre
                 <input name="contacto_nombre" data-prospecto="contacto_nombre" autocomplete="name" class="oficina-campo" placeholder="Ej: Ana…" /></label>
-              <label>Teléfono *
-                <input id="prospecto-telefono" name="telefono" data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="oficina-campo" placeholder="Ej: 3547 000000…" aria-describedby="error-contacto" /></label>
+              <div>
+                <label>Teléfono *
+                  <input id="prospecto-telefono" name="telefono" data-prospecto="telefono" type="tel" autocomplete="tel" inputmode="tel" class="oficina-campo" placeholder="Ej: 3547&nbsp;000000…" aria-describedby="error-contacto" /></label>
+                <p id="error-contacto" class="oficina-falla" data-error="contacto" role="alert" hidden></p>
+              </div>
             </div>
-            <p id="error-contacto" class="oficina-error" data-error="contacto" hidden></p>
             <div class="oficina-par">
-              <label>Email
-                <input id="prospecto-email" name="email" data-prospecto="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" class="oficina-campo" placeholder="Ej: ana@negocio.com…" aria-describedby="error-contacto" /></label>
+              <div>
+                <label>Email
+                  <input id="prospecto-email" name="email" data-prospecto="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" class="oficina-campo" placeholder="Ej: ana@negocio.com…" aria-describedby="error-contacto" /></label>
+                <p class="oficina-falla" data-error="contacto" hidden aria-hidden="true"></p>
+              </div>
               <label>Rubro
                 <select name="rubro" data-prospecto="rubro" class="oficina-campo">
                   <option value="retail">Retail mostrador</option>
@@ -210,7 +217,6 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
               <a data-whatsapp tabindex="-1" aria-disabled="true" target="_blank" rel="noopener" class="mo-btn mo-btn--ghost">Enviar por WhatsApp</a>
               <button data-copiar class="mo-btn mo-btn--ghost" type="button">Copiar JSON</button>
             </div>
-            <p class="oficina-nota" data-copiado role="status" hidden></p>
             <p class="oficina-nota" data-enviado role="status" hidden></p>
           </div>
         </section>
@@ -384,7 +390,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   .oficina-campo {
     width: 100%;
     min-height: 44px;
-    scroll-margin-top: 5rem;
+    scroll-margin-top: 10rem;
     margin-top: 0.25rem;
     padding: 0.5rem 0.65rem;
     border: 1px solid var(--mo-line);
@@ -402,10 +408,11 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   .oficina-campo::placeholder {
     color: var(--mo-muted);
   }
-  .oficina-error {
+  .oficina-falla {
     margin: 0.2rem 0 0;
-    color: var(--mo-danger);
-    font-size: 0.8125rem;
+    color: var(--mo-ink);
+    font-size: 0.875rem;
+    font-weight: 650;
   }
   .oficina-details {
     margin-top: 0.85rem;
@@ -439,6 +446,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     align-items: center;
     gap: 0.5rem;
     min-height: 44px;
+    touch-action: manipulation;
   }
   .oficina-check--titulo {
     font-weight: 650;
@@ -464,7 +472,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     border: 1px solid var(--mo-line);
     border-radius: var(--mo-radius);
     background: var(--mo-canvas);
-    scroll-margin-top: 5rem;
+    scroll-margin-top: 10rem;
     outline: 2px solid transparent;
     outline-offset: 2px;
     transition: outline-color 160ms ease;
@@ -483,7 +491,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   .oficina-errores {
     margin: 0.35rem 0 0;
     padding: 0;
-    color: var(--mo-danger);
+    color: var(--mo-ink);
     font-size: 0.875rem;
     list-style: none;
   }
@@ -491,7 +499,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     display: none;
   }
   .oficina-error {
-    color: var(--mo-danger);
+    color: var(--mo-ink);
     font-weight: 650;
   }
   .oficina-ok {
@@ -623,7 +631,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 </style>
 <style is:global>
   html:has(.oficina) {
-    scroll-padding-top: 5rem;
+    scroll-padding-top: 10rem;
   }
   html:has(.oficina) .oficina-chip {
     font-variant-numeric: tabular-nums;
@@ -639,6 +647,7 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     cargarBorrador,
     horasDe,
     validarBorrador,
+    avisoAlCopiar,
     mensajeWhatsApp,
     enlaceWhatsApp,
   } from '../lib/oficina-mapping';
@@ -731,12 +740,14 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       }
       el.scrollIntoView({ behavior: desplazamientoDe(destino, reduceMovimiento), block: "center" });
     }
-    // Error de validación: vuelve al paso 1, muestra el nombre y le da foco.
-    function enfocaNombre() {
+    // Error de validación: vuelve al paso 1, abre los datos y enfoca el hueco que falta.
+    function enfocaFallo(fallos) {
       irAPaso(0);
-      const nombreEl = root.querySelector('[data-prospecto="nombre"]');
-      desplaza(nombreEl, "nombre");
-      if (nombreEl instanceof HTMLElement) nombreEl.focus({ preventScroll: true });
+      const hueco = fallos.some((f) => f.hueco === "nombre") ? "nombre" : "contacto";
+      const sel = hueco === "nombre" ? '[data-prospecto="nombre"]' : '[data-prospecto="telefono"]';
+      const el = root.querySelector(sel);
+      desplaza(el, hueco);
+      if (el instanceof HTMLElement) el.focus({ preventScroll: true });
     }
     const chips = root.querySelector('[data-seleccion]');    const json = root.querySelector('[data-json]');
     const listaErrores = root.querySelector('[data-errores]');
@@ -749,11 +760,11 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
 
     function marcaError(avisoSel, campoSel, mensaje) {
       if (avisoSel) {
-        const aviso = root.querySelector(avisoSel);
-        if (aviso instanceof HTMLElement) {
+        root.querySelectorAll(avisoSel).forEach((aviso) => {
+          if (!(aviso instanceof HTMLElement)) return;
           aviso.hidden = !mensaje;
-          aviso.textContent = mensaje;
-        }
+          if (aviso.textContent !== mensaje) aviso.textContent = mensaje;
+        });
       }
       const campo = root.querySelector(campoSel);
       if (campo instanceof HTMLElement) {
@@ -780,12 +791,12 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         listaErrores.innerHTML = '';
         for (const e of errores) {
           const li = document.createElement('li');
-          li.textContent = '• ' + e;
+          li.textContent = '• ' + e.mensaje;
           listaErrores.appendChild(li);
         }
       }
-      const msgNombre = errores.find((e) => e.includes('nombre del negocio')) ?? '';
-      const msgContacto = errores.find((e) => e.includes('contacto')) ?? '';
+      const msgNombre = errores.find((e) => e.hueco === 'nombre')?.mensaje ?? '';
+      const msgContacto = errores.find((e) => e.hueco === 'contacto')?.mensaje ?? '';
       marcaError('[data-error="nombre"]', '[data-prospecto="nombre"]', msgNombre);
       marcaError('[data-error="contacto"]', '[data-prospecto="telefono"]', msgContacto);
       marcaError(null, '[data-prospecto="email"]', msgContacto);
@@ -825,20 +836,23 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
         document.execCommand('copy');
         ta.remove();
       }
-      if (avisoCopiado instanceof HTMLElement) {
-        avisoCopiado.textContent = '¡Copiado! Pegalo donde te lo pidan.';
-        avisoCopiado.hidden = false;
-        setTimeout(() => { avisoCopiado.hidden = true; }, 3000);
-      }
+      anunciaCopia('¡Copiado! Pegalo donde te lo pidan.', true);
+    }
+    let timerCopia = 0;
+    function anunciaCopia(texto, seEsconde) {
+      if (!(avisoCopiado instanceof HTMLElement)) return;
+      window.clearTimeout(timerCopia);
+      avisoCopiado.textContent = texto;
+      avisoCopiado.hidden = false;
+      if (!seEsconde) return;
+      timerCopia = window.setTimeout(() => { avisoCopiado.hidden = true; }, 3000);
     }
     btnCopiar?.addEventListener('click', (e) => {
-      if (borradorActual && validarBorrador(borradorActual).length > 0) {
+      const fallos = borradorActual ? validarBorrador(borradorActual) : [];
+      if (fallos.length > 0) {
         e.preventDefault();
-        if (avisoCopiado instanceof HTMLElement) {
-          avisoCopiado.textContent = 'Completá el nombre y un contacto antes de copiar.';
-          avisoCopiado.hidden = false;
-        }
-        enfocaNombre();
+        anunciaCopia(avisoAlCopiar(fallos), false);
+        enfocaFallo(fallos);
         return;
       }
       copiar();
@@ -856,8 +870,10 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
       avisoEnviado.hidden = false;
     }
     btnEnviar?.addEventListener('click', async () => {
-      if (!borradorActual || validarBorrador(borradorActual).length > 0) {
-        enfocaNombre();
+      const fallosEnvio = borradorActual ? validarBorrador(borradorActual) : [];
+      if (!borradorActual || fallosEnvio.length > 0) {
+        if (fallosEnvio.length > 0) anunciaCopia(fallosEnvio.map((f) => f.mensaje).join(' '), false);
+        enfocaFallo(fallosEnvio.length > 0 ? fallosEnvio : [{ hueco: 'nombre', mensaje: '' }]);
         return;
       }
       if (!(btnEnviar instanceof HTMLButtonElement)) return;
@@ -1296,9 +1312,10 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     function abrirWhatsAppFinal() {
       pinta();
       const b = borradorActual ?? construirBorrador(leeEstado());
-      if (validarBorrador(b).length > 0) {
-        convBurbuja('bot', 'Te falta nombre y un contacto para enviarlo: completalos y lo mandamos por WhatsApp.');
-        enfocaNombre();
+      const fallosWa = validarBorrador(b);
+      if (fallosWa.length > 0) {
+        convBurbuja('bot', fallosWa.map((f) => f.mensaje).join(' '));
+        enfocaFallo(fallosWa);
         return;
       }
       convBurbuja('bot', 'Abriendo WhatsApp con tu cuestionario hecho…');

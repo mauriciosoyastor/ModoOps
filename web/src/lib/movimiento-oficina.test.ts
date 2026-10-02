@@ -28,4 +28,8 @@ describe("movimiento de la oficina", () => {
     expect(revelarDatosAntesDe("hilo")).toBe(false);
     expect(revelarDatosAntesDe("zona")).toBe(false);
   });
+
+  it("el contacto faltante abre los datos antes de saltar", () => {
+    expect(revelarDatosAntesDe("contacto")).toBe(true);
+  });
 });

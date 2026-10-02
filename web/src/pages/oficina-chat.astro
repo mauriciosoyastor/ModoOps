@@ -472,14 +472,14 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
         listaErrores.innerHTML = '';
         for (const e of errores) {
           const li = document.createElement('li');
-          li.textContent = '• ' + e;
+          li.textContent = '• ' + e.mensaje;
           listaErrores.appendChild(li);
         }
       }
       const errNombre = root.querySelector('[data-error="nombre"]');
       const errContacto = root.querySelector('[data-error="contacto"]');
-      const msgNombre = errores.find((e) => e.includes('nombre del negocio'));
-      const msgContacto = errores.find((e) => e.includes('contacto'));
+      const msgNombre = errores.find((e) => e.hueco === 'nombre')?.mensaje;
+      const msgContacto = errores.find((e) => e.hueco === 'contacto')?.mensaje;
       if (errNombre instanceof HTMLElement) {
         errNombre.textContent = msgNombre ?? '';
         errNombre.hidden = !msgNombre;
@@ -680,7 +680,7 @@ const preguntaDeObjeto = Object.fromEntries(GUION_CHAT.map((g) => [g.objeto, g.i
       pinta();
       const aNombre = root.querySelector('[data-prospecto="nombre"]');
       const aTel = root.querySelector('[data-prospecto="telefono"]');
-      const destino = errores.some((e) => e.includes('nombre del negocio')) ? aNombre : aTel;
+      const destino = errores.some((e) => e.hueco === 'nombre') ? aNombre : aTel;
       if (destino instanceof HTMLElement) {
         destino.scrollIntoView({ behavior: reduc ? 'auto' : 'smooth', block: 'center' });
         destino.focus({ preventScroll: true });

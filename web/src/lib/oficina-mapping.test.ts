@@ -22,6 +22,7 @@ import {
   responderGuion,
   seleccionDeGuion,
   validarBorrador,
+  avisoAlCopiar,
   traducirBorradorAGenerar,
   mensajeWhatsApp,
   enlaceWhatsApp,
@@ -109,15 +110,41 @@ describe("oficina-mapping — seam único objeto↔módulo", () => {
       prospecto: { ...fichasBase().prospecto, nombre: "  " },
     });
     expect(validarBorrador(sinNombre)).toEqual([
-      "Falta el nombre del negocio. Completalo en Nombre del negocio.",
+      {
+        hueco: "nombre",
+        mensaje: "Falta el nombre del negocio. Completalo en Nombre del negocio.",
+      },
     ]);
     const sinContacto = construirBorrador({
       ...fichasBase(),
       prospecto: { ...fichasBase().prospecto, telefono: "", email: "" },
     });
     expect(validarBorrador(sinContacto)).toEqual([
-      "Falta un contacto. Completá el teléfono o el email.",
+      {
+        hueco: "contacto",
+        mensaje: "Falta un contacto. Completá el teléfono o el email.",
+      },
     ]);
+  });
+
+  it("el aviso al copiar nombra solo el dato que falta", () => {
+    const soloNombre = validarBorrador(construirBorrador({
+      ...fichasBase(),
+      prospecto: { ...fichasBase().prospecto, nombre: "  " },
+    }));
+    expect(avisoAlCopiar(soloNombre)).toBe("Completá el nombre del negocio antes de copiar.");
+    const soloContacto = validarBorrador(construirBorrador({
+      ...fichasBase(),
+      prospecto: { ...fichasBase().prospecto, telefono: "", email: "" },
+    }));
+    expect(avisoAlCopiar(soloContacto)).toBe("Completá el teléfono o el email antes de copiar.");
+    const ambos = validarBorrador(construirBorrador({
+      ...fichasBase(),
+      prospecto: { ...fichasBase().prospecto, nombre: "", telefono: "", email: "" },
+    }));
+    expect(avisoAlCopiar(ambos)).toBe(
+      "Completá el nombre del negocio y el teléfono o el email antes de copiar.",
+    );
   });
 
   it("persiste y recupera el borrador; corrupto o ausente da null", () => {

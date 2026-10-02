@@ -483,15 +483,39 @@ export function traducirBorradorAGenerar(b: BorradorV1): GenerarInput {
  * (teléfono o email). Todo lo demás es opcional; las validaciones duras
  * (1 sucursal, 2 cajas, ~5 usuarios ICP) las hace el consultor en el Descubrimiento.
  */
-export function validarBorrador(b: Pick<BorradorV1, 'prospecto'>): string[] {
-  const errores: string[] = [];
+export type HuecoBorrador = "nombre" | "contacto";
+
+export interface FalloBorrador {
+  hueco: HuecoBorrador;
+  mensaje: string;
+}
+
+export function validarBorrador(b: Pick<BorradorV1, 'prospecto'>): FalloBorrador[] {
+  const errores: FalloBorrador[] = [];
   if (!b.prospecto.nombre.trim()) {
-    errores.push('Falta el nombre del negocio. Completalo en Nombre del negocio.');
+    errores.push({
+      hueco: "nombre",
+      mensaje: "Falta el nombre del negocio. Completalo en Nombre del negocio.",
+    });
   }
   if (!b.prospecto.telefono.trim() && !b.prospecto.email.trim()) {
-    errores.push('Falta un contacto. Completá el teléfono o el email.');
+    errores.push({
+      hueco: "contacto",
+      mensaje: "Falta un contacto. Completá el teléfono o el email.",
+    });
   }
   return errores;
+}
+
+/** Aviso de copiar: nombra solo el hueco que falta. */
+export function avisoAlCopiar(fallos: readonly FalloBorrador[]): string {
+  const huecos = new Set(fallos.map((f) => f.hueco));
+  const partes: string[] = [];
+  if (huecos.has("nombre")) partes.push("el nombre del negocio");
+  if (huecos.has("contacto")) partes.push("el teléfono o el email");
+  if (partes.length === 0) return "";
+  if (partes.length === 1) return `Completá ${partes[0]} antes de copiar.`;
+  return "Completá el nombre del negocio y el teléfono o el email antes de copiar.";
 }
 
 // ---- Persistencia local (cero backend) ----

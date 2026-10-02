@@ -32,6 +32,9 @@ describe("portal del borrador", () => {
     }
     expect(text).toMatch(/\.oficina-campo\s*\{[^}]*min-height:\s*44px/);
     expect(text).toMatch(/\.oficina-campo\s*\{[^}]*touch-action:\s*manipulation/);
+    expect(text).toMatch(/\.oficina-check\s*\{[^}]*min-height:\s*44px/);
+    expect(text).toMatch(/\.oficina-check\s*\{[^}]*touch-action:\s*manipulation/);
+    expect(text).toContain("3547&nbsp;000000");
   });
 
   it("el error queda junto al dato que falta", () => {
@@ -42,6 +45,13 @@ describe("portal del borrador", () => {
     expect(text).toContain('id="error-contacto"');
     expect(text).toContain('data-error="contacto"');
     expect(text).toContain('aria-describedby="error-contacto"');
+    expect(text).toMatch(/id="error-nombre"[^>]*role="alert"/);
+    expect(text).toMatch(/id="error-contacto"[^>]*role="alert"/);
+    expect(text).toContain("e.hueco === 'nombre'");
+    expect(text).toContain("e.hueco === 'contacto'");
+    expect(text).not.toContain(".includes('nombre del negocio')");
+    expect(text).toMatch(/\.oficina-falla\s*\{[^}]*color:\s*var\(--mo-ink\)/);
+    expect(text).not.toMatch(/\.oficina-error\s*\{[^}]*font-size:\s*0\.8125rem/);
   });
 
   it("WhatsApp no se tabula si el borrador no cierra y copiar anuncia", () => {
@@ -50,7 +60,12 @@ describe("portal del borrador", () => {
     expect(text).not.toMatch(/<a data-whatsapp\b[^>]*\bhref=/);
     expect(text).toContain("setAttribute('tabindex', '-1')");
     expect(text).toContain("removeAttribute('href')");
-    expect(text).toContain("Completá el nombre y un contacto antes de copiar.");
+    expect(text).toContain("avisoAlCopiar");
+    expect(text).toContain("window.clearTimeout(timerCopia)");
+    expect(text).not.toContain("Completá el nombre y un contacto antes de copiar.");
+    const copiado = text.indexOf("data-copiado");
+    expect(copiado).toBeGreaterThan(-1);
+    expect(copiado).toBeLessThan(text.indexOf('data-panel="2"'));
     expect(text).toMatch(/data-copiado[^>]*role="status"/);
   });
 
@@ -61,6 +76,7 @@ describe("portal del borrador", () => {
     expect(text).toContain('<h2 class="oficina-h3">Sectores de tu borrador</h2>');
     expect(text).toMatch(/\.oficina-chip\s*\{[^}]*font-variant-numeric:\s*tabular-nums/);
     expect(text).toMatch(/\.oficina-titulo\s*\{[^}]*text-wrap:\s*balance/);
-    expect(text).toContain("scroll-padding-top:");
+    expect(text).toContain("scroll-padding-top: 10rem");
+    expect(text).toContain("scroll-margin-top: 10rem");
   });
 });
