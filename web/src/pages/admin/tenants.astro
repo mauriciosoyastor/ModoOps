@@ -85,8 +85,9 @@ const vistaJson = JSON.stringify(
         <p class="app-bar__meta">Control Plane{userName ? ` · ${userName}` : ''}</p>
       </div>
       <nav class="app-bar__nav" aria-label="Secciones">
+        <a class="app-link" href="/admin/inicio">Inicio</a>
+        <a class="app-link" href="/admin/tenants" aria-current="page">Tenants</a>
         <a class="app-link" href="/admin/leads">Leads</a>
-        <a class="app-link" href="/app">App</a>
         <button type="button" class="app-link app-link--session" data-logout>Cerrar sesión</button>
       </nav>
       <button type="button" class="mo-btn mo-btn--primary" id="btn-nuevo" aria-expanded={nuevo ? 'true' : 'false'} aria-controls="panel-nuevo">

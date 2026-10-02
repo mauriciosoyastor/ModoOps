@@ -1,0 +1,131 @@
+---
+import LightAppLayout from '../../layouts/LightAppLayout.astro';
+import InicioMosaico from '../../components/inicio/InicioMosaico.astro';
+import { BffError } from '../../lib/bff/errors.ts';
+import { invalidateBffSession } from '../../lib/bff/http.ts';
+import { getBackend } from '../../lib/bff/get-backend.ts';
+import { composicionInicio } from '../../lib/bff/inicio.ts';
+import { sessionCloseCopy } from '../../lib/control-plane-vista.ts';
+
+const sesion = (Astro.locals as Record<string, unknown>).session as { name?: string; login?: string } | undefined;
+const odoo = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
+if (!odoo) return Astro.redirect('/login');
+
+const consultor = sesion?.name || sesion?.login || '';
+let loadError = '';
+let tenants: import('../../lib/bff/backend-client.ts').TenantRow[] = [];
+try {
+  tenants = await getBackend().getTenants(odoo);
+} catch (cause) {
+  if (cause instanceof BffError && cause.code === 'unauthorized') {
+    invalidateBffSession(Astro.cookies);
+    return Astro.redirect('/login');
+  }
+  loadError = (cause as Error)?.message || 'No se pudo cargar la cartera';
+}
+
+const hoy = new Date();
+const hoyIso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+const inicio = composicionInicio({
+  superficie: 'control-plane',
+  consultor,
+  hoy: hoyIso,
+  seccion: 'inicio',
+  tenants: tenants.map((tenant) => ({
+    name: tenant.name,
+    state: tenant.state,
+    abonoDue: tenant.abono_due_date || null,
+    graciaHasta: tenant.suspend_grace_until || null,
+    modulos: tenant.modules_installed || '',
+  })),
+});
+const cerrar = sessionCloseCopy('control-plane');
+---
+
+<LightAppLayout title="Inicio — ModoOps" description="Control Plane" theme="papel">
+  <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
+  <div class="shell" id="contenido">
+    <header class="app-bar">
+      <p class="app-bar__brand" translate="no">ModoOps</p>
+      <nav class="app-bar__nav" aria-label="Secciones">
+        {inicio.nav.map((item) => (
+          <a class="app-link" href={item.href} aria-current={item.actual ? 'page' : undefined}>{item.label}</a>
+        ))}
+        <button type="button" class="app-link app-link--session" data-logout>{inicio.cerrarSesion}</button>
+      </nav>
+    </header>
+    <div class="page">
+      {loadError ? <p class="mo-banner mo-banner--danger" role="alert">{loadError}</p> : <InicioMosaico inicio={inicio} />}
+    </div>
+  </div>
+
+  <dialog id="cerrar-dialog" aria-labelledby="cerrar-titulo">
+    <h2 id="cerrar-titulo">{cerrar.title}</h2>
+    <p>{cerrar.text}</p>
+    <p id="cerrar-error" role="alert" tabindex="-1" hidden>No se pudo cerrar la sesión. Probá de nuevo.</p>
+    <form method="dialog">
+      <button type="submit" value="cancel">{cerrar.cancelLabel}</button>
+      <button type="button" id="cerrar-ok">{cerrar.okLabel}</button>
+    </form>
+  </dialog>
+
+  <script>
+    const dialogo = document.getElementById('cerrar-dialog');
+    document.querySelector('[data-logout]')?.addEventListener('click', () => {
+      if (dialogo instanceof HTMLDialogElement) dialogo.showModal();
+    });
+    document.getElementById('cerrar-ok')?.addEventListener('click', async () => {
+      const error = document.getElementById('cerrar-error');
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (!res.ok) {
+        if (error instanceof HTMLElement) {
+          error.hidden = false;
+          error.focus();
+        }
+        return;
+      }
+      window.location.assign('/login');
+    });
+  </script>
+
+  <style>
+    .shell { min-height: 100dvh; }
+    .app-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+    }
+    .app-bar__brand { margin: 0; font-weight: 650; }
+    .app-bar__nav { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; }
+    .app-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0.25rem 0.7rem;
+      color: var(--mo-muted);
+      text-decoration: none;
+      touch-action: manipulation;
+    }
+    .app-link[aria-current='page'] {
+      color: var(--mo-ink);
+      font-weight: 650;
+    }
+    .page { padding: 0 1rem 2rem; }
+    dialog {
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius);
+      background: var(--mo-canvas);
+      color: var(--mo-ink);
+      padding: 1rem;
+    }
+    dialog form { display: flex; gap: 0.5rem; justify-content: flex-end; }
+    dialog button {
+      min-height: 44px;
+      padding: 0.25rem 0.7rem;
+      touch-action: manipulation;
+    }
+  </style>
+</LightAppLayout>

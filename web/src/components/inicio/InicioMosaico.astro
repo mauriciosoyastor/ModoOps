@@ -1,0 +1,341 @@
+---
+import type { Inicio } from "../../lib/bff/inicio.ts";
+
+interface Props {
+  inicio: Inicio;
+}
+
+const { inicio } = Astro.props;
+const areas = inicio.filas.map((fila) => `"${fila.join(" ")}"`).join(" ");
+const usadas = new Set(inicio.filas.flat());
+const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor) ?? [0]));
+---
+
+<div class="inicio-mosaico" style={`grid-template-areas: ${areas}`}>
+  {
+    usadas.has("greet") && (
+      <section class="bloque saludo" style="grid-area: greet" aria-labelledby="inicio-saludo">
+        <h1 id="inicio-saludo">{inicio.saludo}</h1>
+        <p>{inicio.bajada}</p>
+      </section>
+    )
+  }
+  {
+    usadas.has("bar") && inicio.barra && (
+      <section class="bloque" style="grid-area: bar" aria-labelledby="inicio-barra">
+        <h2 id="inicio-barra">{inicio.barraTitulo}</h2>
+        {
+          inicio.barra.every((parte) => parte.pct === 0) ? (
+            <p class="muted">0</p>
+          ) : (
+            <div class="pista" aria-hidden="true">
+              {inicio.barra.map((parte) => (
+                <span class:list={["tramo", parte.href ? "tramo--enlace" : "tramo--quieto"]} style={`width: ${parte.pct}%`}></span>
+              ))}
+            </div>
+          )
+        }
+        <ul class="leyenda">
+          {inicio.barra.map((parte) => (
+            <li>
+              {parte.href ? (
+                <a href={parte.href}>{parte.label} {parte.pct}%</a>
+              ) : (
+                <span>{parte.label} {parte.pct}%</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+  {
+    usadas.has("stats") && (
+      <section class="bloque numeros" style="grid-area: stats" aria-label="Números del día">
+        {inicio.numeros.map((numero) =>
+          numero.href ? (
+            <a class="numero" href={numero.href}>
+              <span class="numero__valor">{numero.valor}</span>
+              <span class="numero__rotulo">{numero.label}</span>
+            </a>
+          ) : (
+            <p class="numero">
+              <span class="numero__valor">{numero.valor}</span>
+              <span class="numero__rotulo">{numero.label}</span>
+            </p>
+          ),
+        )}
+      </section>
+    )
+  }
+  {
+    usadas.has("agenda") && (
+      <section class="bloque" style="grid-area: agenda" aria-labelledby="inicio-agenda">
+        <h2 id="inicio-agenda">Hoy</h2>
+        {inicio.agenda.length === 0 ? (
+          <p class="muted">Nada vence hoy.</p>
+        ) : (
+          <ol class="agenda">
+            {inicio.agenda.map((item) => (
+              <li>
+                {item.href ? <a href={item.href}>{item.titulo}</a> : <span>{item.titulo}</span>}
+                <span class="muted">{item.detalle}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+    )
+  }
+  {
+    usadas.has("table") && inicio.tabla && (
+      <section class="bloque" style="grid-area: table" aria-labelledby="inicio-tabla">
+        <h2 id="inicio-tabla">
+          {inicio.tabla.href ? <a href={inicio.tabla.href}>{inicio.tabla.titulo}</a> : inicio.tabla.titulo}
+        </h2>
+        {inicio.tabla.filas.length === 0 ? (
+          <p class="muted">La cola está vacía.</p>
+        ) : (
+          <table>
+            <caption class="muted">{inicio.tabla.filas.length} en la cola.</caption>
+            <thead>
+              <tr>
+                {inicio.tabla.columnas.map((columna) => (
+                  <th scope="col">{columna}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {inicio.tabla.filas.map((fila) => (
+                <tr>
+                  {fila.celdas.map((celda) => (
+                    <td>{celda}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+    )
+  }
+  {
+    usadas.has("verdict") && inicio.veredicto && (
+      <section class="bloque veredicto" style="grid-area: verdict" aria-labelledby="inicio-veredicto">
+        <h2 id="inicio-veredicto">
+          {inicio.veredicto.href ? <a href={inicio.veredicto.href}>{inicio.veredicto.titulo}</a> : inicio.veredicto.titulo}
+        </h2>
+        <p class="veredicto__principal">{inicio.veredicto.principal}</p>
+        <p class="veredicto__secundario">{inicio.veredicto.secundario}</p>
+      </section>
+    )
+  }
+  {
+    usadas.has("series") && inicio.serie && (
+      <section class="bloque" style="grid-area: series" aria-labelledby="inicio-serie">
+        <h2 id="inicio-serie">
+          {inicio.serie.href ? <a href={inicio.serie.href}>{inicio.serie.titulo}</a> : inicio.serie.titulo}
+        </h2>
+        <ol class="serie">
+          {inicio.serie.puntos.map((punto) => (
+            <li>
+              <span>{punto.label}</span>
+              <span class="serie__barra" style={`--valor: ${(punto.valor / maxSerie) * 100}%`}></span>
+              <span class="num">{punto.valor}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )
+  }
+  {
+    usadas.has("comp") && inicio.composicion && (
+      <section class="bloque" style="grid-area: comp" aria-labelledby="inicio-composicion">
+        <h2 id="inicio-composicion">
+          {inicio.composicion.href ? (
+            <a href={inicio.composicion.href}>{inicio.composicion.titulo}</a>
+          ) : (
+            inicio.composicion.titulo
+          )}
+        </h2>
+        <div class="dona" style={`--pct: ${inicio.composicion.partes[0]?.pct ?? 0}%`}>
+          <p class="numero">
+            <span class="numero__valor">{inicio.composicion.total}</span>
+            <span class="numero__rotulo">en total</span>
+          </p>
+        </div>
+        <ul class="leyenda">
+          {inicio.composicion.partes.map((parte) => (
+            <li>
+              <span>{parte.label}</span>
+              <span class="num">{parte.pct}%</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</div>
+
+<style>
+  .inicio-mosaico {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr) minmax(14rem, 17rem);
+    align-items: start;
+  }
+  .bloque {
+    background: var(--mo-canvas);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+    padding: 1rem;
+  }
+  .saludo {
+    background: transparent;
+    border: 0;
+    padding: 0.25rem 0;
+  }
+  .saludo h1 {
+    margin: 0;
+    font-family: var(--mo-display);
+    font-size: clamp(1.85rem, 3vw, 2.4rem);
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--mo-ink);
+  }
+  .saludo p,
+  .bloque h2,
+  .muted,
+  .numero__rotulo {
+    color: var(--mo-muted);
+  }
+  .bloque h2 {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 650;
+  }
+  .bloque a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: inherit;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+    touch-action: manipulation;
+  }
+  .numeros {
+    display: grid;
+    gap: 0.85rem;
+  }
+  .numero {
+    display: grid;
+    margin: 0;
+    color: inherit;
+    text-decoration: none;
+  }
+  a.numero {
+    min-height: 44px;
+    align-content: center;
+  }
+  .numero__valor {
+    font-family: var(--mo-display);
+    font-size: 2rem;
+    font-weight: 650;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--mo-ink);
+  }
+  .pista {
+    display: flex;
+    height: 1.75rem;
+    overflow: hidden;
+    border-radius: var(--mo-radius-sm);
+    background: var(--mo-card);
+  }
+  .tramo--enlace { background: var(--mo-accent); }
+  .tramo--quieto { background: var(--mo-line-strong); }
+  .pista .tramo:nth-child(2) { background: var(--mo-ink); }
+  .pista .tramo:nth-child(3) { background: var(--mo-line-strong); }
+  .leyenda,
+  .agenda,
+  .serie {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .leyenda { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
+  .agenda li {
+    display: grid;
+    gap: 0.1rem;
+  }
+  .serie li {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr) 2rem;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .serie__barra {
+    height: 0.45rem;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--mo-accent) var(--valor), var(--mo-line) var(--valor));
+  }
+  .num { font-variant-numeric: tabular-nums; text-align: right; }
+  table { width: 100%; border-collapse: collapse; }
+  caption { text-align: left; margin-bottom: 0.5rem; }
+  th, td {
+    padding: 0.55rem 0.4rem;
+    border-bottom: 1px solid var(--mo-line);
+    text-align: left;
+  }
+  th { color: var(--mo-muted); font-weight: 600; font-size: 0.8rem; }
+  .veredicto {
+    background: var(--mo-hero);
+    color: var(--mo-on-hero);
+    border-color: var(--mo-hero);
+  }
+  .veredicto h2,
+  .veredicto a,
+  .veredicto__principal,
+  .veredicto__secundario { color: inherit; }
+  .veredicto__principal {
+    margin: 0;
+    font-family: var(--mo-display);
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+  .veredicto__secundario { margin: 0.35rem 0 0; }
+  .dona {
+    width: 9rem;
+    height: 9rem;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: conic-gradient(var(--mo-accent) var(--pct), var(--mo-warn, var(--mo-line-strong)) 0);
+    display: grid;
+    place-items: center;
+  }
+  .dona p {
+    margin: 0;
+    width: 6.2rem;
+    height: 6.2rem;
+    border-radius: 50%;
+    background: var(--mo-canvas);
+    display: grid;
+    place-items: center;
+    align-content: center;
+  }
+  @media (max-width: 960px) {
+    .inicio-mosaico {
+      grid-template-columns: 1fr;
+      grid-template-areas: none !important;
+    }
+    .inicio-mosaico > * { grid-area: auto !important; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .inicio-mosaico { scroll-behavior: auto; }
+  }
+</style>

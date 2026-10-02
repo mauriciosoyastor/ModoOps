@@ -11,9 +11,7 @@ if (!_odoo) return Astro.redirect("/login");
 let odooSessionId: string = _odoo;
 let userName = _sess?.name || _sess?.login || "";
 
-// Ordenado q2: /app legacy redirect a Hub1 para rol interno ModoOps (solo interno q5)
-// Mantiene compat: clientes futuros usarán /tenant/[slug]/app, internos ven /admin/tenants primero
-return Astro.redirect("/admin/tenants");
+return Astro.redirect("/admin/inicio");
 ---
 
 <BaseLayout title="App — ModoOps" description="ModoOps App — redirect a Control Plane">

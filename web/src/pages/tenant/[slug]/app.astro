@@ -6,6 +6,8 @@ import { invalidateBffSession } from '../../../lib/bff/http.ts';
 import { loadTenantLauncher } from '../../../lib/bff/launcher.ts';
 import { withMasterSession } from '../../../lib/bff/tenant-status.ts';
 import { resumenHome } from '../../../lib/bff/home.ts';
+import { composicionInicio, modulosAnclaDesdeTiles, type ModuloAncla } from '../../../lib/bff/inicio.ts';
+import InicioMosaico from '../../../components/inicio/InicioMosaico.astro';
 
 export const prerender = false;
 
@@ -55,6 +57,20 @@ try {
 
 const hasIA = tenant?.modules_installed?.includes('IA ModoOps') ?? false;
 const homeTabParam = Astro.url.searchParams.get('tab') || '';
+const ancla: readonly ModuloAncla[] = ['mostrador', 'deposito', 'compras', 'fiscal_ar'];
+const enInicio = !ancla.includes(homeTabParam as ModuloAncla);
+const seccion = enInicio ? 'inicio' : (homeTabParam as ModuloAncla);
+const hoy = new Date();
+const hoyIso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+const inicio = composicionInicio({
+  superficie: 'shell',
+  usuario: userName,
+  cliente: tenant?.name || slug,
+  slug,
+  hoy: hoyIso,
+  modulos: modulosAnclaDesdeTiles(tiles),
+  seccion,
+});
 const homeRes = resumenHome({ tab: homeTabParam });
 const homeTabs = homeRes.ok ? homeRes.home.tabs : [];
 const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes.home.tab)?.label ?? '' : '';
@@ -69,20 +85,26 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
     <header class="app-bar">
       <div class="app-bar__identity">
         <p class="app-bar__brand" translate="no">ModoOps</p>
-        <h1 class="app-bar__title">
-          {tenant ? `Así viene tu día en ${tenant.name}.` : 'Shell del tenant'}
-        </h1>
-        <p class="app-bar__meta">
-          <span translate="no">{tenant?.name ?? slug}</span>
-          {tenant ? (
-            <span class:list={['mo-badge', `is-${tenant.state}`]}>{tenant.state}</span>
-          ) : null}
-          {userName ? <span>{userName}</span> : null}
-        </p>
+        {enInicio ? (
+          <p class="app-bar__meta" translate="no">{tenant?.name ?? slug}</p>
+        ) : (
+          <>
+            <h1 class="app-bar__title">{homeTabLabel || 'Shell'}</h1>
+            <p class="app-bar__meta">
+              <span translate="no">{tenant?.name ?? slug}</span>
+              {tenant ? (
+                <span class:list={['mo-badge', `is-${tenant.state}`]}>{tenant.state}</span>
+              ) : null}
+              {userName ? <span>{userName}</span> : null}
+            </p>
+          </>
+        )}
       </div>
-      <nav class="app-bar__nav" aria-label="Cuenta">
-        <a class="app-link" href="/admin/tenants">← Tenants</a>
-        <button type="button" class="app-link app-link--session" data-logout>Cerrar sesión</button>
+      <nav class="app-bar__nav" aria-label="Módulos">
+        {inicio.nav.map((item) => (
+          <a class="app-link" href={item.href} aria-current={item.actual ? 'page' : undefined}>{item.label}</a>
+        ))}
+        <button type="button" class="app-link app-link--session" data-logout>{inicio.cerrarSesion}</button>
       </nav>
     </header>
 
@@ -94,7 +116,9 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       </p>
     ) : null}
 
-    {tenant && !tenantError ? (
+    {tenant && !tenantError && enInicio ? <InicioMosaico inicio={inicio} /> : null}
+
+    {tenant && !tenantError && !enInicio ? (
       <>
         <nav class="mo-tabs tabs" aria-label="Módulos" role="tablist">
           {homeTabs.map((t) => (
