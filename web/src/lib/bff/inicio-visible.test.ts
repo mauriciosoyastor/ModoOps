@@ -31,4 +31,10 @@ describe("Inicio visible", () => {
   it("el cierre fallido está en voseo", () => {
     expect(controlPlane).toContain("Probá de nuevo");
   });
+
+  it("Tenants no ofrece el estado Moroso", () => {
+    const tenants = read("pages/admin/tenants.astro");
+    expect(tenants).not.toContain("Moroso");
+    expect(tenants).not.toContain("moroso");
+  });
 });
