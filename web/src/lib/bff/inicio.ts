@@ -1,0 +1,355 @@
+/** Composición del Inicio. Pura: sin Odoo y sin el documento de origen de las cifras del Shell. */
+
+export type ModuloAncla = "mostrador" | "deposito" | "compras" | "fiscal_ar";
+
+export type Celda = "greet" | "bar" | "stats" | "agenda" | "table" | "verdict" | "series" | "comp";
+
+export type NavItem = { label: string; href: string; actual: boolean };
+
+export type ParteBarra = { label: string; pct: number; href: string | null };
+
+export type NumeroInicio = { label: string; valor: number; href: string | null };
+
+export type ItemAgenda = { titulo: string; detalle: string; href: string | null };
+
+export type FilaTabla = { celdas: string[] };
+
+export type BloqueTabla = { titulo: string; href: string | null; columnas: string[]; filas: FilaTabla[] };
+
+export type BloqueVeredicto = {
+  titulo: string;
+  principal: string;
+  secundario: string;
+  href: string | null;
+};
+
+export type BloqueSerie = {
+  titulo: string;
+  href: string | null;
+  puntos: { label: string; valor: number }[];
+};
+
+export type BloqueComposicion = {
+  titulo: string;
+  href: string | null;
+  total: number;
+  partes: { label: string; pct: number }[];
+};
+
+export type Inicio = {
+  saludo: string;
+  bajada: string;
+  nav: NavItem[];
+  cerrarSesion: "Cerrar sesión";
+  filas: Celda[][];
+  barraTitulo: string | null;
+  barra: ParteBarra[] | null;
+  numeros: NumeroInicio[];
+  agenda: ItemAgenda[];
+  tabla: BloqueTabla | null;
+  veredicto: BloqueVeredicto | null;
+  serie: BloqueSerie | null;
+  composicion: BloqueComposicion | null;
+};
+
+export type TenantCartera = {
+  name: string;
+  state: string;
+  abonoDue: string | null;
+  modulos: string;
+};
+
+const ANCLA: readonly ModuloAncla[] = ["mostrador", "deposito", "compras", "fiscal_ar"];
+
+const ROTULO: Record<ModuloAncla, string> = {
+  mostrador: "Mostrador",
+  deposito: "Depósito Inteligente",
+  compras: "Compras",
+  fiscal_ar: "Fiscal AR",
+};
+
+const USD0 = "USD\u00a00";
+
+export function modulosAnclaDesdeTiles(tiles: readonly { label: string }[]): ModuloAncla[] {
+  const found = new Set<ModuloAncla>();
+  for (const tile of tiles) {
+    const label = tile.label.toLocaleLowerCase("es-AR");
+    if (label.includes("mostrador")) found.add("mostrador");
+    if (label.includes("depósito") || label.includes("deposito")) found.add("deposito");
+    if (label.includes("compra")) found.add("compras");
+    if (label.includes("fiscal")) found.add("fiscal_ar");
+  }
+  return ANCLA.filter((id) => found.has(id));
+}
+
+type ShellInput = {
+  superficie: "shell";
+  usuario: string;
+  cliente: string;
+  slug: string;
+  hoy: string;
+  modulos?: readonly ModuloAncla[];
+  seccion?: "inicio" | ModuloAncla;
+};
+
+type ControlPlaneInput = {
+  superficie: "control-plane";
+  consultor: string;
+  hoy: string;
+  seccion: "inicio" | "tenants" | "leads";
+  tenants: readonly TenantCartera[];
+};
+
+export function composicionInicio(input: ShellInput | ControlPlaneInput): Inicio {
+  if (input.superficie === "control-plane") return controlPlane(input);
+  return shell(input);
+}
+
+function shell(input: ShellInput): Inicio {
+  const presentes = new Set(input.modulos ?? ANCLA);
+  const tiene = (id: ModuloAncla) => presentes.has(id);
+  const href = (id: ModuloAncla) => `/tenant/${input.slug}/app?tab=${id}`;
+  const seccion = input.seccion ?? "inicio";
+
+  const numeros: NumeroInicio[] = [];
+  if (tiene("mostrador")) numeros.push({ label: "Ventas de hoy", valor: 0, href: href("mostrador") });
+  if (tiene("deposito")) numeros.push({ label: "Productos bajo stock", valor: 0, href: href("deposito") });
+  if (tiene("compras")) numeros.push({ label: "Compras sin recibir", valor: 0, href: href("compras") });
+
+  const agenda: ItemAgenda[] = [];
+  if (tiene("mostrador")) agenda.push({ titulo: "Cierre de caja", detalle: "Hoy", href: href("mostrador") });
+  if (tiene("compras")) agenda.push({ titulo: "Recepción", detalle: "Hoy", href: href("compras") });
+  if (tiene("fiscal_ar")) agenda.push({ titulo: "Vencimiento fiscal", detalle: "Hoy", href: href("fiscal_ar") });
+
+  return {
+    saludo: input.usuario ? `Hola, ${input.usuario}` : "Hola",
+    bajada: input.cliente,
+    nav: [
+      { label: "Inicio", href: `/tenant/${input.slug}/app`, actual: seccion === "inicio" },
+      ...ANCLA.filter((id) => tiene(id)).map((id) => ({
+        label: ROTULO[id],
+        href: href(id),
+        actual: seccion === id,
+      })),
+    ],
+    cerrarSesion: "Cerrar sesión",
+    filas: filasShell(presentes),
+    barraTitulo: tiene("mostrador") ? "Tickets de hoy" : null,
+    barra: tiene("mostrador")
+      ? [
+          { label: "Efectivo", pct: 0, href: href("mostrador") },
+          { label: "QR", pct: 0, href: href("mostrador") },
+          { label: "Tarjeta", pct: 0, href: href("mostrador") },
+          { label: "Sin cobrar", pct: 0, href: href("mostrador") },
+        ]
+      : null,
+    numeros,
+    agenda,
+    tabla: tiene("compras")
+      ? { titulo: "Compras sin recibir", href: href("compras"), columnas: ["Proveedor", "Estado", "Monto"], filas: [] }
+      : null,
+    veredicto: tiene("mostrador")
+      ? {
+          titulo: "Caja",
+          principal: `${USD0} cobrado`,
+          secundario: `${USD0} sigue abierto`,
+          href: href("mostrador"),
+        }
+      : null,
+    serie: tiene("mostrador")
+      ? {
+          titulo: "Ventas por semana",
+          href: href("mostrador"),
+          puntos: [1, 2, 3, 4].map((n) => ({ label: `Semana ${n}`, valor: 0 })),
+        }
+      : null,
+    composicion: tiene("deposito")
+      ? {
+          titulo: "Stock",
+          href: href("deposito"),
+          total: 0,
+          partes: [
+            { label: "En condición", pct: 0 },
+            { label: "Bajo mínimo", pct: 0 },
+          ],
+        }
+      : null,
+  };
+}
+
+function filasShell(presentes: ReadonlySet<ModuloAncla>): Celda[][] {
+  const tiene = (id: ModuloAncla) => presentes.has(id);
+  const bar = tiene("mostrador");
+  const stats = tiene("mostrador") || tiene("deposito") || tiene("compras");
+  const agenda = tiene("mostrador") || tiene("compras") || tiene("fiscal_ar");
+  const table = tiene("compras");
+  const series = tiene("mostrador");
+  const verdict = tiene("mostrador");
+  const comp = tiene("deposito");
+
+  const filas: Celda[][] = [];
+  if (!stats) filas.push(["greet", "greet", "greet"]);
+  else if (!bar) filas.push(["greet", "greet", "stats"]);
+  else filas.push(["greet", "greet", "stats"], ["bar", "bar", "stats"]);
+
+  const lower = [agenda, table, series, verdict, comp].filter(Boolean).length;
+  if (lower === 0) return filas;
+  if (lower === 1) {
+    const solo: Celda = table ? "table" : series ? "series" : verdict ? "verdict" : comp ? "comp" : "agenda";
+    filas.push([solo, solo, solo]);
+    return filas;
+  }
+
+  const centro = repetir(table ? "table" : null, series ? "series" : null);
+  const derecha = repetir(verdict ? "verdict" : null, comp ? "comp" : null);
+  for (let i = 0; i < 2; i++) {
+    const c = centro[i];
+    const d = derecha[i];
+    if (agenda && c && d) filas.push(["agenda", c, d]);
+    else if (agenda && c) filas.push(["agenda", c, c]);
+    else if (agenda && d) filas.push(["agenda", d, d]);
+    else if (agenda) filas.push(["agenda", "agenda", "agenda"]);
+    else if (c && d) filas.push([c, c, d]);
+    else if (c) filas.push([c, c, c]);
+    else if (d) filas.push([d, d, d]);
+  }
+  return filas;
+}
+
+function repetir(primero: Celda | null, segundo: Celda | null): (Celda | null)[] {
+  if (primero && segundo) return [primero, segundo];
+  const solo = primero || segundo;
+  return [solo, solo];
+}
+
+function controlPlane(input: ControlPlaneInput): Inicio {
+  const hoy = parseDia(input.hoy);
+  const activos = input.tenants.filter((t) => t.state === "activo");
+  const suspendidos = input.tenants.filter((t) => t.state === "suspendido");
+  const bajas = input.tenants.filter((t) => t.state === "baja");
+  const enGracia = activos.filter((t) => {
+    const due = parseDia(t.abonoDue);
+    if (!hoy || !due) return false;
+    return due < hoy && hoy <= addDias(due, 7);
+  });
+  const ventana = activos.filter((t) => {
+    const due = parseDia(t.abonoDue);
+    if (!hoy || !due) return false;
+    return due >= hoy && due <= addDias(hoy, 7);
+  });
+  const vencenHoy = ventana.filter((t) => {
+    const due = parseDia(t.abonoDue);
+    return Boolean(hoy && due && due === hoy);
+  });
+  const [pctActivo, pctSuspendido, pctBaja] = porcentajes([activos.length, suspendidos.length, bajas.length]);
+  const resto = input.tenants.length - ventana.length;
+  const partes = porcentajes([ventana.length, resto]);
+
+  return {
+    saludo: input.consultor ? `Hola, ${input.consultor}` : "Hola",
+    bajada: "Control Plane",
+    nav: [
+      { label: "Inicio", href: "/admin/inicio", actual: input.seccion === "inicio" },
+      { label: "Tenants", href: "/admin/tenants", actual: input.seccion === "tenants" },
+      { label: "Leads", href: "/admin/leads", actual: input.seccion === "leads" },
+    ],
+    cerrarSesion: "Cerrar sesión",
+    filas: [
+      ["greet", "greet", "stats"],
+      ["bar", "bar", "stats"],
+      ["agenda", "table", "verdict"],
+      ["agenda", "series", "comp"],
+    ],
+    barraTitulo: "Estado Tenant",
+    barra: [
+      { label: "Activo", pct: pctActivo, href: "/admin/tenants?estado=activo" },
+      { label: "Suspendido", pct: pctSuspendido, href: "/admin/tenants?estado=suspendido" },
+      { label: "Baja", pct: pctBaja, href: null },
+    ],
+    numeros: [
+      { label: "Activos", valor: activos.length, href: "/admin/tenants?estado=activo" },
+      { label: "En gracia", valor: enGracia.length, href: null },
+      { label: "Abonos que vencen dentro de 7 días", valor: ventana.length, href: null },
+    ],
+    agenda: vencenHoy.map((t) => ({ titulo: t.name, detalle: "Vence el abono", href: null })),
+    tabla: {
+      titulo: "Tenants en gracia",
+      href: null,
+      columnas: ["Nombre", "Estado", "Vencimiento", "Módulos"],
+      filas: enGracia.map((t) => ({
+        celdas: [t.name, "Activo", t.abonoDue ?? "", t.modulos],
+      })),
+    },
+    veredicto: {
+      titulo: "Cartera",
+      principal: enGracia.length === 1 ? "1 tenant en gracia" : `${enGracia.length} tenants en gracia`,
+      secundario:
+        ventana.length === 1
+          ? "1 abono vence dentro de 7 días"
+          : `${ventana.length} abonos vencen dentro de 7 días`,
+      href: null,
+    },
+    serie: {
+      titulo: "Abonos que vencen por semana",
+      href: null,
+      puntos: semanasDelMes(hoy).map((label) => ({
+        label,
+        valor: ventana.filter((t) => semanaDe(parseDia(t.abonoDue), hoy) === label).length,
+      })),
+    },
+    composicion: {
+      titulo: "Vencimientos",
+      href: null,
+      total: input.tenants.length,
+      partes: [
+        { label: "Vencen dentro de 7 días", pct: partes[0] ?? 0 },
+        { label: "El resto", pct: partes[1] ?? 0 },
+      ],
+    },
+  };
+}
+
+function parseDia(iso: string | null | undefined): number | null {
+  if (!iso) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!match) return null;
+  return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+function addDias(dia: number, cantidad: number): number {
+  return dia + cantidad * 86_400_000;
+}
+
+function porcentajes(valores: number[]): number[] {
+  const total = valores.reduce((suma, valor) => suma + valor, 0);
+  if (total <= 0) return valores.map(() => 0);
+  const exactos = valores.map((valor) => (valor * 100) / total);
+  const pisos = exactos.map((valor) => Math.floor(valor));
+  let resto = 100 - pisos.reduce((suma, valor) => suma + valor, 0);
+  const orden = exactos
+    .map((valor, indice) => ({ indice, fraccion: valor - Math.floor(valor) }))
+    .sort((a, b) => b.fraccion - a.fraccion || a.indice - b.indice);
+  const salida = [...pisos];
+  for (const item of orden) {
+    if (resto <= 0) break;
+    salida[item.indice] += 1;
+    resto -= 1;
+  }
+  return salida;
+}
+
+function semanasDelMes(hoy: number | null): string[] {
+  if (hoy == null) return ["Semana 1", "Semana 2", "Semana 3", "Semana 4"];
+  const fecha = new Date(hoy);
+  const ultimo = new Date(Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth() + 1, 0)).getUTCDate();
+  const cantidad = Math.ceil(ultimo / 7);
+  return Array.from({ length: cantidad }, (_, indice) => `Semana ${indice + 1}`);
+}
+
+function semanaDe(dia: number | null, hoy: number | null): string | null {
+  if (dia == null || hoy == null) return null;
+  const fecha = new Date(dia);
+  const mes = new Date(hoy);
+  if (fecha.getUTCFullYear() !== mes.getUTCFullYear() || fecha.getUTCMonth() !== mes.getUTCMonth()) return null;
+  return `Semana ${Math.ceil(fecha.getUTCDate() / 7)}`;
+}

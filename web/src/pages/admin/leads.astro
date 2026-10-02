@@ -56,8 +56,9 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
         <p class="app-bar__meta">Control Plane{userName ? ` · ${userName}` : ''}</p>
       </div>
       <nav class="app-bar__nav" aria-label="Secciones">
+        <a class="app-link" href="/admin/inicio">Inicio</a>
         <a class="app-link" href="/admin/tenants">Tenants</a>
-        <a class="app-link" href="/app">App</a>
+        <a class="app-link" href="/admin/leads" aria-current="page">Leads</a>
         <button type="button" class="app-link app-link--session" data-logout>Cerrar sesión</button>
       </nav>
     </header>
