@@ -270,6 +270,12 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
   .oficina-aviso {
     margin-top: 0;
   }
+  [data-copiado] {
+    position: sticky;
+    top: 10rem;
+    z-index: 15;
+    background: var(--mo-wash);
+  }
   .oficina-titulo {
     margin: 0.65rem 0 0;
     font-family: var(--mo-display);
@@ -872,7 +878,6 @@ const COMPROBANTES = ['Factura A', 'Factura B', 'Factura C', 'Ticket', 'Recibo']
     btnEnviar?.addEventListener('click', async () => {
       const fallosEnvio = borradorActual ? validarBorrador(borradorActual) : [];
       if (!borradorActual || fallosEnvio.length > 0) {
-        if (fallosEnvio.length > 0) anunciaCopia(fallosEnvio.map((f) => f.mensaje).join(' '), false);
         enfocaFallo(fallosEnvio.length > 0 ? fallosEnvio : [{ hueco: 'nombre', mensaje: '' }]);
         return;
       }

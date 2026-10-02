@@ -67,6 +67,9 @@ describe("portal del borrador", () => {
     expect(copiado).toBeGreaterThan(-1);
     expect(copiado).toBeLessThan(text.indexOf('data-panel="2"'));
     expect(text).toMatch(/data-copiado[^>]*role="status"/);
+    expect(text).toMatch(/\[data-copiado\]\s*\{[^}]*position:\s*sticky/);
+    expect(text).toMatch(/\[data-copiado\]\s*\{[^}]*top:\s*10rem/);
+    expect(text).not.toContain("anunciaCopia(fallosEnvio");
   });
 
   it("el riel no reanuncia el JSON y los sectores tienen título", () => {
