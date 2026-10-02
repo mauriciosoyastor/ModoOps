@@ -46,6 +46,23 @@ const qs = (e: string, query: string) => {
   return s ? `/admin/tenants?${s}` : '/admin/tenants';
 };
 
+const nuevo = Astro.url.searchParams.get('nuevo') === '1';
+
+const fecha = new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const usd = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' });
+
+function formatDue(iso: string | null | undefined) {
+  if (!iso) return '—';
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!match) return iso;
+  return fecha.format(new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+}
+
+function formatUsd(value: number | null | undefined) {
+  if (value == null || value === 0) return '—';
+  return usd.format(value);
+}
+
 const vistaJson = JSON.stringify(
   filtered.map((t) => ({
     id: t.id,
@@ -62,45 +79,44 @@ const vistaJson = JSON.stringify(
 <LightAppLayout title="Tenants — ModoOps" description="Control Plane — tenants" theme="papel">
   <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
   <div class="shell" id="contenido">
-    <header class="hero-band">
-      <div class="hero-band__row">
-        <div>
-          <p class="mo-brand mo-brand--display" translate="no">ModoOps</p>
-          <p class="mo-promise">Control Plane · tenants</p>
-          <p class="mo-muted-line">{userName}</p>
-        </div>
-        <div class="hero-actions">
-          <a class="mo-btn mo-btn--ghost" href="/admin/leads">Leads</a>
-          <a class="mo-btn mo-btn--ghost" href="/app">← App</a>
-          <button type="button" class="mo-btn mo-btn--primary" id="btn-nuevo" aria-expanded="false" aria-controls="panel-nuevo">
-            + Nuevo tenant
-          </button>
-          <button type="button" class="mo-btn mo-btn--ghost" data-logout>Cerrar sesión</button>
-        </div>
+    <header class="app-bar">
+      <div class="app-bar__identity">
+        <h1 class="app-bar__title">Tenants</h1>
+        <p class="app-bar__meta">Control Plane{userName ? ` · ${userName}` : ''}</p>
       </div>
+      <nav class="app-bar__nav" aria-label="Secciones">
+        <a class="app-link" href="/admin/leads">Leads</a>
+        <a class="app-link" href="/app">App</a>
+        <button type="button" class="app-link app-link--session" data-logout>Cerrar sesión</button>
+      </nav>
+      <button type="button" class="mo-btn mo-btn--primary" id="btn-nuevo" aria-expanded={nuevo ? 'true' : 'false'} aria-controls="panel-nuevo">
+        + Nuevo tenant
+      </button>
     </header>
 
     <div class="tools">
-      <form class="search" method="get" action="/admin/tenants" role="search">
-        <input type="hidden" name="estado" value={estado} />
-        <label for="q">Buscar tenant</label>
-        <input
-          id="q"
-          name="q"
-          type="search"
-          inputmode="search"
-          autocomplete="off"
-          spellcheck="false"
-          placeholder="Buscar por nombre o slug…"
-          value={qRaw}
-        />
-      </form>
-      <button type="button" class="mo-btn mo-btn--ghost" id="btn-export">Exportar</button>
+      <div class="tools__view">
+        <form class="search" method="get" action="/admin/tenants" role="search">
+          <input type="hidden" name="estado" value={estado} />
+          <label for="q">Buscar tenant</label>
+          <input
+            id="q"
+            name="q"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Buscar por nombre o slug…"
+            value={qRaw}
+          />
+        </form>
+        <button type="button" class="mo-btn mo-btn--ghost" id="btn-export">Exportar</button>
+      </div>
       <nav class="filters mo-pill-group" aria-label="Filtro estado">
         <a class="mo-pill" href={qs('todos', qRaw)} aria-current={estado === 'todos' ? 'true' : undefined}>Todos</a>
-        <a class="mo-pill" href={qs('activo', qRaw)} aria-current={estado === 'activo' ? 'true' : undefined}>Activo</a>
-        <a class="mo-pill" href={qs('moroso', qRaw)} aria-current={estado === 'moroso' ? 'true' : undefined}>Moroso</a>
-        <a class="mo-pill" href={qs('suspendido', qRaw)} aria-current={estado === 'suspendido' ? 'true' : undefined}>Suspendido</a>
+        <a class:list={['mo-pill', 'mo-pill--ok']} href={qs('activo', qRaw)} aria-current={estado === 'activo' ? 'true' : undefined}>Activo</a>
+        <a class:list={['mo-pill', 'mo-pill--warn']} href={qs('moroso', qRaw)} aria-current={estado === 'moroso' ? 'true' : undefined}>Moroso</a>
+        <a class:list={['mo-pill', 'mo-pill--danger']} href={qs('suspendido', qRaw)} aria-current={estado === 'suspendido' ? 'true' : undefined}>Suspendido</a>
       </nav>
     </div>
 
@@ -129,26 +145,18 @@ const vistaJson = JSON.stringify(
             <a class="mo-btn mo-btn--ghost" href={qs('suspendido', '')}>Ver suspendidos</a>
           </div>
         </aside>
-      ) : (
-        <section class="kpis" aria-label="Resumen">
-          <article class="mo-kpi mo-kpi--hero">
-            <p class="mo-kpi__label">Activos</p>
-            <p class="mo-kpi__value">{activos}</p>
-            <p class="mo-kpi__hint">de {tenants.length} en total</p>
-          </article>
-        </section>
-      )}
+      ) : null}
 
-      <div class="create-panel" id="panel-nuevo" hidden>
+      <div class:list={['create-panel', { 'is-in': nuevo }]} id="panel-nuevo" hidden={!nuevo}>
         <h2 class="mo-dialog__title">Crear tenant</h2>
         <form id="create-tenant-form" class="create-grid">
           <div class="mo-field" id="field-nombre">
             <label class="mo-field__label" for="tenant-nombre">Nombre</label>
-            <input class="mo-field__control" id="tenant-nombre" name="name" placeholder="Pinturería Centro" required autocomplete="organization" />
+            <input class="mo-field__control" id="tenant-nombre" name="name" placeholder="Pinturería Centro…" required autocomplete="organization" />
           </div>
           <div class="mo-field">
             <label class="mo-field__label" for="tenant-slug">Slug (opcional)</label>
-            <input class="mo-field__control" id="tenant-slug" name="slug" placeholder="pintureria_centro" pattern="[a-z0-9_]+" inputmode="text" />
+            <input class="mo-field__control" id="tenant-slug" name="slug" placeholder="pintureria_centro…" pattern="[a-z0-9_]+" inputmode="text" spellcheck="false" autocomplete="off" />
           </div>
           <div class="mo-field">
             <label class="mo-field__label" for="tenant-vertical">Vertical</label>
@@ -167,18 +175,20 @@ const vistaJson = JSON.stringify(
       </div>
 
       <section class="mo-panel" aria-label="Lista de tenants">
-        <p class="mo-count">Mostrando {filtered.length} de {tenants.length}</p>
+        <div class="mo-table-chrome">
+          <p class="mo-table-chrome__meta">
+            {activos === 1 ? '1 activo' : `${activos} activos`} de {tenants.length}{estado !== 'todos' || qRaw ? ` · mostrando ${filtered.length}` : ''}
+          </p>
+        </div>
         {filtered.length === 0 && !loadError ? (
           <div class="mo-empty">
             <p class="mo-empty__title">{tenants.length === 0 ? 'Todavía no hay tenants' : 'Sin resultados'}</p>
             <p class="mo-empty__text">{tenants.length === 0 ? 'Creá el primero para operar.' : 'Probá otro filtro o búsqueda.'}</p>
-            <div class="mo-empty__actions">
-              {tenants.length === 0 ? (
-                <button type="button" class="mo-btn mo-btn--primary" id="btn-empty-nuevo">+ Nuevo tenant</button>
-              ) : (
+            {tenants.length === 0 ? null : (
+              <div class="mo-empty__actions">
                 <a class="mo-btn mo-btn--ghost" href="/admin/tenants">Limpiar filtros</a>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         ) : (
           <div class="table-wrap">
@@ -186,8 +196,10 @@ const vistaJson = JSON.stringify(
               <thead>
                 <tr>
                   <th class="check">
-                    <label class="sr-only" for="check-all">Seleccionar todos</label>
-                    <input type="checkbox" id="check-all" />
+                    <label class="check-hit">
+                      <span class="sr-only">Seleccionar todos</span>
+                      <input type="checkbox" id="check-all" />
+                    </label>
                   </th>
                   <th>Tenant</th>
                   <th>Estado</th>
@@ -201,26 +213,28 @@ const vistaJson = JSON.stringify(
                 {filtered.map((t) => (
                   <tr>
                     <td class="check">
-                      <label class="sr-only" for={`chk-${t.id}`}>Seleccionar {t.name}</label>
-                      <input
-                        class="row-check"
-                        id={`chk-${t.id}`}
-                        type="checkbox"
-                        value={String(t.id)}
-                        data-state={t.state}
-                        data-name={t.name}
-                      />
+                      <label class="check-hit">
+                        <span class="sr-only">Seleccionar {t.name}</span>
+                        <input
+                          class="row-check"
+                          id={`chk-${t.id}`}
+                          type="checkbox"
+                          value={String(t.id)}
+                          data-state={t.state}
+                          data-name={t.name}
+                        />
+                      </label>
                     </td>
                     <td>
                       <strong>{t.name}</strong>
-                      <div class="slug">{t.slug} · <code>{t.db_name}</code></div>
+                      <div class="slug"><span translate="no">{t.slug}</span> · <code translate="no">{t.db_name}</code></div>
                     </td>
                     <td>
                       <span class:list={['mo-badge', `is-${t.state}`]}>{t.state}</span>
                     </td>
                     <td class="num">{t.modules_installed_count}</td>
-                    <td>{t.abono_due_date || '—'}</td>
-                    <td class="num">{t.saldo_pendiente_usd ? t.saldo_pendiente_usd : '—'}</td>
+                    <td>{formatDue(t.abono_due_date)}</td>
+                    <td class="num">{formatUsd(t.saldo_pendiente_usd)}</td>
                     <td>
                       <div class="mo-row-actions">
                         <a class="mo-btn mo-btn--ghost" href={`/tenant/${t.slug}/app`}>Abrir</a>
@@ -284,7 +298,7 @@ const vistaJson = JSON.stringify(
               <div class="mo-bulk__actions">
                 <button type="button" class="mo-btn mo-btn--ghost" id="bulk-clear">Limpiar selección</button>
                 <button type="button" class="mo-btn mo-btn--danger" id="bulk-suspend">Suspender</button>
-                <button type="button" class="mo-btn mo-btn--primary" id="bulk-reactivate">Reactivar</button>
+                <button type="button" class="mo-btn mo-btn--ghost" id="bulk-reactivate">Reactivar</button>
               </div>
             </div>
           </div>
@@ -309,12 +323,12 @@ const vistaJson = JSON.stringify(
 
   <dialog id="install-dialog" class="mo-install-dialog">
     <form method="dialog" id="install-form">
-      <h3 id="install-title" class="mo-dialog__title">Instalar módulos</h3>
+      <h2 id="install-title" class="mo-dialog__title">Instalar módulos</h2>
       <p id="install-db" class="slug"></p>
       <div class="mo-dialog__grid" id="install-grid"></div>
       <div class="mo-field">
         <label class="mo-field__label" for="install-notes">Notas</label>
-        <input class="mo-field__control" id="install-notes" name="notes" placeholder="ticket, motivo" />
+        <input class="mo-field__control" id="install-notes" name="notes" placeholder="ticket, motivo…" autocomplete="off" />
       </div>
       <div class="mo-dialog__actions">
         <label class="mo-field__label">
@@ -324,7 +338,7 @@ const vistaJson = JSON.stringify(
             <option value="remove">Quitar</option>
           </select>
         </label>
-        <button type="submit" class="mo-btn mo-btn--primary" id="install-submit">Confirmar</button>
+        <button type="submit" class="mo-btn mo-btn--primary" id="install-submit">Aplicar módulos</button>
         <button type="button" class="mo-btn mo-btn--ghost" id="install-cancel">Cancelar</button>
       </div>
       <pre id="install-preview" class="mo-install-preview"></pre>
@@ -334,19 +348,107 @@ const vistaJson = JSON.stringify(
 
   <style>
     .shell { min-height: 100dvh; }
-    .hero-band {
-      padding: 1.35rem 1.35rem 1.1rem;
-      background: color-mix(in srgb, var(--mo-canvas) 88%, transparent);
+    .app-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      align-items: center;
+      padding:
+        max(0.85rem, env(safe-area-inset-top))
+        max(1.35rem, env(safe-area-inset-right))
+        0.85rem
+        max(1.35rem, env(safe-area-inset-left));
+      max-width: 72rem;
+      border-bottom: 1px solid var(--mo-line);
     }
-    .hero-band__row {
-      display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
-      justify-content: space-between; max-width: 72rem;
+    .app-bar__title {
+      margin: 0;
+      font-family: var(--mo-font);
+      font-size: 1.1rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      text-wrap: balance;
     }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-    .mo-muted-line { margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--mo-muted); }
+    .app-bar__meta {
+      margin: 0.1rem 0 0;
+      font-size: 0.85rem;
+      color: var(--mo-muted);
+    }
+    .app-bar__nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.15rem 0.35rem;
+      align-items: center;
+    }
+    .app-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 0.35rem;
+      border: 0;
+      background: transparent;
+      color: var(--mo-muted);
+      font: inherit;
+      text-decoration: underline;
+      text-decoration-color: var(--mo-line-strong);
+      text-underline-offset: 0.22em;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: color 140ms var(--mo-ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .app-link:hover {
+        color: var(--mo-ink);
+      }
+    }
+    .app-link--session {
+      margin-left: 0.35rem;
+      padding-left: 0.85rem;
+      border-left: 1px solid var(--mo-line);
+    }
+    #btn-nuevo { margin-left: auto; }
+    .filters .mo-pill {
+      min-height: 44px;
+      padding-inline: 0.85rem;
+    }
+    .filters .mo-pill[aria-current="true"] {
+      font-weight: 650;
+      box-shadow: inset 0 0 0 1px currentColor;
+    }
+    .filters .mo-pill[aria-current="true"]:not(.mo-pill--ok):not(.mo-pill--warn):not(.mo-pill--danger) {
+      background: var(--mo-canvas);
+      color: var(--mo-ink);
+      border-color: var(--mo-ink);
+    }
+    .filters .mo-pill--ok[aria-current="true"] {
+      background: var(--mo-ok-soft);
+      border-color: var(--mo-ok);
+      color: var(--mo-ok);
+    }
+    .filters .mo-pill--warn[aria-current="true"] {
+      background: color-mix(in srgb, var(--mo-warn) 14%, var(--mo-canvas));
+      border-color: var(--mo-warn);
+      color: var(--mo-warn);
+    }
+    .filters .mo-pill--danger[aria-current="true"] {
+      background: color-mix(in srgb, var(--mo-danger) 12%, var(--mo-canvas));
+      border-color: var(--mo-danger);
+      color: var(--mo-danger);
+    }
     .tools {
-      display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center;
-      padding: 0.85rem 1.35rem 0.45rem; max-width: 72rem;
+      display: grid;
+      gap: 0.65rem;
+      padding: 0.85rem 1.35rem 0.45rem;
+      max-width: 72rem;
+    }
+    .tools__view {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      align-items: center;
     }
     .search {
       display: flex; align-items: center;
@@ -354,18 +456,52 @@ const vistaJson = JSON.stringify(
       border: 1px solid var(--mo-line); border-radius: var(--mo-radius-sm);
       background: var(--mo-canvas); padding: 0 0.7rem; min-height: 44px;
     }
+    .search:focus-within {
+      outline: 2px solid var(--mo-focus);
+      outline-offset: 2px;
+    }
     .search label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     .search input {
       border: 0; background: transparent; width: 100%;
-      font: inherit; color: var(--mo-ink); outline: none; min-height: 42px; font-size: 16px;
+      font: inherit; color: var(--mo-ink); min-height: 42px; font-size: 16px;
+    }
+    .search input:focus-visible {
+      outline: none;
     }
     .content { padding: 0 1.35rem 2rem; display: grid; gap: 1rem; max-width: 72rem; }
-    .kpis { display: grid; gap: 0.7rem; }
-    .filters { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding-top: 0.65rem;
+    }
+    .check input {
+      width: 1.5rem;
+      height: 1.5rem;
+      accent-color: var(--mo-accent);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .check-hit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      cursor: pointer;
+    }
+    .mo-table tbody tr {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 3.25rem;
+    }
     .slug { color: var(--mo-muted); font-size: 0.78rem; }
-    .table-wrap { overflow: auto; }
+    .table-wrap {
+      overflow: auto;
+      scroll-padding-top: 3rem;
+      scroll-padding-bottom: 4.5rem;
+    }
     .create-panel {
-      border: 1px solid var(--mo-line);
+      border: 0;
       border-left: 3px solid var(--mo-accent);
       border-radius: var(--mo-radius);
       background: var(--mo-card);
@@ -373,6 +509,7 @@ const vistaJson = JSON.stringify(
       display: grid;
       gap: 0.75rem;
       max-width: 32rem;
+      transform-origin: top left;
       opacity: 0;
       transform: scale(0.97);
       transition: opacity 200ms var(--mo-ease-out), transform 200ms var(--mo-ease-out);
@@ -391,8 +528,42 @@ const vistaJson = JSON.stringify(
       color: var(--mo-ink);
       max-width: 36rem;
       width: 90%;
+      transform-origin: center;
+      overscroll-behavior: contain;
+      opacity: 0;
+      transform: scale(0.95);
+      transition:
+        opacity 200ms var(--mo-ease-out),
+        transform 200ms var(--mo-ease-out),
+        overlay 200ms var(--mo-ease-out) allow-discrete,
+        display 200ms var(--mo-ease-out) allow-discrete;
     }
-    .mo-install-dialog::backdrop { background: color-mix(in srgb, var(--mo-ink) 45%, transparent); }
+    .mo-install-dialog[open] {
+      opacity: 1;
+      transform: scale(1);
+    }
+    @starting-style {
+      .mo-install-dialog[open] {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+    }
+    .mo-install-dialog::backdrop {
+      background: color-mix(in srgb, var(--mo-ink) 45%, transparent);
+      opacity: 0;
+      transition:
+        opacity 200ms var(--mo-ease-out),
+        overlay 200ms var(--mo-ease-out) allow-discrete,
+        display 200ms var(--mo-ease-out) allow-discrete;
+    }
+    .mo-install-dialog[open]::backdrop {
+      opacity: 1;
+    }
+    @starting-style {
+      .mo-install-dialog[open]::backdrop {
+        opacity: 0;
+      }
+    }
     .mo-dialog__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin: 0.5rem 0; }
     .mo-install-preview {
       background: var(--mo-field);
@@ -407,6 +578,13 @@ const vistaJson = JSON.stringify(
     @media (prefers-reduced-motion: reduce) {
       .create-panel { transition-duration: 0.01ms !important; }
       .create-panel.is-in { opacity: 1; transform: none; }
+      .mo-install-dialog,
+      .mo-install-dialog[open],
+      .mo-install-dialog::backdrop,
+      .mo-install-dialog[open]::backdrop {
+        transition-duration: 0.01ms !important;
+        transform: none;
+      }
     }
   </style>
 
@@ -457,15 +635,26 @@ const vistaJson = JSON.stringify(
       mountToast({ region: toastRegion, title, text, kind, leaveMs: LEAVE_MS, announce });
     }
 
+    let createDirty = false;
+
+    function setNuevoInUrl(on: boolean) {
+      const url = new URL(window.location.href);
+      if (on) url.searchParams.set('nuevo', '1');
+      else url.searchParams.delete('nuevo');
+      history.replaceState(null, '', `${url.pathname}${url.search}`);
+    }
+
     function openNuevo() {
       if (!panelNuevo || !btnNuevo) return;
       openWithEnter(panelNuevo, { inClass: 'is-in' });
       btnNuevo.setAttribute('aria-expanded', 'true');
+      setNuevoInUrl(true);
       document.getElementById('tenant-nombre')?.focus();
     }
 
     function closeNuevo() {
       if (!panelNuevo || !btnNuevo) return;
+      createDirty = false;
       closeWithLeave(panelNuevo, {
         leaveMs: LEAVE_MS,
         inClass: 'is-in',
@@ -473,6 +662,7 @@ const vistaJson = JSON.stringify(
         onDone: () => {
           btnNuevo.setAttribute('aria-expanded', 'false');
           (document.getElementById('create-tenant-form') as HTMLFormElement | null)?.reset();
+          setNuevoInUrl(false);
           btnNuevo.focus();
         },
       });
@@ -482,13 +672,23 @@ const vistaJson = JSON.stringify(
       if (panelNuevo?.hidden) openNuevo();
       else closeNuevo();
     });
-    document.getElementById('btn-empty-nuevo')?.addEventListener('click', openNuevo);
     document.getElementById('btn-cancelar-nuevo')?.addEventListener('click', closeNuevo);
 
     const form = document.getElementById('create-tenant-form') as HTMLFormElement | null;
     const msg = document.getElementById('create-msg');
+    const btnCrear = document.getElementById('btn-crear') as HTMLButtonElement | null;
+    form?.addEventListener('input', () => {
+      createDirty = true;
+    });
+    window.addEventListener('beforeunload', (ev) => {
+      if (!createDirty || panelNuevo?.hidden) return;
+      ev.preventDefault();
+      ev.returnValue = '';
+    });
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!form) return;
+      if (btnCrear) btnCrear.disabled = true;
       if (msg) msg.textContent = 'Creando…';
       const fd = new FormData(form);
       const body = {
@@ -496,19 +696,32 @@ const vistaJson = JSON.stringify(
         slug: String(fd.get('slug') || '') || undefined,
         vertical: String(fd.get('vertical') || 'retail'),
       };
-      const res = await fetch('/api/admin/tenants', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        if (msg) msg.textContent = (data as { error?: { message?: string } })?.error?.message || 'Error';
-        return;
+      let failed = true;
+      try {
+        const res = await fetch('/api/admin/tenants', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          if (msg) {
+            msg.textContent =
+              (data as { error?: { message?: string } })?.error?.message ||
+              'No se pudo crear. Revisá los datos e intentá de nuevo.';
+          }
+          return;
+        }
+        failed = false;
+        createDirty = false;
+        closeNuevo();
+        showToast('Tenant creado', `${body.name} quedó listo.`, 'ok');
+        setTimeout(() => window.location.reload(), 600);
+      } catch {
+        if (msg) msg.textContent = 'No se pudo crear. Revisá los datos e intentá de nuevo.';
+      } finally {
+        if (failed && btnCrear) btnCrear.disabled = false;
       }
-      closeNuevo();
-      showToast('Tenant creado', `${body.name} quedó listo.`, 'ok');
-      setTimeout(() => window.location.reload(), 600);
     });
 
     document.querySelector('[data-logout]')?.addEventListener('click', () => {
@@ -594,7 +807,7 @@ const vistaJson = JSON.stringify(
               });
               const data = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
               if (!res.ok) {
-                showToast('No se pudo completar', data?.error?.message || 'Error', 'danger');
+                showToast('No se pudo completar', data?.error?.message || 'No se pudo cambiar el estado. Intentá de nuevo.', 'danger');
                 return;
               }
               showToast(danger ? 'Tenant suspendido' : 'Tenant reactivado', name, danger ? 'danger' : 'ok');
@@ -632,10 +845,11 @@ const vistaJson = JSON.stringify(
         const open = menu instanceof HTMLElement && menu.hidden;
         closeAllOverflow(open ? menu : undefined);
         if (menu instanceof HTMLElement) {
-          if (open) {
-            openWithEnter(menu, { inClass: 'is-in' });
-            toggle.setAttribute('aria-expanded', 'true');
-          } else {
+            if (open) {
+              openWithEnter(menu, { inClass: 'is-in' });
+              toggle.setAttribute('aria-expanded', 'true');
+              menu.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+            } else {
             closeWithLeave(menu, {
               leaveMs: LEAVE_MS,
               inClass: 'is-in',
@@ -647,6 +861,40 @@ const vistaJson = JSON.stringify(
         return;
       }
       if (!target.closest('.mo-overflow')) closeAllOverflow();
+    });
+
+    function menuItems(menu: HTMLElement) {
+      return [...menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')];
+    }
+
+    document.addEventListener('keydown', (ev) => {
+      const openMenu = document.querySelector<HTMLElement>('.mo-overflow__menu.is-in:not([hidden])');
+      if (!openMenu) return;
+      const toggle = openMenu.parentElement?.querySelector<HTMLElement>('[data-overflow-toggle]');
+      const inMenu = openMenu.contains(document.activeElement);
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        closeAllOverflow();
+        toggle?.focus();
+        return;
+      }
+      if (!inMenu) return;
+      const items = menuItems(openMenu);
+      const current = items.indexOf(document.activeElement as HTMLButtonElement);
+      if (!items.length) return;
+      if (ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        items[(current + 1 + items.length) % items.length]?.focus();
+      } else if (ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        items[(current - 1 + items.length) % items.length]?.focus();
+      } else if (ev.key === 'Home') {
+        ev.preventDefault();
+        items[0]?.focus();
+      } else if (ev.key === 'End') {
+        ev.preventDefault();
+        items[items.length - 1]?.focus();
+      }
     });
 
     const vistaEl = document.getElementById('tenants-vista');
@@ -695,7 +943,7 @@ const vistaJson = JSON.stringify(
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
-        throw new Error(data?.error?.message || 'No se pudo cambiar el estado');
+        throw new Error(data?.error?.message || 'No se pudo cambiar el estado. Intentá de nuevo.');
       }
     }
 
@@ -753,7 +1001,7 @@ const vistaJson = JSON.stringify(
             );
             window.setTimeout(() => window.location.reload(), 500);
           } catch (err) {
-            showToast('No se pudo completar', (err as Error).message || 'Error', 'danger');
+            showToast('No se pudo completar', (err as Error).message || 'No se pudo completar la selección. Intentá de nuevo.', 'danger');
           }
         },
       });
@@ -823,23 +1071,33 @@ const vistaJson = JSON.stringify(
       const action = String(fd.get('action') || 'install');
       const notes = String(fd.get('notes') || '');
       msgEl.textContent = 'Ejecutando…';
-      const res = await fetch(`/api/admin/tenants/${activeTenantId}/install`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ modules: mods, action, notes }),
-      });
-      const data = (await res.json().catch(() => ({}))) as {
-        preview_command?: string;
-        error?: { message?: string };
-      };
-      if (!res.ok) {
-        msgEl.textContent = data?.error?.message || 'Error';
-        return;
+      const submitInstall = document.getElementById('install-submit') as HTMLButtonElement | null;
+      if (submitInstall) submitInstall.disabled = true;
+      let failed = true;
+      try {
+        const res = await fetch(`/api/admin/tenants/${activeTenantId}/install`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ modules: mods, action, notes }),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          preview_command?: string;
+          error?: { message?: string };
+        };
+        if (!res.ok) {
+          msgEl.textContent = data?.error?.message || 'No se pudo aplicar. Revisá los módulos e intentá de nuevo.';
+          return;
+        }
+        failed = false;
+        previewEl.textContent = data.preview_command || previewEl.textContent;
+        msgEl.textContent = 'OK — recargando…';
+        showToast('Instalación en curso', activeDb, 'ok');
+        setTimeout(() => window.location.reload(), 700);
+      } catch {
+        msgEl.textContent = 'No se pudo aplicar. Revisá los módulos e intentá de nuevo.';
+      } finally {
+        if (failed && submitInstall) submitInstall.disabled = false;
       }
-      previewEl.textContent = data.preview_command || previewEl.textContent;
-      msgEl.textContent = 'OK — recargando…';
-      showToast('Instalación en curso', activeDb, 'ok');
-      setTimeout(() => window.location.reload(), 700);
     });
   </script>
 </LightAppLayout>
