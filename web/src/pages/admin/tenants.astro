@@ -22,7 +22,7 @@ try {
   loadError = (cause as Error)?.message || 'No se pudo cargar la lista';
 }
 
-const estado = ['todos', 'activo', 'suspendido', 'moroso'].includes(Astro.url.searchParams.get('estado') || '')
+const estado = ['todos', 'activo', 'suspendido'].includes(Astro.url.searchParams.get('estado') || '')
   ? (Astro.url.searchParams.get('estado') as string)
   : 'todos';
 const qRaw = (Astro.url.searchParams.get('q') || '').trim();
@@ -34,7 +34,6 @@ const filtered = tenants.filter((t) => {
   return true;
 });
 
-const mora = tenants.filter((t) => t.state === 'moroso').length;
 const susp = tenants.filter((t) => t.state === 'suspendido').length;
 const activos = tenants.filter((t) => t.state === 'activo').length;
 
@@ -116,7 +115,6 @@ const vistaJson = JSON.stringify(
       <nav class="filters mo-pill-group" aria-label="Filtro estado">
         <a class="mo-pill" href={qs('todos', qRaw)} aria-current={estado === 'todos' ? 'true' : undefined}>Todos</a>
         <a class:list={['mo-pill', 'mo-pill--ok']} href={qs('activo', qRaw)} aria-current={estado === 'activo' ? 'true' : undefined}>Activo</a>
-        <a class:list={['mo-pill', 'mo-pill--warn']} href={qs('moroso', qRaw)} aria-current={estado === 'moroso' ? 'true' : undefined}>Moroso</a>
         <a class:list={['mo-pill', 'mo-pill--danger']} href={qs('suspendido', qRaw)} aria-current={estado === 'suspendido' ? 'true' : undefined}>Suspendido</a>
       </nav>
     </div>
@@ -124,18 +122,7 @@ const vistaJson = JSON.stringify(
     <main class="content">
       {loadError ? (
         <p class="mo-banner mo-banner--danger" role="alert">{loadError}</p>
-      ) : mora > 0 && estado === 'todos' ? (
-        <aside class="mo-banner mo-banner--warn" role="status">
-          <span class="mo-banner__mark">Atención</span>
-          <div class="mo-banner__body">
-            <p class="mo-banner__title">{mora === 1 ? '1 tenant en mora' : `${mora} tenants en mora`}</p>
-            <p class="mo-banner__text">Hay abonos vencidos. Priorizá el contacto antes de suspender.</p>
-          </div>
-          <div class="mo-banner__actions">
-            <a class="mo-btn mo-btn--ghost" href={qs('moroso', '')}>Ver mora</a>
-          </div>
-        </aside>
-      ) : susp > 0 && estado === 'todos' && mora === 0 ? (
+      ) : susp > 0 && estado === 'todos' ? (
         <aside class="mo-banner mo-banner--danger" role="status">
           <span class="mo-banner__mark">Sistema</span>
           <div class="mo-banner__body">
