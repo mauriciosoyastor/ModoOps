@@ -74,7 +74,7 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
           <a class:list={['mo-pill', filters.estado === 'contactado' && 'mo-pill--accent']} href={leadsHref({ estado: 'contactado' })} aria-current={filters.estado === 'contactado' ? 'true' : undefined}>Contactado</a>
           <a class="mo-pill" href={leadsHref({ estado: 'descartado' })} aria-current={filters.estado === 'descartado' ? 'true' : undefined}>Descartado</a>
         </div>
-        <div class="filters__extra mo-pill-group" role="group" aria-label="Teléfono y baja">
+        <div class="mo-pill-group" role="group" aria-label="Teléfono y baja">
           <a class="mo-pill" href={leadsHref({ sinTelefono: !filters.sinTelefono })} aria-current={filters.sinTelefono ? 'true' : undefined}>Sin teléfono</a>
           <a class="mo-pill" href={leadsHref({ optOut: !filters.optOut })} aria-current={filters.optOut ? 'true' : undefined}>Con baja</a>
         </div>
@@ -248,15 +248,18 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
       min-height: 44px;
       padding-inline: 0.85rem;
     }
+    /* El sólido de --mo-ok y --mo-accent no llega a AA con --mo-on-hero; se oscurece hacia --mo-hero. */
     .filters .mo-pill--ok[aria-current="true"] {
-      background: var(--mo-ok-soft);
-      border-color: var(--mo-ok);
-      color: var(--mo-ink);
+      --pill-fill: color-mix(in srgb, var(--mo-ok) 85%, var(--mo-hero));
+      background: var(--pill-fill);
+      border-color: var(--pill-fill);
+      color: var(--mo-on-hero);
     }
     .filters .mo-pill--accent[aria-current="true"] {
-      background: var(--mo-accent-soft);
-      border-color: var(--mo-accent);
-      color: var(--mo-ink);
+      --pill-fill: color-mix(in srgb, var(--mo-accent) 65%, var(--mo-hero));
+      background: var(--pill-fill);
+      border-color: var(--pill-fill);
+      color: var(--mo-on-hero);
     }
     .cp-note {
       margin: 0;

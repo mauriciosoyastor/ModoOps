@@ -46,6 +46,23 @@ describe('contrato light-app papel (#215)', () => {
     expect(text).not.toContain("|| 'Error'");
   });
 
+  it('el grupo de teléfono y baja no arrastra una clase sin estilo', () => {
+    const text = read('pages/admin/leads.astro');
+    expect(text).not.toContain('filters__extra');
+    expect(text).toContain('aria-label="Teléfono y baja"');
+  });
+
+  it('Nuevo y Contactado activos usan relleno sólido que pasa AA', () => {
+    const text = read('pages/admin/leads.astro');
+    expect(text).toContain("filters.estado === 'nuevo' && 'mo-pill--ok'");
+    expect(text).toContain("filters.estado === 'contactado' && 'mo-pill--accent'");
+    expect(text).not.toContain('--mo-ok-soft');
+    expect(text).not.toContain('--mo-accent-soft');
+    expect(text).toContain('color-mix(in srgb, var(--mo-ok) 85%, var(--mo-hero))');
+    expect(text).toContain('color-mix(in srgb, var(--mo-accent) 65%, var(--mo-hero))');
+    expect(text).toContain('color: var(--mo-on-hero)');
+  });
+
   it('admin/tenants usa LightAppLayout tema papel y veredicto', () => {
     const text = read('pages/admin/tenants.astro');
     expect(text).toContain('LightAppLayout');
