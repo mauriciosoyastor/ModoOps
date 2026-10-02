@@ -29,8 +29,8 @@ Router. No inventa paleta ni cromado. Aplica el sistema que ya usan la landing, 
    - Done cuando cada skill que tocaste cumple su propio criterio de cierre en esta ruta.
 
 4. Cerrá la ruta en el archivo. Leé [`web-design-guidelines`](../web-design-guidelines/SKILL.md) y `web/AGENTS.md`, y compará con el login y el Control Plane.
-  - Producto: cada ítem de **Cierre** está en la ruta, o queda anotado como deuda previa con archivo y motivo. Si la ruta ya usa `LightAppLayout`, igual compará el `<style>` de la página con el Control Plane: la barra, la tabla y las herramientas tienen que coincidir, no solo el layout.
-  - Marketing: teclado, foco visible, `<label>`, voseo, contraste, sin tokens nuevos. El acento saturado es `--mo-accent`. El header mide 44px de alto en cada enlace, usa `env(safe-area-inset-*)` y el hover de color vive en `(hover: hover) and (pointer: fine)`. La selección de texto usa el acento. Cada hallazgo queda corregido en el archivo o anotado como deuda previa.
+  - Producto: cada ítem de **Cierre** está en la ruta, o queda anotado como deuda previa con archivo y motivo. Si la ruta ya usa `LightAppLayout`, igual compará el `<style>` de esa página con el Control Plane: la barra, la tabla y las herramientas de la página tienen que coincidir. Un cambio en `light-app.css` que también mueve otra ruta (la barra de selección de Tenants, el hover de todas las tablas) no cierra esta: va en su propio corte.
+  - Marketing: teclado, foco visible, `<label>`, voseo, contraste, sin tokens nuevos. El acento saturado es `--mo-accent` en el camino, el puente y la selección. El header mide 44px de alto en cada enlace, incluida la marca, usa `env(safe-area-inset-*)` y el hover de color vive en `(hover: hover) and (pointer: fine)`. Igualar el acento deja la marca en una sola pieza y de un solo color. El puente conserva ese acento y no lleva una entrada escalonada. Cada hallazgo queda corregido en el archivo o anotado como deuda previa.
    - Done cuando el cambio está en el archivo. Un listado de hallazgos sin ese cambio no cierra el paso.
 
 ## Cierre (producto)
@@ -42,6 +42,10 @@ Lo que la auditoría marcó en login y Control Plane. Esas rutas ya lo cumplen. 
 - El placeholder termina en `…`. Usuario y slug llevan `spellcheck="false"` y `autocomplete="off"`. Marca, slug y nombre de base llevan `translate="no"`.
 - La fecha usa `Intl.DateTimeFormat('es-AR')`. Un `YYYY-MM-DD` se parsea como fecha local: `new Date(y, m - 1, d)`. El monto usa `Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' })`. Cero o vacío se muestra como `—`.
 - El submit se deshabilita mientras el pedido corre y el rótulo dice la acción en curso («Entrando…», «Creando…»). Vuelve a habilitarse solo si falló. El error nombra el paso siguiente, va en `role="alert"`, se asocia con `aria-describedby`, marca `aria-invalid` y el foco vuelve al primer campo.
+- La confirmación que dispara un pedido hace lo mismo con su botón («Purgando…», «Dando de baja…»). El fallo nombra el paso siguiente, en voseo.
+- Un teléfono visible separa los grupos con espacio de no separación.
+- En Leads, la purga y la baja hablan del Lead y de la auditoría de captación. Esa auditoría no se nombra como dato de un Tenant.
+- Junto a la lista puede quedar una nota de operación. El pie con la API, el nombre de la base o el modelo de Odoo no va en la vista.
 - El botón nombra la acción («Aplicar módulos»). El diálogo visible titula con `h2`.
 - Menú `role="menu"`: al abrir, el foco entra en el primer `menuitem`. Flechas, Inicio y Fin mueven. Escape cierra y devuelve el foco al control.
 - El `<label>` del checkbox de fila mide al menos 44px. El input puede ser más chico adentro.
@@ -55,5 +59,6 @@ Lo que la auditoría marcó en login y Control Plane. Esas rutas ya lo cumplen. 
 ## Guardrails
 
 - El hero de la landing se queda en marketing. En producto entra el Tema papel, no la composición del hero.
+- Igualar una lista no reestiliza el cromado compartido de otra ruta.
 - Una acción sólida por vista. El destructivo usa `mo-btn--danger` solo en el diálogo de confirmación.
 - No agregues hex, sombras apiladas ni `transition-all`.

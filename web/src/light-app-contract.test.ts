@@ -36,6 +36,14 @@ describe('contrato light-app papel (#215)', () => {
     const filtros = text.indexOf('aria-label="Filtros de leads"');
     expect(acciones).toBeGreaterThan(-1);
     expect(filtros).toBeGreaterThan(acciones);
+    expect(text).toContain('formatTelefono');
+    expect(text).toContain('Purgando…');
+    expect(text).toContain('Dando de baja…');
+    expect(text).toContain('Reintentá la purga.');
+    expect(text).toContain('Reintentá la baja.');
+    expect(text).toContain('auditoría de la captación');
+    expect(text).not.toContain('en el tenant');
+    expect(text).not.toContain("|| 'Error'");
   });
 
   it('admin/tenants usa LightAppLayout tema papel y veredicto', () => {
@@ -92,6 +100,17 @@ describe('contrato light-app papel (#215)', () => {
     expect(header).toMatch(/\.lp-header__brand\s*\{[^}]*min-height:\s*44px/);
     expect(globalCss).toMatch(/::selection\s*\{[^}]*--mo-accent/);
     expect(globalCss).not.toMatch(/::selection\s*\{[^}]*galaxy-blue/);
+    expect(puente).not.toContain('po-beat');
+    expect(header).not.toContain('lp-header__mark');
+  });
+
+  it('la barra de selección de Tenants conserva el cromado de hero', () => {
+    const css = read('styles/light-app.css');
+    const bulk = css.slice(css.indexOf('.mo-bulk {'));
+    expect(bulk.slice(0, 500)).toContain('background: var(--mo-hero)');
+    expect(bulk.slice(0, 500)).toContain('color: var(--mo-on-hero)');
+    expect(css).toMatch(/\.mo-table tbody tr:hover\s*\{[^}]*var\(--mo-row-hover\)/);
+    expect(css).not.toMatch(/@media \(hover: hover\) and \(pointer: fine\)\s*\{\s*\.mo-table tbody tr:hover/);
   });
 
   it('el Shell pone los atajos antes que el resumen y confirma el cierre', () => {

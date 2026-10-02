@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BffError } from "./errors.ts";
-import { captacionAuditDetail, captacionLeadPayload, formatFechaCaptura } from "./captacion.ts";
+import { captacionAuditDetail, captacionLeadPayload, formatFechaCaptura, formatTelefono } from "./captacion.ts";
 import { isProtectedPath } from "./guardia-rutas.ts";
 
 const src = join(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -46,6 +46,12 @@ describe("alta de Acceso Captación", () => {
     expect(formatted).toMatch(/2026/);
     expect(formatted).not.toMatch(/14/);
     expect(formatFechaCaptura(false)).toBe("—");
+  });
+
+  it("separa el teléfono del Lead para que no se parta", () => {
+    expect(formatTelefono("03547532008")).toBe("0354\u00A0753\u00A02008");
+    expect(formatTelefono(false)).toBe("—");
+    expect(formatTelefono("")).toBe("—");
   });
 });
 

@@ -4,7 +4,7 @@ import { BffError } from '../../lib/bff/errors.ts';
 import { invalidateBffSession } from '../../lib/bff/http.ts';
 import { getBackend } from '../../lib/bff/get-backend.ts';
 import type { LeadFilters } from '../../lib/bff/leads.ts';
-import { formatFechaCaptura } from '../../lib/bff/captacion.ts';
+import { formatFechaCaptura, formatTelefono } from '../../lib/bff/captacion.ts';
 
 const _sessA = (Astro.locals as Record<string, unknown>).session as { name?: string; login?: string } | undefined;
 const _odooA = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
@@ -117,7 +117,7 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
                       <strong>{l.nombre}</strong>
                       {!l.telefono ? <span class="mo-badge is-warn">Sin teléfono</span> : null}
                     </td>
-                    <td>{l.telefono || '—'}</td>
+                    <td>{formatTelefono(l.telefono)}</td>
                     <td>{l.categoria || '—'}</td>
                     <td><span class:list={['mo-badge', `is-${l.estado}`]}>{l.estado}</span></td>
                     <td>{l.opt_out ? 'Sí' : 'No'}</td>
@@ -303,7 +303,11 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
     const confirmText = document.getElementById('confirm-text');
     const confirmOk = document.getElementById('confirm-ok') as HTMLButtonElement | null;
     const confirmCancel = document.getElementById('confirm-cancel');
-    let pendingAction: null | (() => void) = null;
+    let pendingAction: null | (() => Promise<boolean>) = null;
+    let pendingOkLabel = 'Confirmar';
+    let pendingBusyLabel = 'Confirmando…';
+    let pendingFailTitle = 'No se pudo completar';
+    let pendingFailBody = 'Reintentá.';
     let lastFocus: HTMLElement | null = null;
 
     function announce(msg: string) {
@@ -323,17 +327,26 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
       title: string;
       text: string;
       okLabel: string;
+      busyLabel: string;
+      failTitle: string;
+      failBody: string;
       cancelLabel?: string;
       danger: boolean;
-      onConfirm: () => void;
+      onConfirm: () => Promise<boolean>;
     }) {
       if (!backdrop || !confirmTitle || !confirmText || !confirmOk || !confirmCancel) return;
       lastFocus = document.activeElement as HTMLElement | null;
       pendingAction = opts.onConfirm;
+      pendingOkLabel = opts.okLabel;
+      pendingBusyLabel = opts.busyLabel;
+      pendingFailTitle = opts.failTitle;
+      pendingFailBody = opts.failBody;
       confirmTitle.textContent = opts.title;
       confirmText.textContent = opts.text;
+      confirmOk.disabled = false;
       confirmOk.textContent = opts.okLabel;
       confirmCancel.textContent = opts.cancelLabel || 'Cancelar';
+      (confirmCancel as HTMLButtonElement).disabled = false;
       confirmOk.className = opts.danger ? 'mo-btn mo-btn--danger' : 'mo-btn mo-btn--primary';
       openWithEnter(backdrop);
       confirmOk.focus();
@@ -351,10 +364,27 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
     }
 
     confirmCancel?.addEventListener('click', closeConfirm);
-    confirmOk?.addEventListener('click', () => {
+    confirmOk?.addEventListener('click', async () => {
+      if (!confirmOk || !confirmCancel || !pendingAction) return;
       const fn = pendingAction;
-      closeConfirm();
-      if (typeof fn === 'function') fn();
+      const cancelBtn = confirmCancel as HTMLButtonElement;
+      confirmOk.disabled = true;
+      cancelBtn.disabled = true;
+      confirmOk.textContent = pendingBusyLabel;
+      let done = false;
+      try {
+        done = await fn();
+      } catch {
+        done = false;
+        showToast(pendingFailTitle, pendingFailBody, 'danger');
+      }
+      if (done) {
+        closeConfirm();
+        return;
+      }
+      confirmOk.disabled = false;
+      cancelBtn.disabled = false;
+      confirmOk.textContent = pendingOkLabel;
     });
     backdrop?.addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape') {
@@ -374,12 +404,20 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
         title: copy.title,
         text: copy.text,
         okLabel: copy.okLabel,
+        busyLabel: 'Cerrando…',
+        failTitle: 'No se pudo cerrar la sesión',
+        failBody: 'Reintentá cerrar la sesión.',
         cancelLabel: copy.cancelLabel,
         danger: false,
         onConfirm: async () => {
+          const res = await fetch('/api/auth/logout', { method: 'POST' });
+          if (!res.ok) {
+            showToast('No se pudo cerrar la sesión', 'Reintentá cerrar la sesión.', 'danger');
+            return false;
+          }
           showToast('Sesión cerrada', copy.text, 'ok');
-          await fetch('/api/auth/logout', { method: 'POST' });
           window.setTimeout(() => window.location.assign('/login'), 400);
+          return true;
         },
       });
     });
@@ -403,8 +441,11 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
     document.querySelector('[data-purge]')?.addEventListener('click', () => {
       openConfirm({
         title: '¿Purgar leads vencidos?',
-        text: 'Saca los de más de 90 días y las bajas. Queda auditoría en el tenant.',
+        text: 'Sacá los de más de 90 días y las bajas. Queda la auditoría de la captación.',
         okLabel: 'Purgar',
+        busyLabel: 'Purgando…',
+        failTitle: 'No se pudo purgar',
+        failBody: 'Reintentá la purga.',
         cancelLabel: 'Cancelar',
         danger: true,
         onConfirm: async () => {
@@ -415,12 +456,13 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
           });
           const data = await res.json().catch(() => ({})) as { purged?: number; error?: { message?: string } };
           if (!res.ok) {
-            showToast('No se pudo purgar', data?.error?.message || 'Error', 'danger');
-            return;
+            showToast('No se pudo purgar', 'Reintentá la purga.', 'danger');
+            return false;
           }
           const n = data.purged ?? 0;
           showToast('Purga lista', n === 1 ? '1 lead purgado.' : `${n} leads purgados.`, 'ok');
           window.setTimeout(() => window.location.reload(), 700);
+          return true;
         },
       });
     });
@@ -432,8 +474,11 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
         const name = el.dataset.leadName || 'este lead';
         openConfirm({
           title: `¿Dar de baja a ${name}?`,
-          text: 'Se borra el lead y se audita sin datos personales.',
+          text: 'Se borra el lead. Queda la auditoría de la captación, sin datos personales.',
           okLabel: 'Dar de baja',
+          busyLabel: 'Dando de baja…',
+          failTitle: 'No se pudo dar de baja',
+          failBody: 'Reintentá la baja.',
           cancelLabel: 'Cancelar',
           danger: true,
           onConfirm: async () => {
@@ -443,12 +488,12 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
               body: JSON.stringify({ action: 'opt_out', id }),
             });
             if (!res.ok) {
-              const d = await res.json().catch(() => ({})) as { error?: { message?: string } };
-              showToast('No se pudo dar de baja', d?.error?.message || 'Error', 'danger');
-              return;
+              showToast('No se pudo dar de baja', 'Reintentá la baja.', 'danger');
+              return false;
             }
             showToast('Lead dado de baja', name, 'ok');
             window.setTimeout(() => window.location.reload(), 500);
+            return true;
           },
         });
       });
