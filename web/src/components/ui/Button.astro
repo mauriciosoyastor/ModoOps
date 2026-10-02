@@ -13,9 +13,9 @@ const { href, variant = 'primary', class: className, onclick, 'data-cta': dataCt
 const base = 'btn inline-flex items-center justify-center text-base font-medium';
 
 const variants = {
-  /* web/AGENTS: CTA primario = star-warm + texto oscuro (AA) */
+  /* ADR 0011: Acento ModoOps = --mo-accent (papel) */
   primary:
-    'rounded-full bg-[var(--color-star-warm)] px-6 py-3 text-[var(--mo-ink)] hover:bg-[var(--color-star-glow)]',
+    'rounded-full bg-[var(--mo-accent)] px-6 py-3 text-[var(--mo-accent-ink)] hover:bg-[var(--mo-accent-hover)]',
   'ghost-dark':
     'rounded-full border border-[color-mix(in_srgb,var(--mo-on-hero)_45%,transparent)] bg-transparent px-6 py-3 text-[var(--mo-on-hero)] hover:border-[var(--mo-on-hero)] hover:bg-[color-mix(in_srgb,var(--mo-on-hero)_12%,transparent)]',
   'ghost-light':
