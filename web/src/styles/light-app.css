@@ -566,8 +566,10 @@ a {
   transition: background-color 120ms var(--mo-ease-out);
 }
 
-.mo-table tbody tr:hover {
-  background: var(--mo-row-hover);
+@media (hover: hover) and (pointer: fine) {
+  .mo-table tbody tr:hover {
+    background: var(--mo-row-hover);
+  }
 }
 
 .mo-section-label {
@@ -1231,8 +1233,8 @@ a {
   justify-content: space-between;
   padding: 0.7rem 0.9rem;
   border-top: 1px solid var(--mo-line);
-  background: var(--mo-hero);
-  color: var(--mo-on-hero);
+  background: var(--mo-card);
+  color: var(--mo-ink);
   opacity: 0;
   pointer-events: none;
   transition: opacity 150ms var(--mo-ease-out);
@@ -1267,25 +1269,26 @@ a {
 }
 
 .mo-bulk .mo-btn {
-  background: color-mix(in srgb, var(--mo-on-hero) 12%, transparent);
-  color: var(--mo-on-hero);
-  border-color: color-mix(in srgb, var(--mo-on-hero) 28%, transparent);
+  background: transparent;
+  color: var(--mo-ink);
+  border-color: var(--mo-line);
 }
 
-.mo-bulk .mo-btn:hover {
-  background: color-mix(in srgb, var(--mo-on-hero) 20%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .mo-bulk .mo-btn:hover {
+    background: var(--mo-canvas);
+  }
+
+  .mo-bulk .mo-btn--danger:hover {
+    background: color-mix(in srgb, var(--mo-danger) 8%, var(--mo-card));
+    color: var(--mo-danger);
+  }
 }
 
 .mo-bulk .mo-btn--danger {
-  background: var(--mo-danger);
-  border-color: var(--mo-danger);
-  color: #fff;
-}
-
-.mo-bulk .mo-btn--primary {
-  background: var(--mo-accent);
-  border-color: var(--mo-accent);
-  color: var(--mo-accent-ink);
+  background: transparent;
+  border-color: var(--mo-line);
+  color: var(--mo-danger);
 }
 
 /* FlowSheet — Shell atajos (pantalla completa, no modal centrado) */

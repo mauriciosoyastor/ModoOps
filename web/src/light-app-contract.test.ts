@@ -104,13 +104,12 @@ describe('contrato light-app papel (#215)', () => {
     expect(header).not.toContain('lp-header__mark');
   });
 
-  it('la barra de selección de Tenants conserva el cromado de hero', () => {
+  it('la barra de selección de Tenants conserva el cromado del Control Plane', () => {
     const css = read('styles/light-app.css');
     const bulk = css.slice(css.indexOf('.mo-bulk {'));
-    expect(bulk.slice(0, 500)).toContain('background: var(--mo-hero)');
-    expect(bulk.slice(0, 500)).toContain('color: var(--mo-on-hero)');
-    expect(css).toMatch(/\.mo-table tbody tr:hover\s*\{[^}]*var\(--mo-row-hover\)/);
-    expect(css).not.toMatch(/@media \(hover: hover\) and \(pointer: fine\)\s*\{\s*\.mo-table tbody tr:hover/);
+    expect(bulk.slice(0, 500)).toContain('background: var(--mo-card)');
+    expect(bulk.slice(0, 500)).toContain('color: var(--mo-ink)');
+    expect(css).toMatch(/@media \(hover: hover\) and \(pointer: fine\)\s*\{[^}]*\.mo-table tbody tr:hover/);
   });
 
   it('el Shell pone los atajos antes que el resumen y confirma el cierre', () => {

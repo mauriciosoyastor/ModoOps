@@ -1,57 +1,184 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
+import LightAppLayout from '../layouts/LightAppLayout.astro';
 ---
 
-<BaseLayout title="Ingresar — ModoOps" description="ModoOps — Login operativo">
-  <main class="mo-login">
+<LightAppLayout title="Ingresar — ModoOps" description="Ingresar a ModoOps" theme="papel">
+  <main class="mo-login" id="contenido">
     <div class="mo-login__card">
-      <p class="mo-login__eyebrow">ModoOps</p>
-      <h1>Ingresar</h1>
-      <p class="mo-login__hint">Usá tu usuario Odoo (admin / operativo). Sesión guarda en <code>mo_bff_sid</code> → Odoo <code>session_id</code>.</p>
+      <p class="mo-login__brand" translate="no">ModoOps</p>
+      <h1 class="mo-login__title">Ingresar</h1>
+      <p class="mo-login__hint">Usá tu usuario y contraseña de operación.</p>
       <form id="login-form" class="mo-login__form">
-        <label>Usuario <input name="login" autocomplete="username" required /></label>
-        <label>Contraseña <input name="password" type="password" autocomplete="current-password" required /></label>
-        <button type="submit">Entrar</button>
-        <p id="login-error" class="mo-login__error" hidden></p>
+        <div class="mo-field">
+          <label class="mo-field__label" for="login-usuario">Usuario</label>
+          <input
+            class="mo-field__control"
+            id="login-usuario"
+            name="login"
+            type="text"
+            autocomplete="username"
+            spellcheck="false"
+            aria-describedby="login-error"
+            required
+          />
+        </div>
+        <div class="mo-field">
+          <label class="mo-field__label" for="login-clave">Contraseña</label>
+          <input
+            class="mo-field__control"
+            id="login-clave"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            aria-describedby="login-error"
+            required
+          />
+        </div>
+        <p id="login-error" class="mo-field__error" role="alert" tabindex="-1" hidden></p>
+        <button type="submit" class="mo-btn mo-btn--primary">Entrar</button>
       </form>
-      <p class="mo-login__foot"><a href="/">← Landing</a> · <a href="/app">→ App</a></p>
+      <p class="mo-login__foot">
+        <a class="mo-login__site" href="/">Ir al sitio</a>
+      </p>
     </div>
   </main>
-</BaseLayout>
+</LightAppLayout>
 
 <script>
-  const form = document.getElementById("login-form") as HTMLFormElement;
-  const errEl = document.getElementById("login-error") as HTMLParagraphElement;
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    errEl.hidden = true;
-    const fd = new FormData(form);
-    const login = String(fd.get("login") || "");
-    const password = String(fd.get("password") || "");
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ login, password }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      errEl.textContent = (data as { error?: { message?: string } })?.error?.message || "Error";
-      errEl.hidden = false;
-      return;
+  const form = document.getElementById('login-form') as HTMLFormElement | null;
+  const errEl = document.getElementById('login-error') as HTMLParagraphElement | null;
+  const usuario = document.getElementById('login-usuario') as HTMLInputElement | null;
+  const clave = document.getElementById('login-clave') as HTMLInputElement | null;
+  const submit = form?.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+  const fields = [usuario, clave].filter((el): el is HTMLInputElement => el instanceof HTMLInputElement);
+
+  function setInvalid(on: boolean) {
+    for (const field of fields) {
+      if (on) field.setAttribute('aria-invalid', 'true');
+      else field.removeAttribute('aria-invalid');
     }
-    window.location.assign("/app");
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!errEl || !form) return;
+    errEl.hidden = true;
+    errEl.textContent = '';
+    setInvalid(false);
+    if (submit) {
+      submit.disabled = true;
+      submit.textContent = 'Entrando…';
+    }
+    const fd = new FormData(form);
+    const login = String(fd.get('login') || '');
+    const password = String(fd.get('password') || '');
+    let failed = false;
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ login, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        failed = true;
+        errEl.textContent =
+          (data as { error?: { message?: string } })?.error?.message ||
+          'No se pudo ingresar. Revisá usuario y contraseña.';
+        errEl.hidden = false;
+        setInvalid(true);
+        usuario?.focus();
+        return;
+      }
+      window.location.assign('/app');
+    } catch {
+      failed = true;
+      errEl.textContent = 'No se pudo ingresar. Revisá usuario y contraseña.';
+      errEl.hidden = false;
+      setInvalid(true);
+      usuario?.focus();
+    } finally {
+      if (failed && submit) {
+        submit.disabled = false;
+        submit.textContent = 'Entrar';
+      }
+    }
   });
 </script>
 
 <style>
-  .mo-login { display:flex; justify-content:center; padding:4rem 1rem; }
-  .mo-login__card { max-width:28rem; width:100%; border:1px solid var(--mo-glass-border, #e5e7eb); border-radius:1rem; padding:2rem; }
-  .mo-login__eyebrow { color:#ea580c; font-size:0.7rem; letter-spacing:.14em; text-transform:uppercase; margin:0 0 .25rem; font-weight:700; }
-  .mo-login__hint { color:#6b7280; font-size:.85rem; }
-  .mo-login__form { display:flex; flex-direction:column; gap:.75rem; margin-top:1rem; }
-  .mo-login__form label { display:flex; flex-direction:column; gap:.25rem; font-size:.9rem; }
-  .mo-login__form input { border:1px solid #d1d5db; border-radius:.5rem; padding:.6rem .75rem; }
-  .mo-login__form button { margin-top:.5rem; border-radius:999px; padding:.65rem 1rem; background:#111827; color:#fff; cursor:pointer; }
-  .mo-login__error { color:#dc2626; font-size:.85rem; }
-  .mo-login__foot { margin-top:1rem; font-size:.85rem; }
+  .mo-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100dvh;
+    padding:
+      max(1.5rem, env(safe-area-inset-top))
+      max(1rem, env(safe-area-inset-right))
+      max(1.5rem, env(safe-area-inset-bottom))
+      max(1rem, env(safe-area-inset-left));
+  }
+  .mo-login__card {
+    width: 100%;
+    max-width: 24rem;
+    display: grid;
+    gap: 0.75rem;
+    border: 0;
+    border-top: 3px solid var(--mo-accent);
+    border-radius: var(--mo-radius);
+    background: var(--mo-card);
+    padding: 1.25rem 1.35rem 1.1rem;
+  }
+  .mo-login__brand {
+    margin: 0;
+    font-family: var(--mo-font);
+    font-size: 0.92rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--mo-muted);
+  }
+  .mo-login__title {
+    margin: 0;
+    font-family: var(--mo-font);
+    font-size: 1.25rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  .mo-login__hint {
+    margin: 0;
+    color: var(--mo-muted);
+    font-size: 0.92rem;
+  }
+  .mo-login__form {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .mo-login__form .mo-btn--primary {
+    width: 100%;
+  }
+  .mo-login__foot {
+    margin: 0;
+  }
+  .mo-login__site {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--mo-ink);
+    font-size: 0.92rem;
+    text-decoration: underline;
+    text-decoration-color: var(--mo-line-strong);
+    text-underline-offset: 0.22em;
+    touch-action: manipulation;
+    transition: transform 160ms var(--mo-ease-out), color 140ms var(--mo-ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .mo-login__site:hover {
+      color: var(--mo-accent);
+    }
+  }
+  .mo-login__site:active {
+    transform: scale(0.97);
+  }
 </style>
