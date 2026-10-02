@@ -67,13 +67,17 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
         <button type="button" class="mo-btn mo-btn--ghost" data-video>Video IA</button>
         <button type="button" class="mo-btn mo-btn--ghost" data-purge>Purgar vencidos</button>
       </div>
-      <nav class="filters mo-pill-group" aria-label="Filtros de leads">
-        <a class="mo-pill" href={leadsHref({ estado: '' })} aria-current={!filters.estado ? 'true' : undefined}>Todos</a>
-        <a class:list={['mo-pill', 'mo-pill--ok']} href={leadsHref({ estado: 'nuevo' })} aria-current={filters.estado === 'nuevo' ? 'true' : undefined}>Nuevo</a>
-        <a class:list={['mo-pill', 'mo-pill--accent']} href={leadsHref({ estado: 'contactado' })} aria-current={filters.estado === 'contactado' ? 'true' : undefined}>Contactado</a>
-        <a class="mo-pill" href={leadsHref({ estado: 'descartado' })} aria-current={filters.estado === 'descartado' ? 'true' : undefined}>Descartado</a>
-        <a class="mo-pill" href={leadsHref({ sinTelefono: !filters.sinTelefono })} aria-current={filters.sinTelefono ? 'true' : undefined}>Sin teléfono</a>
-        <a class="mo-pill" href={leadsHref({ optOut: !filters.optOut })} aria-current={filters.optOut ? 'true' : undefined}>Con baja</a>
+      <nav class="filters" aria-label="Filtros de leads">
+        <div class="mo-pill-group" role="group" aria-label="Estado">
+          <a class="mo-pill" href={leadsHref({ estado: '' })} aria-current={!filters.estado ? 'true' : undefined}>Todos</a>
+          <a class:list={['mo-pill', filters.estado === 'nuevo' && 'mo-pill--ok']} href={leadsHref({ estado: 'nuevo' })} aria-current={filters.estado === 'nuevo' ? 'true' : undefined}>Nuevo</a>
+          <a class:list={['mo-pill', filters.estado === 'contactado' && 'mo-pill--accent']} href={leadsHref({ estado: 'contactado' })} aria-current={filters.estado === 'contactado' ? 'true' : undefined}>Contactado</a>
+          <a class="mo-pill" href={leadsHref({ estado: 'descartado' })} aria-current={filters.estado === 'descartado' ? 'true' : undefined}>Descartado</a>
+        </div>
+        <div class="mo-pill-group" role="group" aria-label="Teléfono y baja">
+          <a class="mo-pill" href={leadsHref({ sinTelefono: !filters.sinTelefono })} aria-current={filters.sinTelefono ? 'true' : undefined}>Sin teléfono</a>
+          <a class="mo-pill" href={leadsHref({ optOut: !filters.optOut })} aria-current={filters.optOut ? 'true' : undefined}>Con baja</a>
+        </div>
       </nav>
     </div>
 
@@ -234,28 +238,28 @@ const filtersOn = Boolean(filters.estado || filters.sinTelefono || filters.optOu
       gap: 1rem;
       max-width: 72rem;
     }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.65rem 1.25rem;
+    }
     .filters .mo-pill {
       min-height: 44px;
       padding-inline: 0.85rem;
     }
-    .filters .mo-pill[aria-current="true"] {
-      font-weight: 650;
-      box-shadow: inset 0 0 0 1px currentColor;
-    }
-    .filters .mo-pill[aria-current="true"]:not(.mo-pill--ok):not(.mo-pill--warn):not(.mo-pill--danger):not(.mo-pill--accent) {
-      background: var(--mo-canvas);
-      color: var(--mo-ink);
-      border-color: var(--mo-ink);
-    }
+    /* El sólido de --mo-ok y --mo-accent no llega a AA con --mo-on-hero; se oscurece hacia --mo-hero. */
     .filters .mo-pill--ok[aria-current="true"] {
-      background: var(--mo-ok-soft);
-      border-color: var(--mo-ok);
-      color: var(--mo-ok);
+      --pill-fill: color-mix(in srgb, var(--mo-ok) 85%, var(--mo-hero));
+      background: var(--pill-fill);
+      border-color: var(--pill-fill);
+      color: var(--mo-on-hero);
     }
     .filters .mo-pill--accent[aria-current="true"] {
-      background: var(--mo-accent-soft);
-      border-color: var(--mo-accent);
-      color: var(--mo-ink);
+      --pill-fill: color-mix(in srgb, var(--mo-accent) 65%, var(--mo-hero));
+      background: var(--pill-fill);
+      border-color: var(--pill-fill);
+      color: var(--mo-on-hero);
     }
     .cp-note {
       margin: 0;
