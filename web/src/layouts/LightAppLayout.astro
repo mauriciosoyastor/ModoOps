@@ -9,13 +9,15 @@ interface Props {
   title: string;
   description?: string;
   theme?: 'papel' | 'warm' | 'denso';
+  /** Densidad de operación (hobday). No la uses en login ni Control Plane. */
+  ops?: boolean;
 }
 
-const { title, description = '', theme = 'papel' } = Astro.props;
+const { title, description = '', theme = 'papel', ops = false } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="es-AR" data-theme={theme}>
+<html lang="es-AR" data-theme={theme} data-ops={ops ? '1' : undefined}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
