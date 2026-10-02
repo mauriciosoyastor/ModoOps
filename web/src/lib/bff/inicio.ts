@@ -56,6 +56,7 @@ export type TenantCartera = {
   name: string;
   state: string;
   abonoDue: string | null;
+  graciaHasta: string | null;
   modulos: string;
 };
 
@@ -67,8 +68,6 @@ const ROTULO: Record<ModuloAncla, string> = {
   compras: "Compras",
   fiscal_ar: "Fiscal AR",
 };
-
-const EJEMPLO_SEMANA = [86, 74, 91, 68];
 
 const usd = new Intl.NumberFormat("es-AR", { style: "currency", currency: "USD" });
 const fechaEs = new Intl.DateTimeFormat("es-AR", {
@@ -82,12 +81,18 @@ export function modulosAnclaDesdeTiles(tiles: readonly { label: string }[]): Mod
   const found = new Set<ModuloAncla>();
   for (const tile of tiles) {
     const label = tile.label.toLocaleLowerCase("es-AR");
-    if (label.includes("mostrador")) found.add("mostrador");
-    if (label.includes("depósito") || label.includes("deposito")) found.add("deposito");
-    if (label.includes("compra")) found.add("compras");
-    if (label.includes("fiscal")) found.add("fiscal_ar");
+    if (esNombreDeModulo(label, "mostrador")) found.add("mostrador");
+    if (esNombreDeModulo(label, "depósito inteligente") || esNombreDeModulo(label, "deposito inteligente")) {
+      found.add("deposito");
+    }
+    if (esNombreDeModulo(label, "compras")) found.add("compras");
+    if (esNombreDeModulo(label, "fiscal ar")) found.add("fiscal_ar");
   }
   return ANCLA.filter((id) => found.has(id));
+}
+
+function esNombreDeModulo(label: string, nombre: string): boolean {
+  return label === nombre || label.startsWith(`${nombre} `);
 }
 
 type ShellInput = {
@@ -180,10 +185,12 @@ function shell(input: ShellInput): Inicio {
       ? {
           titulo: "Ventas por semana",
           href: href("mostrador"),
-          puntos: semanasDelMes(parseDia(input.hoy)).map((label, indice) => ({
-            label,
-            valor: EJEMPLO_SEMANA[indice] ?? 0,
-          })),
+          puntos: [
+            { label: "Semana 1", valor: 86 },
+            { label: "Semana 2", valor: 74 },
+            { label: "Semana 3", valor: 91 },
+            { label: "Semana 4", valor: 68 },
+          ],
         }
       : null,
     composicion: tiene("deposito")
@@ -250,11 +257,7 @@ function controlPlane(input: ControlPlaneInput): Inicio {
   const activos = input.tenants.filter((t) => t.state === "activo");
   const suspendidos = input.tenants.filter((t) => t.state === "suspendido");
   const bajas = input.tenants.filter((t) => t.state === "baja");
-  const enGracia = activos.filter((t) => {
-    const due = parseDia(t.abonoDue);
-    if (!hoy || !due) return false;
-    return due < hoy && hoy <= addDias(due, 7);
-  });
+  const enGracia = activos.filter((t) => estaEnGracia(t, hoy));
   const ventana = activos.filter((t) => {
     const due = parseDia(t.abonoDue);
     if (!hoy || !due) return false;
@@ -300,7 +303,7 @@ function controlPlane(input: ControlPlaneInput): Inicio {
       href: null,
       columnas: ["Nombre", "Estado", "Vencimiento", "Módulos"],
       filas: enGracia.map((t) => ({
-        celdas: [t.name, "Activo", fechaVisible(t.abonoDue), t.modulos],
+        celdas: [t.name, "Activo", fechaVisible(t.graciaHasta), t.modulos],
       })),
     },
     veredicto: {
@@ -330,6 +333,14 @@ function controlPlane(input: ControlPlaneInput): Inicio {
       ],
     },
   };
+}
+
+function estaEnGracia(tenant: TenantCartera, hoy: number | null): boolean {
+  if (tenant.state !== "activo" || hoy == null) return false;
+  const vencio = parseDia(tenant.abonoDue);
+  const hasta = parseDia(tenant.graciaHasta);
+  if (vencio == null || hasta == null) return false;
+  return vencio < hoy && hoy <= hasta;
 }
 
 function fechaVisible(iso: string | null): string {

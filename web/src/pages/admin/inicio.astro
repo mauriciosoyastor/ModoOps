@@ -35,6 +35,7 @@ const inicio = composicionInicio({
     name: tenant.name,
     state: tenant.state,
     abonoDue: tenant.abono_due_date || null,
+    graciaHasta: tenant.suspend_grace_until || null,
     modulos: tenant.modules_installed || '',
   })),
 });

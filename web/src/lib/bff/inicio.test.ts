@@ -63,7 +63,7 @@ describe("Inicio del Shell", () => {
       "Sinteplast",
       "Tersuave",
     ]);
-    expect(inicio.serie?.puntos.map((punto) => punto.valor)).toEqual([86, 74, 91, 68, 0]);
+    expect(inicio.serie?.puntos.map((punto) => punto.valor)).toEqual([86, 74, 91, 68]);
     expect(inicio.composicion?.total).toBe(80);
     expect(inicio.composicion?.partes).toEqual([
       { label: "En condición normal", pct: 91 },
@@ -141,11 +141,11 @@ describe("Inicio del Shell", () => {
 
 describe("Inicio del Control Plane", () => {
   const tenants = [
-    { name: "Alba", state: "activo", abonoDue: "2026-10-01", modulos: "Mostrador" },
-    { name: "Colorín", state: "activo", abonoDue: "2026-10-05", modulos: "Compras" },
-    { name: "Sinteplast", state: "activo", abonoDue: "2026-10-02", modulos: "Fiscal AR" },
-    { name: "Tersuave", state: "suspendido", abonoDue: "2026-09-01", modulos: "Mostrador" },
-    { name: "Venier", state: "baja", abonoDue: null, modulos: "" },
+    { name: "Alba", state: "activo", abonoDue: "2026-10-01", graciaHasta: "2026-10-08", modulos: "Mostrador" },
+    { name: "Colorín", state: "activo", abonoDue: "2026-10-05", graciaHasta: null, modulos: "Compras" },
+    { name: "Sinteplast", state: "activo", abonoDue: "2026-10-02", graciaHasta: null, modulos: "Fiscal AR" },
+    { name: "Tersuave", state: "suspendido", abonoDue: "2026-09-01", graciaHasta: "2026-09-08", modulos: "Mostrador" },
+    { name: "Venier", state: "baja", abonoDue: null, graciaHasta: null, modulos: "" },
   ];
 
   it("muestra los ocho bloques y solo Activo y Suspendido son enlaces", () => {
@@ -181,12 +181,41 @@ describe("Inicio del Control Plane", () => {
     ]);
     expect(inicio.agenda.map((item) => item.titulo)).toEqual(["Sinteplast"]);
     expect(inicio.tabla?.filas.map((fila) => fila.celdas[0])).toEqual(["Alba"]);
-    expect(inicio.tabla?.filas[0]?.celdas[2]).toBe("01/10/2026");
+    expect(inicio.tabla?.filas[0]?.celdas[2]).toBe("08/10/2026");
     expect(inicio.veredicto?.href).toBeNull();
     expect(inicio.serie?.href).toBeNull();
     expect(inicio.composicion?.href).toBeNull();
     expect(inicio.composicion?.total).toBe(5);
     expect(inicio.serie?.puntos.map((punto) => punto.valor)).toEqual([3, 0, 0, 0, 0]);
+  });
+
+  it("con la cartera vacía la barra sigue en tres partes y el total es cero", () => {
+    const inicio = composicionInicio({
+      superficie: "control-plane",
+      consultor: "Mauricio",
+      hoy: HOY,
+      seccion: "inicio",
+      tenants: [],
+    });
+    expect(inicio.barra?.map((parte) => [parte.label, parte.pct])).toEqual([
+      ["Activo", 0],
+      ["Suspendido", 0],
+      ["Baja", 0],
+    ]);
+    expect(inicio.composicion?.total).toBe(0);
+    expect(JSON.stringify(inicio)).not.toMatch(/Moroso/);
+  });
+
+  it("un activo vencido sin gracia no entra en la cola", () => {
+    const inicio = composicionInicio({
+      superficie: "control-plane",
+      consultor: "Mauricio",
+      hoy: HOY,
+      seccion: "inicio",
+      tenants: [{ name: "Alba", state: "activo", abonoDue: "2026-10-01", graciaHasta: null, modulos: "Mostrador" }],
+    });
+    expect(inicio.numeros.find((n) => n.label === "En gracia")?.valor).toBe(0);
+    expect(inicio.tabla?.filas).toEqual([]);
   });
 
   it("la serie cuenta un vencimiento tardío del mes fuera de la ventana de 7 días", () => {
@@ -195,7 +224,7 @@ describe("Inicio del Control Plane", () => {
       consultor: "Mauricio",
       hoy: HOY,
       seccion: "inicio",
-      tenants: [...tenants, { name: "Plavicon", state: "activo", abonoDue: "2026-10-20", modulos: "Compras" }],
+      tenants: [...tenants, { name: "Plavicon", state: "activo", abonoDue: "2026-10-20", graciaHasta: null, modulos: "Compras" }],
     });
     expect(inicio.numeros.find((n) => n.label.startsWith("Abonos"))?.valor).toBe(2);
     expect(inicio.serie?.puntos.map((punto) => punto.valor)).toEqual([3, 0, 1, 0, 0]);
@@ -203,6 +232,10 @@ describe("Inicio del Control Plane", () => {
 });
 
 describe("módulos del ancla desde los tiles", () => {
+  it("reconoce el nombre del módulo y no un texto parecido", () => {
+    expect(modulosAnclaDesdeTiles([{ label: "Comprar pintura" }, { label: "Fiscalía" }])).toEqual([]);
+    expect(modulosAnclaDesdeTiles([{ label: "Compras" }, { label: "Fiscal AR" }])).toEqual(["compras", "fiscal_ar"]);
+  });
   it("reconoce los rótulos del ancla y deja afuera el resto", () => {
     expect(
       modulosAnclaDesdeTiles([

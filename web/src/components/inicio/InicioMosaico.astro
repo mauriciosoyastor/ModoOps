@@ -26,7 +26,7 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
         <h2 id="inicio-barra">{inicio.barraTitulo}</h2>
         {
           inicio.barra.every((parte) => parte.pct === 0) ? (
-            <p class="muted">{inicio.barraTitulo === "Tickets del día" ? "Sin tickets hoy." : "Sin tenants."}</p>
+            <p class="muted">0</p>
           ) : (
             <div class="pista" aria-hidden="true">
               {inicio.barra.map((parte) => (

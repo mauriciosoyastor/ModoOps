@@ -68,7 +68,7 @@ const inicio = composicionInicio({
   cliente: tenant?.name || slug,
   slug,
   hoy: hoyIso,
-  modulos: launcherError ? undefined : modulosAnclaDesdeTiles(tiles),
+  modulos: modulosAnclaDesdeTiles(tiles),
   seccion,
 });
 const homeRes = resumenHome({ tab: homeTabParam });
