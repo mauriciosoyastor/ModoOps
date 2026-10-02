@@ -1,5 +1,6 @@
 import type { HubPayload, LauncherPayload, SessionInfo } from "./types.ts";
 import type { LeadFilters, LeadRow } from "./leads.ts";
+import type { CaptacionInput } from "./captacion.ts";
 
 export type TenantRow = {
   id: number;
@@ -73,7 +74,11 @@ export interface BackendClient {
   getInstallJob(odooSessionId: string, jobId: number): Promise<InstallJobStatus | null>;
   // G2 puente portal→Odoo: preview sin persistencia (wizard transient)
   quotePreview(odooSessionId: string, vals: ConfiguradorWizardVals): Promise<ConfiguradorQuote>;
-  getLeads(odooSessionId: string, filters?: LeadFilters): Promise<LeadRow[]>;
+  getLeads(odooSessionId: string, filters?: LeadFilters, opts?: { limit?: number | null }): Promise<LeadRow[]>;
+  createCaptacionLead(
+    odooSessionId: string,
+    vals: CaptacionInput
+  ): Promise<{ id: number; estado: "nuevo" | "descartado" }>;
   optOutLead(odooSessionId: string, leadId: number): Promise<{ ok: true }>;
   purgeLeads(odooSessionId: string): Promise<{ purged: number }>;
 }

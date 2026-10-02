@@ -1,0 +1,258 @@
+---
+import LightAppLayout from '../layouts/LightAppLayout.astro';
+import { BffError } from '../lib/bff/errors.ts';
+import { invalidateBffSession } from '../lib/bff/http.ts';
+import { getBackend } from '../lib/bff/get-backend.ts';
+import type { LeadFilters } from '../lib/bff/leads.ts';
+import { formatFechaCaptura } from '../lib/bff/captacion.ts';
+
+const session = (Astro.locals as Record<string, unknown>).session as { name?: string; login?: string } | undefined;
+const odooSessionId = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
+if (!odooSessionId) return Astro.redirect('/login');
+const userName = session?.name || session?.login || '';
+
+const q = Astro.url.searchParams;
+const estado = (['nuevo', 'contactado', 'descartado'].includes(q.get('estado') || '') ? q.get('estado') : '') as LeadFilters['estado'];
+const filters: LeadFilters = {
+  estado,
+  sinTelefono: q.get('sin_telefono') === '1',
+  optOut: q.get('opt_out') === '1',
+};
+
+let leads: import('../lib/bff/leads.ts').LeadRow[] = [];
+let loadError = '';
+try {
+  leads = await getBackend().getLeads(odooSessionId, filters, { limit: null });
+} catch (cause) {
+  if (cause instanceof BffError && cause.code === 'unauthorized') {
+    invalidateBffSession(Astro.cookies);
+    return Astro.redirect('/login');
+  }
+  loadError = (cause as Error)?.message || 'No se pudo cargar la lista';
+}
+---
+
+<LightAppLayout title="Captación — ModoOps" description="Acceso Captación — alta y lista de leads" theme="papel">
+  <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
+  <div class="shell" id="contenido">
+    <header class="hero-band">
+      <div class="hero-band__row">
+        <div>
+          <p class="mo-brand mo-brand--display" translate="no">ModoOps</p>
+          <p class="mo-promise">Acceso Captación</p>
+          <p class="mo-muted-line">{userName} · {leads.length} lead{leads.length === 1 ? '' : 's'}</p>
+        </div>
+        <div class="hero-actions">
+          <a class="mo-btn mo-btn--ghost" href="/admin/tenants">← Tenants</a>
+          <button type="button" class="mo-btn mo-btn--ghost" data-logout>Cerrar sesión</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="alta" aria-labelledby="alta-titulo">
+        <h1 id="alta-titulo">Cargar lead</h1>
+        <p class="mo-field__hint" id="s4-aviso">Sin teléfono el lead queda descartado (regla S4).</p>
+        <form id="alta-captacion" class="alta__grid">
+          <div class="mo-field" id="field-nombre">
+            <label class="mo-field__label" for="cap-nombre">Nombre</label>
+            <input class="mo-field__control" id="cap-nombre" name="nombre" required autocomplete="organization" />
+            <p class="mo-field__error" id="nombre-error" role="alert" hidden></p>
+          </div>
+          <div class="mo-field">
+            <label class="mo-field__label" for="cap-telefono">Teléfono</label>
+            <input class="mo-field__control" id="cap-telefono" name="telefono" type="tel" inputmode="tel" autocomplete="tel" aria-describedby="s4-aviso" />
+          </div>
+          <div class="mo-field">
+            <label class="mo-field__label" for="cap-email">Email</label>
+            <input class="mo-field__control" id="cap-email" name="email" type="email" inputmode="email" autocomplete="email" />
+          </div>
+          <div class="mo-field">
+            <label class="mo-field__label" for="cap-categoria">Categoría</label>
+            <input class="mo-field__control" id="cap-categoria" name="categoria" autocomplete="off" />
+          </div>
+          <div class="alta__actions">
+            <button type="submit" class="mo-btn mo-btn--primary">Cargar</button>
+            <span id="alta-msg" class="mo-field__hint" role="status"></span>
+            <p id="alta-error" class="mo-field__error" role="alert" tabindex="-1" hidden></p>
+          </div>
+        </form>
+      </section>
+
+      <form class="tools" method="get" action="/captacion" role="search">
+        <div class="mo-field">
+          <label class="mo-field__label" for="filtro-estado">Estado</label>
+          <select class="mo-field__control" id="filtro-estado" name="estado">
+            <option value="" selected={!filters.estado}>todos</option>
+            <option value="nuevo" selected={filters.estado === 'nuevo'}>nuevo</option>
+            <option value="contactado" selected={filters.estado === 'contactado'}>contactado</option>
+            <option value="descartado" selected={filters.estado === 'descartado'}>descartado</option>
+          </select>
+        </div>
+        <label class="mo-check" for="filtro-sin-tel">
+          <input id="filtro-sin-tel" type="checkbox" name="sin_telefono" value="1" checked={filters.sinTelefono} />
+          Sin teléfono
+        </label>
+        <label class="mo-check" for="filtro-opt-out">
+          <input id="filtro-opt-out" type="checkbox" name="opt_out" value="1" checked={filters.optOut} />
+          Opt-out
+        </label>
+        <button type="submit" class="mo-btn mo-btn--ghost">Filtrar</button>
+      </form>
+
+      {loadError ? <p class="mo-banner mo-banner--danger" role="alert">{loadError}</p> : null}
+
+      <div class="table-wrap">
+        <table class="mo-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Teléfono</th>
+              <th>Email</th>
+              <th>Categoría</th>
+              <th>Estado</th>
+              <th>Opt-out</th>
+              <th>Captura</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leads.map((l) => (
+              <tr>
+                <td>
+                  {l.nombre}
+                  {!l.telefono ? <span class="mo-badge is-warn">S4</span> : null}
+                </td>
+                <td>{l.telefono || '—'}</td>
+                <td>{l.email || '—'}</td>
+                <td>{l.categoria || '—'}</td>
+                <td>{l.estado}</td>
+                <td>{l.opt_out ? 'sí' : 'no'}</td>
+                <td>{formatFechaCaptura(l.fecha_captura)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {leads.length === 0 && !loadError ? <p class="mo-muted-line">0 leads con estos filtros. <a href="/captacion">Limpiar filtros</a>.</p> : null}
+      </div>
+    </main>
+  </div>
+</LightAppLayout>
+
+<script>
+  const live = document.getElementById('live-polite');
+  const form = document.getElementById('alta-captacion');
+  const msg = document.getElementById('alta-msg');
+  const altaError = document.getElementById('alta-error');
+  const nombreError = document.getElementById('nombre-error');
+  const nombreField = document.getElementById('field-nombre');
+  const nombreInput = document.getElementById('cap-nombre') as HTMLInputElement | null;
+
+  function showNombreError(text: string) {
+    nombreField?.classList.add('is-invalid');
+    nombreInput?.setAttribute('aria-invalid', 'true');
+    nombreInput?.setAttribute('aria-describedby', 'nombre-error');
+    if (nombreError) {
+      nombreError.hidden = false;
+      nombreError.textContent = text;
+    }
+    nombreInput?.focus();
+    if (live) live.textContent = text;
+  }
+
+  function showAltaError(text: string) {
+    if (altaError) {
+      altaError.hidden = false;
+      altaError.textContent = text;
+      altaError.focus();
+    }
+    if (live) live.textContent = text;
+  }
+
+  form?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const data = new FormData(form as HTMLFormElement);
+    const nombre = String(data.get('nombre') || '').trim();
+    if (!nombre) {
+      showNombreError('El nombre es obligatorio.');
+      return;
+    }
+    nombreField?.classList.remove('is-invalid');
+    nombreInput?.removeAttribute('aria-invalid');
+    if (nombreError) nombreError.hidden = true;
+    if (altaError) altaError.hidden = true;
+    if (msg) msg.textContent = 'Cargando…';
+    const res = await fetch('/api/captacion', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        nombre,
+        telefono: String(data.get('telefono') || ''),
+        email: String(data.get('email') || ''),
+        categoria: String(data.get('categoria') || ''),
+      }),
+    });
+    const body = await res.json().catch(() => ({})) as { estado?: string; error?: { message?: string } };
+    if (!res.ok) {
+      const text = body?.error?.message || 'No se pudo cargar el lead';
+      if (msg) msg.textContent = '';
+      if (/nombre/i.test(text)) showNombreError(text);
+      else showAltaError(text);
+      return;
+    }
+    const estado = body.estado === 'descartado' ? 'descartado, sin teléfono' : 'nuevo';
+    if (live) live.textContent = `Lead cargado, estado ${estado}.`;
+    const next = new URL(window.location.href);
+    window.location.assign(`/captacion${next.search}`);
+  });
+
+  document.querySelector('[data-logout]')?.addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.assign('/login');
+  });
+</script>
+
+<style>
+  .shell { min-height: 100dvh; }
+  .hero-band { padding: 1.35rem 1.35rem 1.1rem; }
+  .hero-band__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    justify-content: space-between;
+    max-width: 72rem;
+  }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .mo-muted-line { margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--mo-muted); }
+  .content { padding: 0 1.35rem 2rem; display: grid; gap: 1rem; max-width: 72rem; }
+  .alta {
+    border: 1px solid var(--mo-line);
+    border-left: 3px solid var(--mo-accent);
+    border-radius: var(--mo-radius);
+    background: var(--mo-card);
+    padding: 1rem 1.1rem;
+    display: grid;
+    gap: 0.75rem;
+    max-width: 36rem;
+  }
+  .alta h1 { margin: 0; font-size: 1.15rem; }
+  .alta__grid { display: grid; gap: 0.75rem; }
+  .alta__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .tools { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; }
+  .mo-check {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    min-height: 44px;
+    font-size: 0.9rem;
+    touch-action: manipulation;
+  }
+  .table-wrap { overflow: auto; }
+  .mo-badge.is-warn {
+    margin-left: 0.35rem;
+    background: color-mix(in srgb, var(--mo-warn) 12%, var(--mo-canvas));
+    border-color: color-mix(in srgb, var(--mo-warn) 28%, var(--mo-line));
+    color: var(--mo-ink);
+  }
+  .mo-badge.is-warn::before { background: var(--mo-warn); }
+</style>

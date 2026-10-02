@@ -2,6 +2,7 @@ import type { BackendClient } from "./backend-client.ts";
 import { BffError } from "./errors.ts";
 import type { HubPayload, LauncherPayload, SessionInfo } from "./types.ts";
 import { LEAD_FIELDS, buildLeadDomain, type LeadFilters, type LeadRow } from "./leads.ts";
+import { captacionAuditDetail, captacionLeadPayload, type CaptacionInput } from "./captacion.ts";
 
 type JsonRpcResponse<T> = { result?: T; error?: unknown };
 
@@ -206,6 +207,19 @@ export class OdooAdapter implements BackendClient {
     return { id: Number(id) };
   }
 
+  async createCaptacionLead(
+    odooSessionId: string,
+    vals: CaptacionInput
+  ): Promise<{ id: number; estado: "nuevo" | "descartado" }> {
+    const payload = captacionLeadPayload(vals);
+    const id = Number(await this.#callKw<number>(odooSessionId, "modoops.lead", "create", [payload]));
+    if (!Number.isInteger(id) || id <= 0) throw new BffError("action_failed", 502, "Odoo no devolvió el lead");
+    await this.#callKw(odooSessionId, "modoops.tenant.log", "create", [
+      { action: "creado", detail: captacionAuditDetail(id).slice(0, 500) },
+    ]);
+    return { id, estado: payload.estado };
+  }
+
   // G10 suspender/reactivar desde Control Plane (prototipo): invoca el
   // object-method con sus guardas (gracia, UserError verbatim). Aditivo.
   async setTenantStateAction(odooSessionId: string, tenantId: number, method: "action_suspend" | "action_reactivate"): Promise<{ ok: true }> {
@@ -291,11 +305,14 @@ export class OdooAdapter implements BackendClient {
     return this.#callKw(odooSessionId, "modoops.configurador.wizard", "quote_preview", [[Number(id)]]);
   }
 
-  async getLeads(odooSessionId: string, filters: LeadFilters = {}): Promise<LeadRow[]> {
+  async getLeads(odooSessionId: string, filters: LeadFilters = {}, opts?: { limit?: number | null }): Promise<LeadRow[]> {
+    const kwargs: Record<string, unknown> = { order: "fecha_captura desc, id desc" };
+    const limit = opts?.limit === undefined ? 200 : opts.limit;
+    if (limit !== null) kwargs.limit = limit;
     return this.#callKw(odooSessionId, "modoops.lead", "search_read", [
       buildLeadDomain(filters),
       [...LEAD_FIELDS],
-    ], { order: "fecha_captura desc, id desc", limit: 200 });
+    ], kwargs);
   }
 
   async optOutLead(odooSessionId: string, leadId: number): Promise<{ ok: true }> {
