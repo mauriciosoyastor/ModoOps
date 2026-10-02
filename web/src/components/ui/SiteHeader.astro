@@ -4,7 +4,7 @@ import { nav, brand } from '../../data/business';
 
 <header class="lp-header">
   <div class="lp-header__inner">
-    <a href="/" class="lp-header__brand" translate="no">{brand.name}</a>
+    <a href="/" class="lp-header__brand" translate="no" aria-label={brand.name}><span class="lp-header__mark" aria-hidden="true">{brand.name.slice(0, 1)}</span>{brand.name.slice(1)}</a>
     <nav aria-label="Secciones" class="lp-header__nav">
       {
         nav.map((item) => (
@@ -38,7 +38,11 @@ import { nav, brand } from '../../data/business';
   .lp-header__inner {
     max-width: var(--width-content, 70rem);
     margin: 0 auto;
-    padding: 0.75rem 1.5rem;
+    padding:
+      max(0.75rem, env(safe-area-inset-top))
+      max(1.5rem, env(safe-area-inset-right))
+      0.75rem
+      max(1.5rem, env(safe-area-inset-left));
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -48,18 +52,26 @@ import { nav, brand } from '../../data/business';
 
   @media (min-width: 768px) {
     .lp-header__inner {
-      padding-left: 2.5rem;
-      padding-right: 2.5rem;
+      padding-left: max(2.5rem, env(safe-area-inset-left));
+      padding-right: max(2.5rem, env(safe-area-inset-right));
     }
   }
 
   .lp-header__brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     font-family: var(--mo-display);
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: -0.03em;
     color: var(--mo-ink);
     text-decoration: none;
+    touch-action: manipulation;
+  }
+
+  .lp-header__mark {
+    color: var(--mo-accent);
   }
 
   .lp-header__nav {
@@ -73,14 +85,21 @@ import { nav, brand } from '../../data/business';
   .lp-header__nav a {
     color: var(--mo-muted);
     text-decoration: none;
-    min-height: 24px;
+    min-height: 44px;
     display: inline-flex;
     align-items: center;
     transition: color 0.15s ease-out;
   }
 
-  .lp-header__nav a:hover {
-    color: var(--mo-ink);
+  @media (hover: hover) and (pointer: fine) {
+    .lp-header__nav a:hover {
+      color: var(--mo-ink);
+    }
+
+    .lp-header__cta:hover {
+      background: var(--mo-accent-hover) !important;
+      color: var(--mo-accent-ink) !important;
+    }
   }
 
   .lp-header__login {
@@ -100,11 +119,6 @@ import { nav, brand } from '../../data/business';
       background-color 0.15s ease-out,
       color 0.15s ease-out,
       transform 160ms var(--mo-ease-out, cubic-bezier(0.23, 1, 0.32, 1));
-  }
-
-  .lp-header__cta:hover {
-    background: var(--mo-accent-hover) !important;
-    color: var(--mo-accent-ink) !important;
   }
 
   .lp-header__cta:active {

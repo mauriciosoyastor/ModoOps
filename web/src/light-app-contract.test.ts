@@ -11,6 +11,33 @@ const root = join(dirname(fileURLToPath(import.meta.url)));
 const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
 
 describe('contrato light-app papel (#215)', () => {
+  it('admin/leads usa LightAppLayout tema papel', () => {
+    const text = read('pages/admin/leads.astro');
+    expect(text).toContain('LightAppLayout');
+    expect(text).toMatch(/theme=["']papel["']/);
+    expect(text).toContain('light-app-chrome');
+    expect(text).toContain("sessionCloseCopy('control-plane')");
+    expect(text).not.toContain('BaseLayout');
+    expect(text).not.toContain('mo-admin');
+  });
+
+  it('el panel de Leads cierra el chrome del Control Plane', () => {
+    const text = read('pages/admin/leads.astro');
+    expect(text).toContain('formatFechaCaptura');
+    expect(text).toContain('content-visibility: auto');
+    expect(text).toContain('env(safe-area-inset-top)');
+    expect(text).toContain('text-wrap: balance');
+    expect(text).toContain('scroll-padding-top');
+    expect(text).toContain('(hover: hover) and (pointer: fine)');
+    expect(text).not.toContain('Opt-out');
+    expect(text).not.toContain('opt-out');
+    expect(text).not.toContain('JSON de la API');
+    const acciones = text.indexOf('class="tools__view"');
+    const filtros = text.indexOf('aria-label="Filtros de leads"');
+    expect(acciones).toBeGreaterThan(-1);
+    expect(filtros).toBeGreaterThan(acciones);
+  });
+
   it('admin/tenants usa LightAppLayout tema papel y veredicto', () => {
     const text = read('pages/admin/tenants.astro');
     expect(text).toContain('LightAppLayout');
@@ -48,6 +75,23 @@ describe('contrato light-app papel (#215)', () => {
     const confirm = text.indexOf("sessionCloseCopy('control-plane')");
     expect(logout).toBeGreaterThan(-1);
     expect(confirm).toBeGreaterThan(logout);
+  });
+
+  it('la landing usa solo el Acento ModoOps', () => {
+    const path = read('components/sections/Path.astro');
+    const puente = read('components/sections/PuenteOficina.astro');
+    const header = read('components/ui/SiteHeader.astro');
+    const globalCss = read('styles/global.css');
+    expect(path).not.toContain('--color-star-warm');
+    expect(path).toContain('var(--mo-accent)');
+    expect(puente).not.toContain('--color-star-warm');
+    expect(puente).toContain('var(--mo-accent)');
+    expect(header).toContain('env(safe-area-inset-top)');
+    expect(header).toContain('(hover: hover) and (pointer: fine)');
+    expect(header).toMatch(/\.lp-header__nav a\s*\{[^}]*min-height:\s*44px/);
+    expect(header).toMatch(/\.lp-header__brand\s*\{[^}]*min-height:\s*44px/);
+    expect(globalCss).toMatch(/::selection\s*\{[^}]*--mo-accent/);
+    expect(globalCss).not.toMatch(/::selection\s*\{[^}]*galaxy-blue/);
   });
 
   it('el Shell pone los atajos antes que el resumen y confirma el cierre', () => {

@@ -1,7 +1,7 @@
 /**
  * Light-app — prototipos (#187/#188/#190).
  * Variantes: warm (marca) | papel (humano) | denso (editorial).
- * Landing dark-galaxia NO se toca (global.css).
+ * Tema papel. La landing consume estos tokens vía BaseLayout; el chrome de producto vive en LightAppLayout.
  *
  * Roles (mapa Radix/Carbon/Atlassian → mo):
  *   wash/canvas/card = capas · ink/muted/line = texto/borde
@@ -122,6 +122,7 @@
 
 html {
   color-scheme: light;
+  -webkit-tap-highlight-color: color-mix(in srgb, var(--mo-accent) 28%, transparent);
 }
 
 body {
@@ -486,6 +487,43 @@ a {
   background: var(--mo-danger);
 }
 
+.mo-badge.is-nuevo {
+  background: var(--mo-ok-soft);
+  border-color: color-mix(in srgb, var(--mo-ok) 25%, var(--mo-line));
+}
+
+.mo-badge.is-nuevo::before {
+  background: var(--mo-ok);
+}
+
+.mo-badge.is-contactado {
+  background: var(--mo-accent-soft);
+  border-color: color-mix(in srgb, var(--mo-accent) 28%, var(--mo-line));
+}
+
+.mo-badge.is-contactado::before {
+  background: var(--mo-accent);
+}
+
+.mo-badge.is-descartado {
+  background: var(--mo-card);
+  border-color: var(--mo-line);
+  color: var(--mo-muted);
+}
+
+.mo-badge.is-descartado::before {
+  background: var(--mo-muted);
+}
+
+.mo-badge.is-warn {
+  background: color-mix(in srgb, var(--mo-warn) 12%, var(--mo-canvas));
+  border-color: color-mix(in srgb, var(--mo-warn) 28%, var(--mo-line));
+}
+
+.mo-badge.is-warn::before {
+  background: var(--mo-warn);
+}
+
 .mo-panel {
   border: 0;
   border-radius: var(--mo-radius);
@@ -505,6 +543,8 @@ a {
   text-align: left;
   border-bottom: 1px solid var(--mo-line);
   white-space: nowrap;
+  scroll-margin-top: 3rem;
+  scroll-margin-bottom: 4.5rem;
 }
 
 .mo-table th {
@@ -526,8 +566,10 @@ a {
   transition: background-color 120ms var(--mo-ease-out);
 }
 
-.mo-table tbody tr:hover {
-  background: var(--mo-row-hover);
+@media (hover: hover) and (pointer: fine) {
+  .mo-table tbody tr:hover {
+    background: var(--mo-row-hover);
+  }
 }
 
 .mo-section-label {
@@ -1153,7 +1195,9 @@ a {
   text-decoration: none;
   cursor: pointer;
   touch-action: manipulation;
-  transition: background-color 120ms var(--mo-ease-out);
+  transition:
+    background-color 120ms var(--mo-ease-out),
+    transform 140ms var(--mo-ease-out);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1189,8 +1233,8 @@ a {
   justify-content: space-between;
   padding: 0.7rem 0.9rem;
   border-top: 1px solid var(--mo-line);
-  background: var(--mo-hero);
-  color: var(--mo-on-hero);
+  background: var(--mo-card);
+  color: var(--mo-ink);
   opacity: 0;
   pointer-events: none;
   transition: opacity 150ms var(--mo-ease-out);
@@ -1225,19 +1269,31 @@ a {
 }
 
 .mo-bulk .mo-btn {
-  background: color-mix(in srgb, var(--mo-on-hero) 12%, transparent);
-  color: var(--mo-on-hero);
-  border-color: color-mix(in srgb, var(--mo-on-hero) 28%, transparent);
+  background: transparent;
+  color: var(--mo-ink);
+  border-color: var(--mo-line);
 }
 
-.mo-bulk .mo-btn:hover {
-  background: color-mix(in srgb, var(--mo-on-hero) 20%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .mo-bulk .mo-btn:hover {
+    background: var(--mo-canvas);
+  }
+
+  .mo-bulk .mo-btn--danger:hover {
+    background: color-mix(in srgb, var(--mo-danger) 8%, var(--mo-card));
+    color: var(--mo-danger);
+  }
+
+  .mo-bulk .mo-btn--primary:hover {
+    background: var(--mo-accent-hover);
+    color: var(--mo-accent-ink);
+  }
 }
 
 .mo-bulk .mo-btn--danger {
-  background: var(--mo-danger);
-  border-color: var(--mo-danger);
-  color: #fff;
+  background: transparent;
+  border-color: var(--mo-line);
+  color: var(--mo-danger);
 }
 
 .mo-bulk .mo-btn--primary {

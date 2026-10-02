@@ -31,16 +31,16 @@ const { embedded = false } = Astro.props;
         <p class="po-preview__title" translate="no">ModoOps · borrador</p>
       </div>
       <div class="po-preview__thread">
-        <p class="po-msg po-msg--bot">
+        <p class="po-msg po-msg--bot po-beat" style="--po-beat: 0">
           Contame el rubro y cuántas cajas usás en el mostrador.
         </p>
-        <p class="po-msg po-msg--user">
+        <p class="po-msg po-msg--user po-beat" style="--po-beat: 1">
           Pinturería, dos cajas. Quiero depósito y compras juntos.
         </p>
-        <p class="po-msg po-msg--bot">
+        <p class="po-msg po-msg--bot po-beat" style="--po-beat: 2">
           Anotado. Armamos borrador de mostrador + depósito + compras. Sin compromiso.
         </p>
-        <div class="po-preview__draft" role="status">
+        <div class="po-preview__draft po-beat" role="status" style="--po-beat: 3">
           <p class="po-preview__draft-label">Borrador</p>
           <ul class="po-preview__chips">
             <li>Mostrador · 2 cajas</li>
@@ -137,6 +137,7 @@ const { embedded = false } = Astro.props;
 
   .po-msg--bot {
     justify-self: start;
+    transform-origin: 0 100%;
     border-radius: 12px 12px 12px 4px;
     background: color-mix(in srgb, var(--mo-ink) 6%, var(--mo-canvas));
     color: var(--mo-ink);
@@ -145,13 +146,15 @@ const { embedded = false } = Astro.props;
 
   .po-msg--user {
     justify-self: end;
+    transform-origin: 100% 100%;
     border-radius: 12px 12px 4px 12px;
-    background: var(--color-star-warm);
-    color: var(--mo-ink);
+    background: var(--mo-accent);
+    color: var(--mo-accent-ink);
   }
 
   .po-preview__draft {
     margin-top: 0.25rem;
+    transform-origin: 50% 0;
     padding: 0.65rem 0.75rem;
     border-radius: var(--mo-radius-sm, 10px);
     border: 1px dashed var(--mo-line-strong, var(--mo-line));
@@ -184,5 +187,34 @@ const { embedded = false } = Astro.props;
     border: 1px solid var(--mo-line);
     color: var(--mo-ink);
     background: var(--mo-card, var(--mo-canvas));
+  }
+
+  /* Una vez al entrar en vista. La pausa entre beats es la conversación;
+     cada burbuja entra en 220ms. Sin JS el hilo queda estático. */
+  @keyframes po-msg-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  :global(html.lp-enter-js) .po-preview.is-in .po-beat {
+    animation-name: po-msg-in;
+    animation-duration: 220ms;
+    animation-timing-function: var(--mo-ease-out);
+    animation-fill-mode: both;
+    animation-delay: calc(160ms + var(--po-beat, 0) * 620ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html.lp-enter-js) .po-preview.is-in .po-beat {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
   }
 </style>
