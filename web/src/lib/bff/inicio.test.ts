@@ -51,8 +51,24 @@ describe("Inicio del Shell", () => {
     expect(inicio.veredicto?.href).toBe("/tenant/pintureria_centro/app?tab=mostrador");
     expect(inicio.serie?.href).toBe("/tenant/pintureria_centro/app?tab=mostrador");
     expect(inicio.composicion?.href).toBe("/tenant/pintureria_centro/app?tab=deposito");
-    expect(inicio.numeros.every((n) => n.valor === 0)).toBe(true);
-    expect(inicio.tabla?.filas).toEqual([]);
+    expect(inicio.barraTitulo).toBe("Tickets del día");
+    expect(inicio.barra?.map((parte) => parte.pct)).toEqual([63, 17, 12, 8]);
+    expect(inicio.barra?.reduce((suma, parte) => suma + parte.pct, 0)).toBe(100);
+    expect(inicio.numeros.map((n) => n.valor)).toEqual([24, 7, 4]);
+    expect(inicio.veredicto?.principal).toBe("US$\u00a048.500,00 cobrado");
+    expect(inicio.veredicto?.secundario).toBe("US$\u00a04.200,00 sigue abierto");
+    expect(inicio.tabla?.filas.map((fila) => fila.celdas[0])).toEqual([
+      "Alba",
+      "Colorín",
+      "Sinteplast",
+      "Tersuave",
+    ]);
+    expect(inicio.serie?.puntos.map((punto) => punto.valor)).toEqual([86, 74, 91, 68, 0]);
+    expect(inicio.composicion?.total).toBe(80);
+    expect(inicio.composicion?.partes).toEqual([
+      { label: "En condición normal", pct: 91 },
+      { label: "Bajo mínimo", pct: 9 },
+    ]);
   });
 
   it("sin Mostrador cierra la barra, el veredicto y la serie", () => {
@@ -104,6 +120,13 @@ describe("Inicio del Shell", () => {
       ["agenda", "table", "verdict"],
       ["agenda", "series", "verdict"],
     ]);
+  });
+
+  it("sin módulos del ancla solo queda el saludo", () => {
+    const inicio = composicionInicio({ ...base, modulos: [] });
+    expect(inicio.barra).toBeNull();
+    expect(inicio.numeros).toEqual([]);
+    expect(inicio.filas).toEqual([["greet", "greet", "greet"]]);
   });
 
   it("sin módulos de agenda el bloque de abajo se abre a todo el ancho", () => {
@@ -158,10 +181,24 @@ describe("Inicio del Control Plane", () => {
     ]);
     expect(inicio.agenda.map((item) => item.titulo)).toEqual(["Sinteplast"]);
     expect(inicio.tabla?.filas.map((fila) => fila.celdas[0])).toEqual(["Alba"]);
+    expect(inicio.tabla?.filas[0]?.celdas[2]).toBe("01/10/2026");
     expect(inicio.veredicto?.href).toBeNull();
     expect(inicio.serie?.href).toBeNull();
     expect(inicio.composicion?.href).toBeNull();
     expect(inicio.composicion?.total).toBe(5);
+    expect(inicio.serie?.puntos.map((punto) => punto.valor)).toEqual([3, 0, 0, 0, 0]);
+  });
+
+  it("la serie cuenta un vencimiento tardío del mes fuera de la ventana de 7 días", () => {
+    const inicio = composicionInicio({
+      superficie: "control-plane",
+      consultor: "Mauricio",
+      hoy: HOY,
+      seccion: "inicio",
+      tenants: [...tenants, { name: "Plavicon", state: "activo", abonoDue: "2026-10-20", modulos: "Compras" }],
+    });
+    expect(inicio.numeros.find((n) => n.label.startsWith("Abonos"))?.valor).toBe(2);
+    expect(inicio.serie?.puntos.map((punto) => punto.valor)).toEqual([3, 0, 1, 0, 0]);
   });
 });
 

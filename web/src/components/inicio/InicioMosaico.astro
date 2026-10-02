@@ -26,7 +26,7 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
         <h2 id="inicio-barra">{inicio.barraTitulo}</h2>
         {
           inicio.barra.every((parte) => parte.pct === 0) ? (
-            <p class="muted">{inicio.barraTitulo === "Tickets de hoy" ? "Sin tickets hoy." : "Sin tenants."}</p>
+            <p class="muted">{inicio.barraTitulo === "Tickets del día" ? "Sin tickets hoy." : "Sin tenants."}</p>
           ) : (
             <div class="pista" aria-hidden="true">
               {inicio.barra.map((parte) => (
@@ -158,10 +158,12 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
             inicio.composicion.titulo
           )}
         </h2>
-        <p class="numero">
-          <span class="numero__valor">{inicio.composicion.total}</span>
-          <span class="numero__rotulo">en total</span>
-        </p>
+        <div class="dona" style={`--pct: ${inicio.composicion.partes[0]?.pct ?? 0}%`}>
+          <p class="numero">
+            <span class="numero__valor">{inicio.composicion.total}</span>
+            <span class="numero__rotulo">en total</span>
+          </p>
+        </div>
         <ul class="leyenda">
           {inicio.composicion.partes.map((parte) => (
             <li>
@@ -214,9 +216,13 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
     font-weight: 650;
   }
   .bloque a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     color: inherit;
     text-decoration-thickness: 1px;
     text-underline-offset: 0.15em;
+    touch-action: manipulation;
   }
   .numeros {
     display: grid;
@@ -303,6 +309,25 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
     line-height: 1.05;
   }
   .veredicto__secundario { margin: 0.35rem 0 0; }
+  .dona {
+    width: 9rem;
+    height: 9rem;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: conic-gradient(var(--mo-accent) var(--pct), var(--mo-warn, var(--mo-line-strong)) 0);
+    display: grid;
+    place-items: center;
+  }
+  .dona p {
+    margin: 0;
+    width: 6.2rem;
+    height: 6.2rem;
+    border-radius: 50%;
+    background: var(--mo-canvas);
+    display: grid;
+    place-items: center;
+    align-content: center;
+  }
   @media (max-width: 960px) {
     .inicio-mosaico {
       grid-template-columns: 1fr;

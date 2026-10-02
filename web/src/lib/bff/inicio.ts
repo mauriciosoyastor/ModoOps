@@ -68,7 +68,15 @@ const ROTULO: Record<ModuloAncla, string> = {
   fiscal_ar: "Fiscal AR",
 };
 
-const USD0 = "USD\u00a00";
+const EJEMPLO_SEMANA = [86, 74, 91, 68];
+
+const usd = new Intl.NumberFormat("es-AR", { style: "currency", currency: "USD" });
+const fechaEs = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
 export function modulosAnclaDesdeTiles(tiles: readonly { label: string }[]): ModuloAncla[] {
   const found = new Set<ModuloAncla>();
@@ -112,9 +120,9 @@ function shell(input: ShellInput): Inicio {
   const seccion = input.seccion ?? "inicio";
 
   const numeros: NumeroInicio[] = [];
-  if (tiene("mostrador")) numeros.push({ label: "Ventas de hoy", valor: 0, href: href("mostrador") });
-  if (tiene("deposito")) numeros.push({ label: "Productos bajo stock", valor: 0, href: href("deposito") });
-  if (tiene("compras")) numeros.push({ label: "Compras sin recibir", valor: 0, href: href("compras") });
+  if (tiene("mostrador")) numeros.push({ label: "Ventas de hoy", valor: 24, href: href("mostrador") });
+  if (tiene("deposito")) numeros.push({ label: "Productos bajo stock", valor: 7, href: href("deposito") });
+  if (tiene("compras")) numeros.push({ label: "Compras sin recibir", valor: 4, href: href("compras") });
 
   const agenda: ItemAgenda[] = [];
   if (tiene("mostrador")) agenda.push({ titulo: "Cierre de caja", detalle: "Hoy", href: href("mostrador") });
@@ -134,25 +142,37 @@ function shell(input: ShellInput): Inicio {
     ],
     cerrarSesion: "Cerrar sesión",
     filas: filasShell(presentes),
-    barraTitulo: tiene("mostrador") ? "Tickets de hoy" : null,
+    barraTitulo: tiene("mostrador") ? "Tickets del día" : null,
     barra: tiene("mostrador")
       ? [
-          { label: "Efectivo", pct: 0, href: href("mostrador") },
-          { label: "QR", pct: 0, href: href("mostrador") },
-          { label: "Tarjeta", pct: 0, href: href("mostrador") },
-          { label: "Sin cobrar", pct: 0, href: href("mostrador") },
+          { label: "Efectivo", pct: 63, href: href("mostrador") },
+          { label: "QR", pct: 17, href: href("mostrador") },
+          { label: "Tarjeta", pct: 12, href: href("mostrador") },
+          { label: "Sin cobrar", pct: 8, href: href("mostrador") },
         ]
       : null,
     numeros,
     agenda,
     tabla: tiene("compras")
-      ? { titulo: "Compras sin recibir", href: href("compras"), columnas: ["Proveedor", "Estado", "Monto"], filas: [] }
+      ? {
+          titulo: "Compras sin recibir",
+          href: href("compras"),
+          columnas: ["Proveedor", "Estado", "Monto"],
+          filas: [
+            ["Alba", "Por recibir", 1240],
+            ["Colorín", "En camino", 860],
+            ["Sinteplast", "Por recibir", 410],
+            ["Tersuave", "Confirmada", 220],
+          ].map(([proveedor, estado, monto]) => ({
+            celdas: [String(proveedor), String(estado), usd.format(Number(monto))],
+          })),
+        }
       : null,
     veredicto: tiene("mostrador")
       ? {
           titulo: "Caja",
-          principal: `${USD0} cobrado`,
-          secundario: `${USD0} sigue abierto`,
+          principal: `${usd.format(48500)} cobrado`,
+          secundario: `${usd.format(4200)} sigue abierto`,
           href: href("mostrador"),
         }
       : null,
@@ -160,17 +180,20 @@ function shell(input: ShellInput): Inicio {
       ? {
           titulo: "Ventas por semana",
           href: href("mostrador"),
-          puntos: [1, 2, 3, 4].map((n) => ({ label: `Semana ${n}`, valor: 0 })),
+          puntos: semanasDelMes(parseDia(input.hoy)).map((label, indice) => ({
+            label,
+            valor: EJEMPLO_SEMANA[indice] ?? 0,
+          })),
         }
       : null,
     composicion: tiene("deposito")
       ? {
           titulo: "Stock",
           href: href("deposito"),
-          total: 0,
+          total: 80,
           partes: [
-            { label: "En condición", pct: 0 },
-            { label: "Bajo mínimo", pct: 0 },
+            { label: "En condición normal", pct: 91 },
+            { label: "Bajo mínimo", pct: 9 },
           ],
         }
       : null,
@@ -277,7 +300,7 @@ function controlPlane(input: ControlPlaneInput): Inicio {
       href: null,
       columnas: ["Nombre", "Estado", "Vencimiento", "Módulos"],
       filas: enGracia.map((t) => ({
-        celdas: [t.name, "Activo", t.abonoDue ?? "", t.modulos],
+        celdas: [t.name, "Activo", fechaVisible(t.abonoDue), t.modulos],
       })),
     },
     veredicto: {
@@ -294,7 +317,7 @@ function controlPlane(input: ControlPlaneInput): Inicio {
       href: null,
       puntos: semanasDelMes(hoy).map((label) => ({
         label,
-        valor: ventana.filter((t) => semanaDe(parseDia(t.abonoDue), hoy) === label).length,
+        valor: input.tenants.filter((t) => semanaDe(parseDia(t.abonoDue), hoy) === label).length,
       })),
     },
     composicion: {
@@ -307,6 +330,12 @@ function controlPlane(input: ControlPlaneInput): Inicio {
       ],
     },
   };
+}
+
+function fechaVisible(iso: string | null): string {
+  const dia = parseDia(iso);
+  if (dia == null) return "";
+  return fechaEs.format(new Date(dia));
 }
 
 function parseDia(iso: string | null | undefined): number | null {
