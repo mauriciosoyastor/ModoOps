@@ -18,9 +18,10 @@ describe("Inicio del Shell", () => {
     expect(inicio.bajada).toBe("Pinturería Centro");
     expect(inicio.filas).toEqual([
       ["greet", "greet", "stats"],
-      ["bar", "bar", "stats"],
+      ["bar", "bar", "bar"],
       ["agenda", "table", "verdict"],
-      ["agenda", "series", "comp"],
+      ["series", "series", "series"],
+      ["comp", "comp", "comp"],
     ]);
     expect(inicio.nav.map((item) => item.label)).toEqual([
       "Inicio",
@@ -83,7 +84,6 @@ describe("Inicio del Shell", () => {
     expect(inicio.filas).toEqual([
       ["greet", "greet", "stats"],
       ["agenda", "table", "comp"],
-      ["agenda", "table", "comp"],
     ]);
     expect(inicio.nav.map((item) => item.label)).toEqual([
       "Inicio",
@@ -102,9 +102,9 @@ describe("Inicio del Shell", () => {
     expect(inicio.numeros.map((n) => n.label)).toEqual(["Ventas de hoy", "Productos bajo stock"]);
     expect(inicio.filas).toEqual([
       ["greet", "greet", "stats"],
-      ["bar", "bar", "stats"],
+      ["bar", "bar", "bar"],
       ["agenda", "series", "verdict"],
-      ["agenda", "series", "comp"],
+      ["comp", "comp", "comp"],
     ]);
   });
 
@@ -116,9 +116,9 @@ describe("Inicio del Shell", () => {
     expect(inicio.composicion).toBeNull();
     expect(inicio.filas).toEqual([
       ["greet", "greet", "stats"],
-      ["bar", "bar", "stats"],
+      ["bar", "bar", "bar"],
       ["agenda", "table", "verdict"],
-      ["agenda", "series", "verdict"],
+      ["series", "series", "series"],
     ]);
   });
 
@@ -148,7 +148,7 @@ describe("Inicio del Control Plane", () => {
     { name: "Venier", state: "baja", abonoDue: null, graciaHasta: null, modulos: "" },
   ];
 
-  it("muestra los ocho bloques y solo Activo y Suspendido son enlaces", () => {
+  it("muestra saludo, estado, cola y serie, y solo Activo y Suspendido son enlaces", () => {
     const inicio = composicionInicio({
       superficie: "control-plane",
       consultor: "Mauricio",
@@ -160,9 +160,9 @@ describe("Inicio del Control Plane", () => {
     expect(inicio.bajada).toBe("Control Plane");
     expect(inicio.filas).toEqual([
       ["greet", "greet", "stats"],
-      ["bar", "bar", "stats"],
-      ["agenda", "table", "verdict"],
-      ["agenda", "series", "comp"],
+      ["bar", "bar", "bar"],
+      ["table", "table", "table"],
+      ["series", "series", "series"],
     ]);
     expect(inicio.nav.map((item) => [item.label, item.href, item.actual])).toEqual([
       ["Inicio", "/admin/inicio", true],
@@ -176,8 +176,7 @@ describe("Inicio del Control Plane", () => {
     ]);
     expect(inicio.numeros.map((n) => [n.label, n.valor, n.href])).toEqual([
       ["Activos", 3, "/admin/tenants?estado=activo"],
-      ["En gracia", 1, null],
-      ["Abonos que vencen dentro de 7 días", 2, null],
+      ["En gracia", 1, "#inicio-tabla"],
     ]);
     expect(inicio.agenda.map((item) => item.titulo)).toEqual(["Sinteplast"]);
     expect(inicio.tabla?.filas.map((fila) => fila.celdas[0])).toEqual(["Alba"]);
@@ -226,7 +225,7 @@ describe("Inicio del Control Plane", () => {
       seccion: "inicio",
       tenants: [...tenants, { name: "Plavicon", state: "activo", abonoDue: "2026-10-20", graciaHasta: null, modulos: "Compras" }],
     });
-    expect(inicio.numeros.find((n) => n.label.startsWith("Abonos"))?.valor).toBe(2);
+    expect(inicio.veredicto?.secundario).toBe("2 abonos vencen dentro de 7 días");
     expect(inicio.serie?.puntos.map((punto) => punto.valor)).toEqual([3, 0, 1, 0, 0]);
   });
 });

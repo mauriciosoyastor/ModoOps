@@ -55,17 +55,17 @@ const cerrar = sessionCloseCopy('control-plane');
       </nav>
     </header>
     <div class="page">
-      {loadError ? <p class="mo-banner mo-banner--danger" role="alert">{loadError}</p> : <InicioMosaico inicio={inicio} />}
+      {loadError ? <p class="mo-banner mo-banner--danger" role="alert">{loadError}</p> : <InicioMosaico inicio={inicio} plano />}
     </div>
   </div>
 
   <dialog id="cerrar-dialog" aria-labelledby="cerrar-titulo">
-    <h2 id="cerrar-titulo">{cerrar.title}</h2>
+    <h2 id="cerrar-titulo" class="mo-dialog__title">{cerrar.title}</h2>
     <p>{cerrar.text}</p>
     <p id="cerrar-error" role="alert" tabindex="-1" hidden>No se pudo cerrar la sesión. Probá de nuevo.</p>
     <form method="dialog">
-      <button type="submit" value="cancel">{cerrar.cancelLabel}</button>
-      <button type="button" id="cerrar-ok">{cerrar.okLabel}</button>
+      <button type="submit" class="mo-btn mo-btn--ghost" value="cancel">{cerrar.cancelLabel}</button>
+      <button type="button" class="mo-btn mo-btn--primary" id="cerrar-ok">{cerrar.okLabel}</button>
     </form>
   </dialog>
 
@@ -96,36 +96,68 @@ const cerrar = sessionCloseCopy('control-plane');
       gap: 0.75rem 1.25rem;
       align-items: center;
       justify-content: space-between;
-      padding: 0.75rem 1rem;
+      padding:
+        max(0.85rem, env(safe-area-inset-top))
+        max(1.35rem, env(safe-area-inset-right))
+        0.85rem
+        max(1.35rem, env(safe-area-inset-left));
+      max-width: 72rem;
+      border-bottom: 1px solid var(--mo-line);
     }
-    .app-bar__brand { margin: 0; font-weight: 650; }
-    .app-bar__nav { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; }
+    .app-bar__brand {
+      margin: 0;
+      font-weight: 650;
+      text-wrap: balance;
+    }
+    .app-bar__nav { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem 0.35rem; }
     .app-link {
       display: inline-flex;
       align-items: center;
       min-height: 44px;
-      padding: 0.25rem 0.7rem;
+      padding: 0 0.35rem;
+      border: 0;
+      background: transparent;
       color: var(--mo-muted);
-      text-decoration: none;
+      font: inherit;
+      text-decoration: underline;
+      text-decoration-color: var(--mo-line-strong);
+      text-underline-offset: 0.22em;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
       touch-action: manipulation;
+      transition: color 140ms var(--mo-ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .app-link:hover { color: var(--mo-ink); }
     }
     .app-link[aria-current='page'] {
       color: var(--mo-ink);
       font-weight: 650;
     }
-    .page { padding: 0 1rem 2rem; }
+    .app-link--session {
+      margin-left: 0.35rem;
+      padding-left: 0.85rem;
+      border-left: 1px solid var(--mo-line);
+    }
+    .page {
+      padding:
+        1rem
+        max(1.35rem, env(safe-area-inset-right))
+        max(2rem, env(safe-area-inset-bottom))
+        max(1.35rem, env(safe-area-inset-left));
+      max-width: 72rem;
+    }
     dialog {
       border: 1px solid var(--mo-line);
       border-radius: var(--mo-radius);
       background: var(--mo-canvas);
       color: var(--mo-ink);
       padding: 1rem;
+      max-width: 28rem;
+      overscroll-behavior: contain;
     }
+    dialog h2 { margin: 0 0 0.5rem; text-wrap: balance; }
     dialog form { display: flex; gap: 0.5rem; justify-content: flex-end; }
-    dialog button {
-      min-height: 44px;
-      padding: 0.25rem 0.7rem;
-      touch-action: manipulation;
-    }
   </style>
 </LightAppLayout>
