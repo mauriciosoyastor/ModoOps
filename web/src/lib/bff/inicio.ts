@@ -6,13 +6,15 @@ export type Celda = "greet" | "bar" | "stats" | "agenda" | "table" | "verdict" |
 
 export type NavItem = { label: string; href: string; actual: boolean };
 
-export type ParteBarra = { label: string; pct: number; href: string | null };
+export type Tono = "accent" | "ok" | "warn" | "ink" | "line";
 
-export type NumeroInicio = { label: string; valor: number; href: string | null };
+export type ParteBarra = { label: string; pct: number; href: string | null; tono?: Tono };
+
+export type NumeroInicio = { label: string; valor: number; href: string | null; tono?: Tono };
 
 export type ItemAgenda = { titulo: string; detalle: string; href: string | null };
 
-export type FilaTabla = { celdas: string[] };
+export type FilaTabla = { celdas: string[]; tonos?: (Tono | null)[] };
 
 export type BloqueTabla = { titulo: string; href: string | null; columnas: string[]; filas: FilaTabla[] };
 
@@ -68,6 +70,13 @@ const ROTULO: Record<ModuloAncla, string> = {
   compras: "Compras",
   fiscal_ar: "Fiscal AR",
 };
+
+function tonoEstado(estado: string): Tono | null {
+  if (estado === "Por recibir") return "warn";
+  if (estado === "En camino") return "accent";
+  if (estado === "Confirmada") return "ok";
+  return null;
+}
 
 const usd = new Intl.NumberFormat("es-AR", { style: "currency", currency: "USD" });
 const fechaEs = new Intl.DateTimeFormat("es-AR", {
@@ -125,14 +134,14 @@ function shell(input: ShellInput): Inicio {
   const seccion = input.seccion ?? "inicio";
 
   const numeros: NumeroInicio[] = [];
-  if (tiene("mostrador")) numeros.push({ label: "Ventas de hoy", valor: 24, href: href("mostrador") });
-  if (tiene("deposito")) numeros.push({ label: "Productos bajo stock", valor: 7, href: href("deposito") });
-  if (tiene("compras")) numeros.push({ label: "Compras sin recibir", valor: 4, href: href("compras") });
+  if (tiene("mostrador")) numeros.push({ label: "Ventas de hoy", valor: 24, href: href("mostrador"), tono: "accent" });
+  if (tiene("deposito")) numeros.push({ label: "Productos bajo stock", valor: 7, href: href("deposito"), tono: "warn" });
+  if (tiene("compras")) numeros.push({ label: "Compras sin recibir", valor: 4, href: href("compras"), tono: "warn" });
 
   const agenda: ItemAgenda[] = [];
-  if (tiene("mostrador")) agenda.push({ titulo: "Cierre de caja", detalle: "Hoy", href: href("mostrador") });
-  if (tiene("compras")) agenda.push({ titulo: "Recepción", detalle: "Hoy", href: href("compras") });
-  if (tiene("fiscal_ar")) agenda.push({ titulo: "Vencimiento fiscal", detalle: "Hoy", href: href("fiscal_ar") });
+  if (tiene("mostrador")) agenda.push({ titulo: "Cierre de caja", detalle: "", href: href("mostrador") });
+  if (tiene("compras")) agenda.push({ titulo: "Recepción", detalle: "", href: href("compras") });
+  if (tiene("fiscal_ar")) agenda.push({ titulo: "Vencimiento fiscal", detalle: "", href: href("fiscal_ar") });
 
   return {
     saludo: input.usuario ? `Hola, ${input.usuario}` : "Hola",
@@ -150,10 +159,10 @@ function shell(input: ShellInput): Inicio {
     barraTitulo: tiene("mostrador") ? "Tickets del día" : null,
     barra: tiene("mostrador")
       ? [
-          { label: "Efectivo", pct: 63, href: href("mostrador") },
-          { label: "QR", pct: 17, href: href("mostrador") },
-          { label: "Tarjeta", pct: 12, href: href("mostrador") },
-          { label: "Sin cobrar", pct: 8, href: href("mostrador") },
+          { label: "Efectivo", pct: 63, href: href("mostrador"), tono: "ok" },
+          { label: "QR", pct: 17, href: href("mostrador"), tono: "accent" },
+          { label: "Tarjeta", pct: 12, href: href("mostrador"), tono: "ink" },
+          { label: "Sin cobrar", pct: 8, href: href("mostrador"), tono: "warn" },
         ]
       : null,
     numeros,
@@ -170,6 +179,7 @@ function shell(input: ShellInput): Inicio {
             ["Tersuave", "Confirmada", 220],
           ].map(([proveedor, estado, monto]) => ({
             celdas: [String(proveedor), String(estado), usd.format(Number(monto))],
+            tonos: [null, tonoEstado(String(estado)), null],
           })),
         }
       : null,
@@ -219,37 +229,28 @@ function filasShell(presentes: ReadonlySet<ModuloAncla>): Celda[][] {
 
   const filas: Celda[][] = [];
   if (!stats) filas.push(["greet", "greet", "greet"]);
-  else if (!bar) filas.push(["greet", "greet", "stats"]);
-  else filas.push(["greet", "greet", "stats"], ["bar", "bar", "stats"]);
+  else filas.push(["greet", "greet", "stats"]);
+  if (bar) filas.push(["bar", "bar", "bar"]);
 
-  const lower = [agenda, table, series, verdict, comp].filter(Boolean).length;
-  if (lower === 0) return filas;
-  if (lower === 1) {
-    const solo: Celda = table ? "table" : series ? "series" : verdict ? "verdict" : comp ? "comp" : "agenda";
+  const medio: Celda | null = table ? "table" : series ? "series" : null;
+  const trabajo: Celda[] = [];
+  if (agenda) trabajo.push("agenda");
+  if (medio) trabajo.push(medio);
+  if (verdict) trabajo.push("verdict");
+  else if (comp && !series) trabajo.push("comp");
+
+  if (trabajo.length === 1) {
+    const solo = trabajo[0]!;
     filas.push([solo, solo, solo]);
-    return filas;
+  } else if (trabajo.length === 2) {
+    filas.push([trabajo[0]!, trabajo[1]!, trabajo[1]!]);
+  } else if (trabajo.length === 3) {
+    filas.push([trabajo[0]!, trabajo[1]!, trabajo[2]!]);
   }
 
-  const centro = repetir(table ? "table" : null, series ? "series" : null);
-  const derecha = repetir(verdict ? "verdict" : null, comp ? "comp" : null);
-  for (let i = 0; i < 2; i++) {
-    const c = centro[i];
-    const d = derecha[i];
-    if (agenda && c && d) filas.push(["agenda", c, d]);
-    else if (agenda && c) filas.push(["agenda", c, c]);
-    else if (agenda && d) filas.push(["agenda", d, d]);
-    else if (agenda) filas.push(["agenda", "agenda", "agenda"]);
-    else if (c && d) filas.push([c, c, d]);
-    else if (c) filas.push([c, c, c]);
-    else if (d) filas.push([d, d, d]);
-  }
+  if (series && !trabajo.includes("series")) filas.push(["series", "series", "series"]);
+  if (comp && !trabajo.includes("comp")) filas.push(["comp", "comp", "comp"]);
   return filas;
-}
-
-function repetir(primero: Celda | null, segundo: Celda | null): (Celda | null)[] {
-  if (primero && segundo) return [primero, segundo];
-  const solo = primero || segundo;
-  return [solo, solo];
 }
 
 function controlPlane(input: ControlPlaneInput): Inicio {
@@ -282,9 +283,9 @@ function controlPlane(input: ControlPlaneInput): Inicio {
     cerrarSesion: "Cerrar sesión",
     filas: [
       ["greet", "greet", "stats"],
-      ["bar", "bar", "stats"],
-      ["agenda", "table", "verdict"],
-      ["agenda", "series", "comp"],
+      ["bar", "bar", "bar"],
+      ["table", "table", "table"],
+      ["series", "series", "series"],
     ],
     barraTitulo: "Estado Tenant",
     barra: [
@@ -294,8 +295,7 @@ function controlPlane(input: ControlPlaneInput): Inicio {
     ],
     numeros: [
       { label: "Activos", valor: activos.length, href: "/admin/tenants?estado=activo" },
-      { label: "En gracia", valor: enGracia.length, href: null },
-      { label: "Abonos que vencen dentro de 7 días", valor: ventana.length, href: null },
+      { label: "En gracia", valor: enGracia.length, href: "#inicio-tabla" },
     ],
     agenda: vencenHoy.map((t) => ({ titulo: t.name, detalle: "Vence el abono", href: null })),
     tabla: {

@@ -116,7 +116,7 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       </p>
     ) : null}
 
-    {tenant && !tenantError && enInicio ? <InicioMosaico inicio={inicio} /> : null}
+    {tenant && !tenantError && enInicio ? <InicioMosaico inicio={inicio} plano color /> : null}
 
     {tenant && !tenantError && !enInicio ? (
       <>
@@ -449,6 +449,10 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
     }
     @media (hover: hover) and (pointer: fine) {
       .app-link:hover { color: var(--mo-ink); }
+    }
+    .app-link[aria-current='page'] {
+      color: var(--mo-ink);
+      font-weight: 650;
     }
     .app-link--session {
       margin-left: 0.25rem;
