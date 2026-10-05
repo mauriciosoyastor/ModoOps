@@ -137,6 +137,9 @@ describe('contrato light-app papel (#215)', () => {
     expect(header).toContain('data-logout');
     expect(header).not.toContain('tenant?.name');
     expect(header).not.toContain('tenant.state');
+    expect(header).toContain('{puesto.caja}');
+    expect(text).toContain('sesionDelPuesto({ persona: userName })');
+    expect(text).not.toMatch(/sesionDelPuesto\(\{[^}]*caja/);
   });
 
   it('la pastilla de la pantalla actual usa el relleno hero', () => {

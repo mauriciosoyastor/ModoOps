@@ -77,7 +77,7 @@ const homeTabs = homeRes.ok ? homeRes.home.tabs : [];
 const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes.home.tab)?.label ?? '' : '';
 const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
 const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
-const puesto = sesionDelPuesto({ persona: userName, caja: 'Caja 1' });
+const puesto = sesionDelPuesto({ persona: userName });
 ---
 
 <LightAppLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Shell · ${slug}`} theme="papel" ops>
