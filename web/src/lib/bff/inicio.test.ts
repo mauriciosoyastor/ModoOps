@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { composicionInicio, modulosAnclaDesdeTiles } from "./inicio.ts";
+import { composicionInicio, modulosAnclaDesdeTiles, sesionDelPuesto } from "./inicio.ts";
 
 const HOY = "2026-10-02";
 
@@ -17,8 +17,7 @@ describe("Inicio del Shell", () => {
     expect(inicio.saludo).toBe("Hola, Marina");
     expect(inicio.bajada).toBe("Pinturería Centro");
     expect(inicio.filas).toEqual([
-      ["greet", "greet", "stats"],
-      ["bar", "bar", "bar"],
+      ["greet", "bar", "stats"],
       ["agenda", "table", "verdict"],
       ["series", "series", "series"],
       ["comp", "comp", "comp"],
@@ -101,8 +100,7 @@ describe("Inicio del Shell", () => {
     expect(inicio.tabla).toBeNull();
     expect(inicio.numeros.map((n) => n.label)).toEqual(["Ventas de hoy", "Productos bajo stock"]);
     expect(inicio.filas).toEqual([
-      ["greet", "greet", "stats"],
-      ["bar", "bar", "bar"],
+      ["greet", "bar", "stats"],
       ["agenda", "series", "verdict"],
       ["comp", "comp", "comp"],
     ]);
@@ -115,8 +113,7 @@ describe("Inicio del Shell", () => {
     });
     expect(inicio.composicion).toBeNull();
     expect(inicio.filas).toEqual([
-      ["greet", "greet", "stats"],
-      ["bar", "bar", "bar"],
+      ["greet", "bar", "stats"],
       ["agenda", "table", "verdict"],
       ["series", "series", "series"],
     ]);
@@ -136,6 +133,23 @@ describe("Inicio del Shell", () => {
       ["greet", "greet", "stats"],
       ["comp", "comp", "comp"],
     ]);
+  });
+});
+
+describe("Sesión del puesto", () => {
+  it("el puesto abierto ofrece bloquear y no anuncia un cierre", () => {
+    const sesion = sesionDelPuesto({ persona: "Lucía Gómez", caja: "Caja 1", bloqueado: false });
+    expect(sesion.persona).toBe("Lucía Gómez");
+    expect(sesion.caja).toBe("Caja 1");
+    expect(sesion.accion).toBe("Bloquear puesto");
+    expect(sesion.aviso).toBeNull();
+  });
+
+  it("bloquear el puesto deja la sesión de esa persona abierta", () => {
+    const sesion = sesionDelPuesto({ persona: "Lucía Gómez", caja: "Caja 1", bloqueado: true });
+    expect(sesion.accion).toBe("Desbloquear puesto");
+    expect(sesion.aviso).toBe("Puesto bloqueado. La sesión de Lucía Gómez sigue abierta.");
+    expect(sesion.caja).toBe("Caja 1");
   });
 });
 

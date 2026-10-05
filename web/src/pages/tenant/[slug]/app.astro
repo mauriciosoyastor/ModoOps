@@ -6,7 +6,7 @@ import { invalidateBffSession } from '../../../lib/bff/http.ts';
 import { loadTenantLauncher } from '../../../lib/bff/launcher.ts';
 import { withMasterSession } from '../../../lib/bff/tenant-status.ts';
 import { resumenHome } from '../../../lib/bff/home.ts';
-import { composicionInicio, modulosAnclaDesdeTiles, type ModuloAncla } from '../../../lib/bff/inicio.ts';
+import { composicionInicio, modulosAnclaDesdeTiles, sesionDelPuesto, type ModuloAncla } from '../../../lib/bff/inicio.ts';
 import InicioMosaico from '../../../components/inicio/InicioMosaico.astro';
 
 export const prerender = false;
@@ -76,6 +76,8 @@ const homeTabs = homeRes.ok ? homeRes.home.tabs : [];
 const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes.home.tab)?.label ?? '' : '';
 const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
 const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
+const puestoAbierto = sesionDelPuesto({ persona: userName, caja: 'Caja 1', bloqueado: false });
+const puestoCerrado = sesionDelPuesto({ persona: userName, caja: 'Caja 1', bloqueado: true });
 ---
 
 <LightAppLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Shell · ${slug}`} theme="papel" ops>
@@ -83,32 +85,22 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
 
   <div class="shell" id="contenido">
     <header class="app-bar">
-      <div class="app-bar__identity">
-        <p class="app-bar__brand" translate="no">ModoOps</p>
-        {enInicio ? (
-          <p class="app-bar__meta" translate="no">{tenant?.name ?? slug}</p>
-        ) : (
-          <>
-            <h1 class="app-bar__title">{homeTabLabel || 'Shell'}</h1>
-            <p class="app-bar__meta">
-              <span translate="no">{tenant?.name ?? slug}</span>
-              {tenant ? (
-                <span class:list={['mo-badge', `is-${tenant.state}`]}>{tenant.state}</span>
-              ) : null}
-              {userName ? <span>{userName}</span> : null}
-            </p>
-          </>
-        )}
-      </div>
+      <p class="app-bar__brand" translate="no">ModoOps</p>
       <nav class="app-bar__nav" aria-label="Módulos">
         {inicio.nav.map((item) => (
           <a class="app-link" href={item.href} aria-current={item.actual ? 'page' : undefined}>{item.label}</a>
         ))}
-        <button type="button" class="app-link app-link--session" data-logout>{inicio.cerrarSesion}</button>
       </nav>
+      <div class="app-bar__sesion">
+        {puestoAbierto.persona ? <p class="app-bar__persona">{puestoAbierto.persona}</p> : null}
+        <p class="app-bar__caja">{puestoAbierto.caja}</p>
+        <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puestoCerrado.aviso}</p>
+        <button type="button" class="app-bar__accion" data-bloquear aria-pressed="false" data-abierto={puestoAbierto.accion} data-cerrado={puestoCerrado.accion}>{puestoAbierto.accion}</button>
+        <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
+      </div>
     </header>
 
-    <div class="page">
+    <div class="page" id="puesto-trabajo">
 
     {tenantError ? (
       <p class="mo-banner mo-banner--danger" role="alert">
@@ -116,7 +108,7 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       </p>
     ) : null}
 
-    {tenant && !tenantError && enInicio ? <InicioMosaico inicio={inicio} plano color /> : null}
+    {tenant && !tenantError && enInicio ? <InicioMosaico inicio={inicio} plano color captura /> : null}
 
     {tenant && !tenantError && !enInicio ? (
       <>
@@ -384,8 +376,8 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
   <style>
     .shell { min-height: 100dvh; }
     .app-bar {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
       gap: 0.75rem 1.25rem;
       align-items: center;
       padding:
@@ -425,39 +417,71 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
     .app-bar__nav {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.25rem 0.5rem;
+      gap: 0.15rem;
       align-items: center;
-      margin-left: auto;
+      justify-self: center;
+      margin: 0;
+      padding: 0.2rem;
+      border: 1px solid var(--mo-line);
+      border-radius: 999px;
+      background: var(--mo-card);
     }
     .app-link {
       display: inline-flex;
       align-items: center;
       min-height: 44px;
-      padding: 0 0.5rem;
+      padding: 0 0.85rem;
       border: 0;
+      border-radius: 999px;
       background: transparent;
       color: var(--mo-muted);
       font: inherit;
-      text-decoration: underline;
-      text-decoration-color: var(--mo-line-strong);
-      text-underline-offset: 0.22em;
+      text-decoration: none;
       font-size: 0.92rem;
       font-weight: 500;
       cursor: pointer;
       touch-action: manipulation;
-      transition: color 140ms var(--mo-ease-out);
+      transition: color 140ms var(--mo-ease-out), background-color 140ms var(--mo-ease-out);
     }
     @media (hover: hover) and (pointer: fine) {
       .app-link:hover { color: var(--mo-ink); }
     }
     .app-link[aria-current='page'] {
-      color: var(--mo-ink);
+      background: var(--mo-hero);
+      color: var(--mo-on-hero);
       font-weight: 650;
     }
-    .app-link--session {
-      margin-left: 0.25rem;
-      padding-left: 0.75rem;
-      border-left: 1px solid var(--mo-line);
+    .app-bar__sesion {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
+      align-items: center;
+      justify-self: end;
+    }
+    .app-bar__persona,
+    .app-bar__caja,
+    .app-bar__aviso {
+      margin: 0;
+      font-size: 0.92rem;
+    }
+    .app-bar__persona { color: var(--mo-ink); font-weight: 650; }
+    .app-bar__caja,
+    .app-bar__aviso { color: var(--mo-muted); }
+    .app-bar__aviso { flex-basis: 100%; }
+    .app-bar__accion {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 0.75rem;
+      border: 1px solid var(--mo-line);
+      border-radius: 999px;
+      background: var(--mo-card);
+      color: var(--mo-ink);
+      font: inherit;
+      font-size: 0.92rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background-color 140ms var(--mo-ease-out), color 140ms var(--mo-ease-out);
     }
     .page {
       max-width: 72rem;
@@ -861,6 +885,24 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       if (metaEl) metaEl.textContent = `${hit.stock} u. · ubicación ${hit.ubi}`;
       if (result) result.hidden = false;
       announce(`${hit.name}: ${hit.stock} unidades`);
+    });
+
+    document.querySelector('[data-bloquear]')?.addEventListener('click', () => {
+      const btn = document.querySelector('[data-bloquear]');
+      const aviso = document.querySelector('[data-puesto-aviso]');
+      const trabajo = document.getElementById('puesto-trabajo');
+      const modulos = document.querySelector('.app-bar__nav');
+      if (!(btn instanceof HTMLButtonElement) || !(aviso instanceof HTMLElement)) return;
+      const bloqueado = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', bloqueado ? 'true' : 'false');
+      btn.textContent = bloqueado ? btn.dataset.cerrado || 'Desbloquear puesto' : btn.dataset.abierto || 'Bloquear puesto';
+      aviso.hidden = !bloqueado;
+      if (trabajo) {
+        trabajo.hidden = bloqueado;
+        trabajo.toggleAttribute('inert', bloqueado);
+      }
+      if (modulos instanceof HTMLElement) modulos.toggleAttribute('inert', bloqueado);
+      if (bloqueado) aviso.focus();
     });
 
     document.querySelector('[data-logout]')?.addEventListener('click', () => {

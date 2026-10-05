@@ -228,9 +228,9 @@ function filasShell(presentes: ReadonlySet<ModuloAncla>): Celda[][] {
   const comp = tiene("deposito");
 
   const filas: Celda[][] = [];
-  if (!stats) filas.push(["greet", "greet", "greet"]);
+  if (bar && stats) filas.push(["greet", "bar", "stats"]);
+  else if (!stats) filas.push(["greet", "greet", "greet"]);
   else filas.push(["greet", "greet", "stats"]);
-  if (bar) filas.push(["bar", "bar", "bar"]);
 
   const medio: Celda | null = table ? "table" : series ? "series" : null;
   const trabajo: Celda[] = [];
@@ -384,6 +384,27 @@ function semanasDelMes(hoy: number | null): string[] {
   const ultimo = new Date(Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth() + 1, 0)).getUTCDate();
   const cantidad = Math.ceil(ultimo / 7);
   return Array.from({ length: cantidad }, (_, indice) => `Semana ${indice + 1}`);
+}
+
+export type SesionPuesto = {
+  persona: string;
+  caja: string;
+  accion: "Bloquear puesto" | "Desbloquear puesto";
+  aviso: string | null;
+};
+
+export function sesionDelPuesto(input: { persona: string; caja: string; bloqueado: boolean }): SesionPuesto {
+  const persona = input.persona.trim();
+  return {
+    persona,
+    caja: input.caja,
+    accion: input.bloqueado ? "Desbloquear puesto" : "Bloquear puesto",
+    aviso: input.bloqueado
+      ? persona
+        ? `Puesto bloqueado. La sesión de ${persona} sigue abierta.`
+        : "Puesto bloqueado. La sesión sigue abierta."
+      : null,
+  };
 }
 
 function semanaDe(dia: number | null, hoy: number | null): string | null {

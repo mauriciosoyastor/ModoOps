@@ -11,6 +11,12 @@ describe("Inicio visible", () => {
   const controlPlane = read("pages/admin/inicio.astro");
   const shell = read("pages/tenant/[slug]/app.astro");
 
+  it("en Captura la agenda se llama Agenda y no nombra el comercio", () => {
+    expect(mosaico).toContain('captura ? "Agenda" : "Hoy"');
+    expect(mosaico).toContain("captura ? null : inicio.bajada");
+    expect(shell).toContain("<InicioMosaico inicio={inicio} plano color captura");
+  });
+
   it("el mosaico se recorre con enlaces y el foco del cierre queda en el aviso", () => {
     expect(mosaico).toContain("<a ");
     expect(mosaico).toContain("min-height: 44px");

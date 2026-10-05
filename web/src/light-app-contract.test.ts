@@ -129,14 +129,30 @@ describe('contrato light-app papel (#215)', () => {
     expect(css).toMatch(/@media \(hover: hover\) and \(pointer: fine\)\s*\{[^}]*\.mo-table tbody tr:hover/);
   });
 
-  it('el Shell pone los atajos antes que el resumen y confirma el cierre', () => {
+  it('el chrome del shell muestra la sesión del puesto y no el comercio', () => {
     const text = read('pages/tenant/[slug]/app.astro');
-    const atajos = text.indexOf('aria-label="Atajos operativos"');
-    const resumen = text.indexOf('aria-label="Resumen del día"');
-    expect(atajos).toBeGreaterThan(-1);
-    expect(resumen).toBeGreaterThan(atajos);
-    expect(text).toContain('data-home-skeleton');
-    expect(text).toContain('mo-skeleton--kpi');
+    const header = text.slice(text.indexOf('<header'), text.indexOf('</header>'));
+    expect(header).toContain('data-bloquear');
+    expect(header).toContain('puestoCerrado.aviso');
+    expect(header).toContain('data-logout');
+    expect(header).not.toContain('tenant?.name');
+    expect(header).not.toContain('tenant.state');
+  });
+
+  it('la pastilla de la pantalla actual usa el relleno hero', () => {
+    const text = read('pages/tenant/[slug]/app.astro');
+    const pill = text.slice(text.indexOf(".app-link[aria-current='page']"));
+    expect(pill.slice(0, 280)).toContain('background: var(--mo-hero)');
+    expect(pill.slice(0, 280)).toContain('color: var(--mo-on-hero)');
+    expect(text).toContain('aria-label="Módulos"');
+  });
+
+  it('el Shell abre el Inicio en disposición Captura y confirma el cierre', () => {
+    const text = read('pages/tenant/[slug]/app.astro');
+    const mosaico = read('components/inicio/InicioMosaico.astro');
+    expect(text).toContain('<InicioMosaico inicio={inicio} plano color captura');
     expect(text).toContain("sessionCloseCopy('shell'");
+    expect(mosaico).toContain('captura ? null : inicio.bajada');
+    expect(mosaico).toContain('class="capsulas"');
   });
 });
