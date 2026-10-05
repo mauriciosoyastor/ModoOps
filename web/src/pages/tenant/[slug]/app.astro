@@ -6,7 +6,8 @@ import { invalidateBffSession } from '../../../lib/bff/http.ts';
 import { loadTenantLauncher } from '../../../lib/bff/launcher.ts';
 import { withMasterSession } from '../../../lib/bff/tenant-status.ts';
 import { resumenHome } from '../../../lib/bff/home.ts';
-import { composicionInicio, modulosAnclaDesdeTiles, sesionDelPuesto, type ModuloAncla } from '../../../lib/bff/inicio.ts';
+import { composicionInicio, modulosAnclaDesdeTiles, type ModuloAncla } from '../../../lib/bff/inicio.ts';
+import { sesionDelPuesto } from '../../../lib/bff/sesion-puesto.ts';
 import InicioMosaico from '../../../components/inicio/InicioMosaico.astro';
 
 export const prerender = false;
@@ -76,8 +77,7 @@ const homeTabs = homeRes.ok ? homeRes.home.tabs : [];
 const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes.home.tab)?.label ?? '' : '';
 const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
 const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
-const puestoAbierto = sesionDelPuesto({ persona: userName, caja: 'Caja 1', bloqueado: false });
-const puestoCerrado = sesionDelPuesto({ persona: userName, caja: 'Caja 1', bloqueado: true });
+const puesto = sesionDelPuesto({ persona: userName, caja: 'Caja 1' });
 ---
 
 <LightAppLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Shell · ${slug}`} theme="papel" ops>
@@ -92,10 +92,10 @@ const puestoCerrado = sesionDelPuesto({ persona: userName, caja: 'Caja 1', bloqu
         ))}
       </nav>
       <div class="app-bar__sesion">
-        {puestoAbierto.persona ? <p class="app-bar__persona">{puestoAbierto.persona}</p> : null}
-        <p class="app-bar__caja">{puestoAbierto.caja}</p>
-        <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puestoCerrado.aviso}</p>
-        <button type="button" class="app-bar__accion" data-bloquear aria-pressed="false" data-abierto={puestoAbierto.accion} data-cerrado={puestoCerrado.accion}>{puestoAbierto.accion}</button>
+        {puesto.persona ? <p class="app-bar__persona">{puesto.persona}</p> : null}
+        <p class="app-bar__caja">{puesto.caja}</p>
+        <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puesto.aviso}</p>
+        <button type="button" class="app-bar__accion" data-bloquear aria-pressed="false" data-abierto={puesto.bloquear} data-cerrado={puesto.desbloquear}>{puesto.bloquear}</button>
         <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
       </div>
     </header>
@@ -893,9 +893,12 @@ const puestoCerrado = sesionDelPuesto({ persona: userName, caja: 'Caja 1', bloqu
       const trabajo = document.getElementById('puesto-trabajo');
       const modulos = document.querySelector('.app-bar__nav');
       if (!(btn instanceof HTMLButtonElement) || !(aviso instanceof HTMLElement)) return;
+      const abierto = btn.dataset.abierto;
+      const cerrado = btn.dataset.cerrado;
+      if (!abierto || !cerrado) return;
       const bloqueado = btn.getAttribute('aria-pressed') !== 'true';
       btn.setAttribute('aria-pressed', bloqueado ? 'true' : 'false');
-      btn.textContent = bloqueado ? btn.dataset.cerrado || 'Desbloquear puesto' : btn.dataset.abierto || 'Bloquear puesto';
+      btn.textContent = bloqueado ? cerrado : abierto;
       aviso.hidden = !bloqueado;
       if (trabajo) {
         trabajo.hidden = bloqueado;

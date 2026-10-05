@@ -1,0 +1,45 @@
+---
+import type { Tono } from "../../lib/bff/inicio.ts";
+
+interface Props {
+  href: string | null;
+  tono?: Tono;
+}
+
+const { href, tono } = Astro.props;
+const clase = ["capsula", tono && `capsula--${tono}`];
+---
+
+{
+  href ? (
+    <a class:list={clase} href={href}>
+      <slot />
+    </a>
+  ) : (
+    <span class:list={clase}>
+      <slot />
+    </span>
+  )
+}
+
+<style>
+  .capsula {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 6rem;
+    min-height: 44px;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    color: var(--mo-on-hero);
+    text-decoration: none;
+    touch-action: manipulation;
+  }
+  .capsula--ok { background: color-mix(in srgb, var(--mo-ok) 85%, var(--mo-hero)); }
+  .capsula--accent { background: color-mix(in srgb, var(--mo-accent) 65%, var(--mo-hero)); }
+  .capsula--ink { background: var(--mo-hero); }
+  .capsula--warn { background: color-mix(in srgb, var(--mo-warn) 78%, var(--mo-hero)); }
+  @media (hover: hover) and (pointer: fine) {
+    .capsula:hover { color: var(--mo-on-hero); }
+  }
+</style>

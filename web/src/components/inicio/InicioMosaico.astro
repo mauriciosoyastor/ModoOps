@@ -1,5 +1,6 @@
 ---
 import type { Inicio } from "../../lib/bff/inicio.ts";
+import Capsula from "./Capsula.astro";
 
 interface Props {
   inicio: Inicio;
@@ -32,19 +33,12 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
         <h2 id="inicio-barra">{inicio.barraTitulo}</h2>
         {captura ? (
           <div class="capsulas">
-            {inicio.barra.map((parte) =>
-              parte.href ? (
-                <a class:list={["capsula", parte.tono && `capsula--${parte.tono}`]} href={parte.href}>
-                  <span>{parte.label}</span>
-                  <span>{parte.pct}%</span>
-                </a>
-              ) : (
-                <span class:list={["capsula", parte.tono && `capsula--${parte.tono}`]}>
-                  <span>{parte.label}</span>
-                  <span>{parte.pct}%</span>
-                </span>
-              ),
-            )}
+            {inicio.barra.map((parte) => (
+              <Capsula href={parte.href} tono={parte.tono}>
+                <span>{parte.label}</span>
+                <span>{parte.pct}%</span>
+              </Capsula>
+            ))}
           </div>
         ) : inicio.barra.every((parte) => parte.pct === 0) ? (
           <p class="muted">0</p>
@@ -279,25 +273,6 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
     gap: 0.5rem;
     align-items: stretch;
   }
-  .capsula {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-width: 6rem;
-    min-height: 44px;
-    padding: 0.35rem 0.9rem;
-    border-radius: 999px;
-    color: var(--mo-on-hero);
-    text-decoration: none;
-    touch-action: manipulation;
-  }
-  .capsula--ok { background: color-mix(in srgb, var(--mo-ok) 85%, var(--mo-hero)); }
-  .capsula--accent { background: color-mix(in srgb, var(--mo-accent) 65%, var(--mo-hero)); color: var(--mo-on-hero); }
-  .capsula--ink { background: var(--mo-hero); }
-  .capsula--warn {
-    background: color-mix(in srgb, var(--mo-warn) 78%, var(--mo-hero));
-    color: var(--mo-on-hero);
-  }
   .pista {
     display: flex;
     height: 1.75rem;
@@ -477,8 +452,6 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
   }
   @media (hover: hover) and (pointer: fine) {
     .inicio-mosaico--plano .bloque a:hover { color: var(--mo-ink); }
-    .inicio-mosaico--plano.inicio-mosaico--captura .capsula:hover { color: var(--mo-on-hero); }
-    .inicio-mosaico--plano.inicio-mosaico--captura .capsula--accent:hover { color: var(--mo-accent-ink); }
   }
   @media (max-width: 720px) {
     .inicio-mosaico {
@@ -557,16 +530,8 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
     letter-spacing: -0.02em;
     text-transform: none;
   }
-  .inicio-mosaico--plano.inicio-mosaico--captura .bloque--tabla {
-    background: var(--mo-canvas);
-    padding: 1.05rem 1.15rem;
-  }
   .inicio-mosaico--plano.inicio-mosaico--captura .veredicto {
-    background: var(--mo-canvas);
     color: var(--mo-ink);
-    border: 1px solid var(--mo-line);
-    border-radius: 1.75rem;
-    padding: 1.05rem 1.15rem;
   }
   .inicio-mosaico--plano.inicio-mosaico--captura .veredicto__principal {
     color: var(--mo-ink);

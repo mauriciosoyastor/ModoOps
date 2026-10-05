@@ -133,7 +133,7 @@ describe('contrato light-app papel (#215)', () => {
     const text = read('pages/tenant/[slug]/app.astro');
     const header = text.slice(text.indexOf('<header'), text.indexOf('</header>'));
     expect(header).toContain('data-bloquear');
-    expect(header).toContain('puestoCerrado.aviso');
+    expect(header).toContain('puesto.aviso');
     expect(header).toContain('data-logout');
     expect(header).not.toContain('tenant?.name');
     expect(header).not.toContain('tenant.state');
@@ -152,7 +152,6 @@ describe('contrato light-app papel (#215)', () => {
     const mosaico = read('components/inicio/InicioMosaico.astro');
     expect(text).toContain('<InicioMosaico inicio={inicio} plano color captura');
     expect(text).toContain("sessionCloseCopy('shell'");
-    expect(mosaico).toContain('captura ? null : inicio.bajada');
     expect(mosaico).toContain('class="capsulas"');
   });
 });

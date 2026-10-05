@@ -386,27 +386,6 @@ function semanasDelMes(hoy: number | null): string[] {
   return Array.from({ length: cantidad }, (_, indice) => `Semana ${indice + 1}`);
 }
 
-export type SesionPuesto = {
-  persona: string;
-  caja: string;
-  accion: "Bloquear puesto" | "Desbloquear puesto";
-  aviso: string | null;
-};
-
-export function sesionDelPuesto(input: { persona: string; caja: string; bloqueado: boolean }): SesionPuesto {
-  const persona = input.persona.trim();
-  return {
-    persona,
-    caja: input.caja,
-    accion: input.bloqueado ? "Desbloquear puesto" : "Bloquear puesto",
-    aviso: input.bloqueado
-      ? persona
-        ? `Puesto bloqueado. La sesión de ${persona} sigue abierta.`
-        : "Puesto bloqueado. La sesión sigue abierta."
-      : null,
-  };
-}
-
 function semanaDe(dia: number | null, hoy: number | null): string | null {
   if (dia == null || hoy == null) return null;
   const fecha = new Date(dia);
