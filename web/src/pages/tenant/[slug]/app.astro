@@ -96,19 +96,18 @@ const puesto = sesionDelPuesto({ persona: userName });
   <div class="shell" id="contenido">
     <header class="app-bar">
       <p class="app-bar__brand" translate="no">ModoOps</p>
-      <nav class="app-bar__nav" aria-label="Módulos">
-        {inicio.nav.map((item) => (
-          <a class="app-link" href={item.href} aria-current={item.actual ? 'page' : undefined}>{item.label}</a>
-        ))}
-      </nav>
-      <div class="app-bar__sesion">
-        {puesto.persona ? <p class="app-bar__persona">{puesto.persona}</p> : null}
-        <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puesto.aviso}</p>
-        <div class="app-bar__par">
+      <div class="app-bar__pills">
+        <nav class="app-bar__nav" aria-label="Módulos">
+          {inicio.nav.map((item) => (
+            <a class="app-link" href={item.href} aria-current={item.actual ? 'page' : undefined}>{item.label}</a>
+          ))}
+        </nav>
+        <div class="app-bar__sesion">
+          <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puesto.aviso}</p>
           <button type="button" class="app-bar__accion" data-bloquear aria-pressed="false" data-abierto={puesto.bloquear} data-cerrado={puesto.desbloquear}>{puesto.bloquear}</button>
           <a class="app-bar__accion" href={`/tenant/${slug}/configuracion`}>Configuración</a>
+          <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
         </div>
-        <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
       </div>
     </header>
 
@@ -341,10 +340,10 @@ const puesto = sesionDelPuesto({ persona: userName });
   <style>
     .shell { min-height: 100dvh; }
     .app-bar {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-      gap: 0.75rem 1.25rem;
+      display: flex;
+      flex-wrap: nowrap;
       align-items: center;
+      gap: 0.75rem 1rem;
       padding:
         max(0.85rem, env(safe-area-inset-top))
         max(1.35rem, env(safe-area-inset-right))
@@ -379,17 +378,27 @@ const puesto = sesionDelPuesto({ persona: userName });
       font-size: 0.85rem;
       color: var(--mo-muted);
     }
-    .app-bar__nav {
+    .app-bar__pills {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.15rem;
+      flex-wrap: nowrap;
       align-items: center;
-      justify-self: center;
-      margin: 0;
+      gap: 0.15rem;
+      margin-left: auto;
       padding: 0.2rem;
       border: 1px solid var(--mo-line);
       border-radius: 999px;
       background: var(--mo-card);
+    }
+    .app-bar__nav,
+    .app-bar__sesion {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.15rem;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
     }
     .app-link {
       display: inline-flex;
@@ -409,7 +418,8 @@ const puesto = sesionDelPuesto({ persona: userName });
       transition: color 140ms var(--mo-ease-out), background-color 140ms var(--mo-ease-out);
     }
     @media (hover: hover) and (pointer: fine) {
-      .app-link:hover { color: var(--mo-ink); }
+      .app-link:hover,
+      .app-bar__accion:hover { color: var(--mo-ink); }
     }
     .app-link[aria-current='page'] {
       background: var(--mo-hero);
@@ -440,38 +450,23 @@ const puesto = sesionDelPuesto({ persona: userName });
       cursor: pointer;
       touch-action: manipulation;
     }
-    .app-bar__sesion {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem 0.75rem;
-      align-items: center;
-      justify-self: end;
-    }
-    .app-bar__par {
-      display: inline-flex;
-      flex-wrap: nowrap;
-      gap: 0.75rem;
-      align-items: center;
-    }
-    .app-bar__persona,
     .app-bar__aviso {
       margin: 0;
       font-size: 0.92rem;
+      color: var(--mo-muted);
     }
-    .app-bar__persona { color: var(--mo-ink); font-weight: 650; }
-    .app-bar__aviso { color: var(--mo-muted); }
-    .app-bar__aviso { flex-basis: 100%; }
     .app-bar__accion {
       display: inline-flex;
       align-items: center;
       min-height: 44px;
-      padding: 0 0.75rem;
-      border: 1px solid var(--mo-line);
+      padding: 0 0.85rem;
+      border: 0;
       border-radius: 999px;
-      background: var(--mo-card);
-      color: var(--mo-ink);
+      background: transparent;
+      color: var(--mo-muted);
       font: inherit;
       font-size: 0.92rem;
+      font-weight: 500;
       cursor: pointer;
       touch-action: manipulation;
       text-decoration: none;
