@@ -17,8 +17,7 @@ describe("Inicio del Shell", () => {
     expect(inicio.saludo).toBe("Hola, Marina");
     expect(inicio.bajada).toBe("Pinturería Centro");
     expect(inicio.filas).toEqual([
-      ["greet", "greet", "stats"],
-      ["bar", "bar", "bar"],
+      ["greet", "bar", "stats"],
       ["agenda", "table", "verdict"],
       ["series", "series", "series"],
       ["comp", "comp", "comp"],
@@ -101,8 +100,7 @@ describe("Inicio del Shell", () => {
     expect(inicio.tabla).toBeNull();
     expect(inicio.numeros.map((n) => n.label)).toEqual(["Ventas de hoy", "Productos bajo stock"]);
     expect(inicio.filas).toEqual([
-      ["greet", "greet", "stats"],
-      ["bar", "bar", "bar"],
+      ["greet", "bar", "stats"],
       ["agenda", "series", "verdict"],
       ["comp", "comp", "comp"],
     ]);
@@ -115,8 +113,7 @@ describe("Inicio del Shell", () => {
     });
     expect(inicio.composicion).toBeNull();
     expect(inicio.filas).toEqual([
-      ["greet", "greet", "stats"],
-      ["bar", "bar", "bar"],
+      ["greet", "bar", "stats"],
       ["agenda", "table", "verdict"],
       ["series", "series", "series"],
     ]);

@@ -16,35 +16,37 @@ const TABS = [
   { id: 'fiscal', label: 'Fiscal' },
 ] as const;
 
-const WIDGETS: Record<string, { a: string; b: string; la: string; lb: string }> = {
-  mostrador: { a: 'USD 48.500', b: '12', la: 'Caja del día', lb: 'Tickets' },
-  deposito: { a: '842', b: '3', la: 'SKU', lb: 'Bajo mínimo' },
-  compras: { a: '4', b: 'USD 2.1k', la: 'OC abiertas', lb: 'Pendiente' },
-  fiscal: { a: '18', b: '0', la: 'FC hoy', lb: 'Rechazos' },
+type Tono = 'accent' | 'ok' | 'warn' | 'quiet';
+
+const WIDGETS: Record<string, { a: string; b: string; la: string; lb: string; ta: Tono; tb: Tono }> = {
+  mostrador: { a: 'USD 48.500', b: '12', la: 'Caja del día', lb: 'Tickets', ta: 'accent', tb: 'accent' },
+  deposito: { a: '842', b: '3', la: 'SKU', lb: 'Bajo mínimo', ta: 'quiet', tb: 'warn' },
+  compras: { a: '4', b: 'USD 2.1k', la: 'OC abiertas', lb: 'Pendiente', ta: 'warn', tb: 'warn' },
+  fiscal: { a: '18', b: '0', la: 'FC hoy', lb: 'Rechazos', ta: 'accent', tb: 'ok' },
 };
 
 const w = WIDGETS[tab] ?? WIDGETS.mostrador;
 
-type Tile = { id: string; label: string; hint: string; value: string };
+type Tile = { id: string; label: string; hint: string; value: string; tono: Tono; lead?: boolean };
 
 const TILES_BY_TAB: Record<string, Tile[]> = {
   mostrador: [
-    { id: 'caja1', label: 'Abrir caja 1', hint: 'Turno en curso · listo para cobrar', value: 'Abrir' },
-    { id: 'caja2', label: 'Abrir caja 2', hint: 'Cerrada · listo para arrancar', value: 'Abrir' },
-    { id: 'stock', label: 'Consultar stock', hint: 'Por código o nombre', value: 'Buscar' },
-    { id: 'cobrar', label: 'Cobrar una OT', hint: 'Monto + efectivo/transferencia', value: 'Cobrar' },
+    { id: 'caja1', label: 'Abrir caja 1', hint: 'Turno en curso · listo para cobrar', value: 'Abrir', tono: 'accent', lead: true },
+    { id: 'caja2', label: 'Abrir caja 2', hint: 'Cerrada · listo para arrancar', value: 'Abrir', tono: 'quiet' },
+    { id: 'stock', label: 'Consultar stock', hint: 'Por código o nombre', value: 'Buscar', tono: 'ok' },
+    { id: 'cobrar', label: 'Cobrar una OT', hint: 'Monto + efectivo/transferencia', value: 'Cobrar', tono: 'accent' },
   ],
   deposito: [
-    { id: 'stock', label: 'Consultar stock', hint: 'Por código o nombre', value: 'Buscar' },
-    { id: 'minimo', label: 'Productos bajo mínimo', hint: '3 SKU para reponer', value: 'Ver' },
+    { id: 'stock', label: 'Consultar stock', hint: 'Por código o nombre', value: 'Buscar', tono: 'ok' },
+    { id: 'minimo', label: 'Productos bajo mínimo', hint: '3 SKU para reponer', value: 'Ver', tono: 'warn', lead: true },
   ],
   compras: [
-    { id: 'oc', label: 'Compras sin recibir', hint: '4 órdenes abiertas', value: 'Ver' },
-    { id: 'recibir', label: 'Registrar recepción', hint: 'Contra la orden del proveedor', value: 'Recibir' },
+    { id: 'oc', label: 'Compras sin recibir', hint: '4 órdenes abiertas', value: 'Ver', tono: 'warn' },
+    { id: 'recibir', label: 'Registrar recepción', hint: 'Contra la orden del proveedor', value: 'Recibir', tono: 'accent', lead: true },
   ],
   fiscal: [
-    { id: 'fc', label: 'Comprobantes de hoy', hint: '18 facturas emitidas', value: 'Ver' },
-    { id: 'rechazos', label: 'Revisar rechazos', hint: 'Ninguno pendiente', value: 'Revisar' },
+    { id: 'fc', label: 'Comprobantes de hoy', hint: '18 facturas emitidas', value: 'Ver', tono: 'accent', lead: true },
+    { id: 'rechazos', label: 'Revisar rechazos', hint: 'Ninguno pendiente', value: 'Revisar', tono: 'ok' },
   ],
 };
 
@@ -124,6 +126,27 @@ const SALUDO: Record<string, string> = {
         justify-content: flex-end;
       }
       .sheet-list { display: grid; gap: 0.5rem; }
+      /* Borde de acento: una acción principal por pestaña. El relleno de la tarjeta queda quieto. */
+      .mo-tile--lead {
+        border-left: 3px solid var(--mo-accent);
+      }
+      .mo-tile--lead.mo-tile--warn {
+        border-left: 3px solid var(--mo-warn);
+      }
+      .kpi-value--accent { color: var(--mo-ok); }
+      .kpi-value--ok { color: var(--mo-ok); }
+      .kpi-value--warn { color: var(--mo-warn); }
+      /* La píldora es texto chico: el jade de botón no llega a AA sobre el fondo suave. */
+      .page .mo-pill--accent,
+      .page .mo-pill--ok {
+        color: color-mix(in srgb, var(--mo-ok) 62%, var(--mo-ink));
+      }
+      .page .mo-pill--warn {
+        color: color-mix(in srgb, var(--mo-warn) 70%, var(--mo-ink));
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .page .mo-tile:hover { background: var(--mo-card); }
+      }
     </style>
   </head>
   <body>
@@ -152,7 +175,6 @@ const SALUDO: Record<string, string> = {
           </p>
         </div>
         <div class="actions">
-          <a class="mo-btn mo-btn--ghost" href={`/prototype/control-plane-light?variant=${variant}`}>← Tenants</a>
           <button type="button" class="mo-btn mo-btn--ghost" id="btn-cerrar">Cerrar sesión</button>
         </div>
       </header>
@@ -167,12 +189,16 @@ const SALUDO: Record<string, string> = {
         <p class="mo-section-label">Empezá por acá</p>
         <div class="tiles">
           {tiles.map((tile) => (
-            <button type="button" class="mo-tile" data-sheet={tile.id}>
+            <button
+              type="button"
+              class:list={['mo-tile', tile.lead && 'mo-tile--lead', `mo-tile--${tile.tono}`]}
+              data-sheet={tile.id}
+            >
               <div>
                 <p class="mo-tile__label">{tile.label}</p>
                 <p class="mo-tile__hint">{tile.hint}</p>
               </div>
-              <span class="mo-pill mo-pill--quiet">{tile.value} →</span>
+              <span class:list={['mo-pill', `mo-pill--${tile.tono}`]}>{tile.value} →</span>
             </button>
           ))}
         </div>
@@ -183,11 +209,11 @@ const SALUDO: Record<string, string> = {
         <div class="widgets">
           <article class="mo-kpi">
             <p class="mo-kpi__label">{w.la}</p>
-            <p class="mo-kpi__value">{w.a}</p>
+            <p class:list={['mo-kpi__value', `kpi-value--${w.ta}`]}>{w.a}</p>
           </article>
           <article class="mo-kpi">
             <p class="mo-kpi__label">{w.lb}</p>
-            <p class="mo-kpi__value">{w.b}</p>
+            <p class:list={['mo-kpi__value', `kpi-value--${w.tb}`]}>{w.b}</p>
           </article>
         </div>
       </section>

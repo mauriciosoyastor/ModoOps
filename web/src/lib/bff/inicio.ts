@@ -228,9 +228,9 @@ function filasShell(presentes: ReadonlySet<ModuloAncla>): Celda[][] {
   const comp = tiene("deposito");
 
   const filas: Celda[][] = [];
-  if (!stats) filas.push(["greet", "greet", "greet"]);
+  if (bar && stats) filas.push(["greet", "bar", "stats"]);
+  else if (!stats) filas.push(["greet", "greet", "greet"]);
   else filas.push(["greet", "greet", "stats"]);
-  if (bar) filas.push(["bar", "bar", "bar"]);
 
   const medio: Celda | null = table ? "table" : series ? "series" : null;
   const trabajo: Celda[] = [];

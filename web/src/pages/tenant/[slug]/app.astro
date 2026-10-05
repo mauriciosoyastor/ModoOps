@@ -7,6 +7,7 @@ import { loadTenantLauncher } from '../../../lib/bff/launcher.ts';
 import { withMasterSession } from '../../../lib/bff/tenant-status.ts';
 import { resumenHome } from '../../../lib/bff/home.ts';
 import { composicionInicio, modulosAnclaDesdeTiles, type ModuloAncla } from '../../../lib/bff/inicio.ts';
+import { sesionDelPuesto } from '../../../lib/bff/sesion-puesto.ts';
 import InicioMosaico from '../../../components/inicio/InicioMosaico.astro';
 
 export const prerender = false;
@@ -55,7 +56,6 @@ try {
   }
 }
 
-const hasIA = tenant?.modules_installed?.includes('IA ModoOps') ?? false;
 const homeTabParam = Astro.url.searchParams.get('tab') || '';
 const ancla: readonly ModuloAncla[] = ['mostrador', 'deposito', 'compras', 'fiscal_ar'];
 const enInicio = !ancla.includes(homeTabParam as ModuloAncla);
@@ -76,39 +76,43 @@ const homeTabs = homeRes.ok ? homeRes.home.tabs : [];
 const homeTabLabel = homeRes.ok ? homeRes.home.tabs.find((t) => t.id === homeRes.home.tab)?.label ?? '' : '';
 const tabHref = (id: string) => `/tenant/${slug}/app?tab=${id}`;
 const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
+const puesto = sesionDelPuesto({ persona: userName });
 ---
 
 <LightAppLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Shell · ${slug}`} theme="papel" ops>
   <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
 
+  <div id="puesto-candado" class="puesto-candado" hidden>
+    <div class="puesto-candado__lienzo">
+      <button type="button" class="puesto-candado__abrir" data-desbloquear aria-label="Desbloquear puesto">
+        <svg width="72" height="72" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="11" width="14" height="9" rx="2"></rect>
+          <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
   <div class="shell" id="contenido">
     <header class="app-bar">
-      <div class="app-bar__identity">
-        <p class="app-bar__brand" translate="no">ModoOps</p>
-        {enInicio ? (
-          <p class="app-bar__meta" translate="no">{tenant?.name ?? slug}</p>
-        ) : (
-          <>
-            <h1 class="app-bar__title">{homeTabLabel || 'Shell'}</h1>
-            <p class="app-bar__meta">
-              <span translate="no">{tenant?.name ?? slug}</span>
-              {tenant ? (
-                <span class:list={['mo-badge', `is-${tenant.state}`]}>{tenant.state}</span>
-              ) : null}
-              {userName ? <span>{userName}</span> : null}
-            </p>
-          </>
-        )}
-      </div>
+      <p class="app-bar__brand" translate="no">ModoOps</p>
       <nav class="app-bar__nav" aria-label="Módulos">
         {inicio.nav.map((item) => (
           <a class="app-link" href={item.href} aria-current={item.actual ? 'page' : undefined}>{item.label}</a>
         ))}
-        <button type="button" class="app-link app-link--session" data-logout>{inicio.cerrarSesion}</button>
       </nav>
+      <div class="app-bar__sesion">
+        {puesto.persona ? <p class="app-bar__persona">{puesto.persona}</p> : null}
+        <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puesto.aviso}</p>
+        <div class="app-bar__par">
+          <button type="button" class="app-bar__accion" data-bloquear aria-pressed="false" data-abierto={puesto.bloquear} data-cerrado={puesto.desbloquear}>{puesto.bloquear}</button>
+          <a class="app-bar__accion" href={`/tenant/${slug}/configuracion`}>Configuración</a>
+        </div>
+        <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
+      </div>
     </header>
 
-    <div class="page">
+    <div class="page" id="puesto-trabajo">
 
     {tenantError ? (
       <p class="mo-banner mo-banner--danger" role="alert">
@@ -116,7 +120,7 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       </p>
     ) : null}
 
-    {tenant && !tenantError && enInicio ? <InicioMosaico inicio={inicio} plano color /> : null}
+    {tenant && !tenantError && enInicio ? <InicioMosaico inicio={inicio} plano color captura /> : null}
 
     {tenant && !tenantError && !enInicio ? (
       <>
@@ -219,30 +223,6 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
                 </div>
               ))}
             </div>
-          )}
-        </section>
-
-        <section class="panel-block region">
-          <h2 class="mo-section-label">Armar sistema</h2>
-          <p class="mo-empty__text">Instalá o quitá módulos de este comercio.</p>
-          <div id="tenant-install-root" data-tenant-id={tenant.id} data-db={tenant.db_name} data-installed={tenant.modules_installed ?? ''}></div>
-          <div class="actions">
-            <button type="button" id="tenant-install-open" class="mo-btn mo-btn--ghost" aria-expanded="false" aria-controls="tenant-install-dialog">Gestionar módulos</button>
-            <span class="mo-count">{tenant.modules_installed ? `Instalados: ${tenant.modules_installed}` : '0 módulos'}</span>
-          </div>
-          {hasIA ? (
-            <div class="chat" id="ia-chat-root" data-db={tenant.db_name}>
-              <h2 class="mo-section-label">Chat IA</h2>
-              <div id="ia-chat-log" class="chat-log" aria-live="polite"></div>
-              <form id="ia-chat-form" class="chat-form">
-                <label class="sr-only" for="ia-chat-input">Mensaje</label>
-                <input class="mo-field__control" id="ia-chat-input" name="message" placeholder="Ej.: stock del producto 42…" autocomplete="off" spellcheck="false" aria-describedby="ia-chat-error" />
-                <button type="submit" class="mo-btn mo-btn--ghost" id="ia-chat-send">Enviar</button>
-                <p id="ia-chat-error" class="mo-field__error" role="alert" hidden></p>
-              </form>
-            </div>
-          ) : (
-            <p class="mo-empty__text">IA no instalada — tildala en Gestionar módulos.</p>
           )}
         </section>
       </>
@@ -358,34 +338,11 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
     </div>
   </div>
 
-  <dialog id="tenant-install-dialog" class="mo-install-dialog" aria-labelledby="tenant-install-title">
-    <form method="dialog" id="tenant-install-form">
-      <h2 class="mo-dialog__title" id="tenant-install-title">Gestionar módulos — {tenant?.name}</h2>
-      <div class="mo-dialog__grid" id="tenant-install-grid"></div>
-      <div class="mo-field">
-        <label class="mo-field__label" for="tenant-notes">Notas</label>
-        <input class="mo-field__control" id="tenant-notes" name="notes" placeholder="Ticket, motivo…" spellcheck="false" autocomplete="off" />
-      </div>
-      <div class="mo-dialog__actions">
-        <label class="mo-field__label">
-          Acción
-          <select class="mo-field__control" name="action">
-            <option value="install">Instalar</option>
-            <option value="remove">Quitar</option>
-          </select>
-        </label>
-        <button type="submit" class="mo-btn mo-btn--primary" id="tenant-install-submit">Aplicar módulos</button>
-        <button type="button" class="mo-btn mo-btn--ghost" id="tenant-install-cancel">Cancelar</button>
-      </div>
-      <p id="tenant-install-msg" class="mo-banner mo-banner--danger" role="alert" hidden></p>
-    </form>
-  </dialog>
-
   <style>
     .shell { min-height: 100dvh; }
     .app-bar {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
       gap: 0.75rem 1.25rem;
       align-items: center;
       padding:
@@ -425,39 +382,100 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
     .app-bar__nav {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.25rem 0.5rem;
+      gap: 0.15rem;
       align-items: center;
-      margin-left: auto;
+      justify-self: center;
+      margin: 0;
+      padding: 0.2rem;
+      border: 1px solid var(--mo-line);
+      border-radius: 999px;
+      background: var(--mo-card);
     }
     .app-link {
       display: inline-flex;
       align-items: center;
       min-height: 44px;
-      padding: 0 0.5rem;
+      padding: 0 0.85rem;
       border: 0;
+      border-radius: 999px;
       background: transparent;
       color: var(--mo-muted);
       font: inherit;
-      text-decoration: underline;
-      text-decoration-color: var(--mo-line-strong);
-      text-underline-offset: 0.22em;
+      text-decoration: none;
       font-size: 0.92rem;
       font-weight: 500;
       cursor: pointer;
       touch-action: manipulation;
-      transition: color 140ms var(--mo-ease-out);
+      transition: color 140ms var(--mo-ease-out), background-color 140ms var(--mo-ease-out);
     }
     @media (hover: hover) and (pointer: fine) {
       .app-link:hover { color: var(--mo-ink); }
     }
     .app-link[aria-current='page'] {
-      color: var(--mo-ink);
+      background: var(--mo-hero);
+      color: var(--mo-on-hero);
       font-weight: 650;
     }
-    .app-link--session {
-      margin-left: 0.25rem;
-      padding-left: 0.75rem;
-      border-left: 1px solid var(--mo-line);
+    .puesto-candado[hidden] { display: none !important; }
+    .puesto-candado__lienzo {
+      position: fixed;
+      inset: 0;
+      z-index: 110;
+      display: grid;
+      place-items: center;
+      background: var(--mo-wash);
+    }
+    .puesto-candado__abrir {
+      display: grid;
+      place-items: center;
+      width: 5.5rem;
+      height: 5.5rem;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0;
+      border: 0;
+      border-radius: 1rem;
+      background: transparent;
+      color: var(--mo-ink);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .app-bar__sesion {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
+      align-items: center;
+      justify-self: end;
+    }
+    .app-bar__par {
+      display: inline-flex;
+      flex-wrap: nowrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .app-bar__persona,
+    .app-bar__aviso {
+      margin: 0;
+      font-size: 0.92rem;
+    }
+    .app-bar__persona { color: var(--mo-ink); font-weight: 650; }
+    .app-bar__aviso { color: var(--mo-muted); }
+    .app-bar__aviso { flex-basis: 100%; }
+    .app-bar__accion {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 0.75rem;
+      border: 1px solid var(--mo-line);
+      border-radius: 999px;
+      background: var(--mo-card);
+      color: var(--mo-ink);
+      font: inherit;
+      font-size: 0.92rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      text-decoration: none;
+      transition: background-color 140ms var(--mo-ease-out), color 140ms var(--mo-ease-out);
     }
     .page {
       max-width: 72rem;
@@ -628,8 +646,6 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
   </style>
 
   <script>
-    import { CATALOGO_LABELS } from '../../../lib/catalogo.generated.ts';
-    import { describeJobState, shouldPollJob } from '../../../lib/bff/install-job.ts';
     import {
       resolveLeaveMs,
       openWithEnter,
@@ -638,7 +654,6 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       trapTabKey,
     } from '../../../scripts/light-app-chrome.ts';
 
-    const CATALOGO = Object.entries(CATALOGO_LABELS) as unknown as readonly (readonly [string, string])[];
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const LEAVE_MS = resolveLeaveMs(reduceMotion, 140);
     const live = document.getElementById('live-polite');
@@ -863,6 +878,34 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       announce(`${hit.name}: ${hit.stock} unidades`);
     });
 
+    const puestoTapados = () =>
+      document.querySelectorAll('.mo-skip, .mo-live, .shell, #toast-region, .mo-dialog-backdrop, .mo-sheet-backdrop');
+
+    function aplicarCandado(bloqueado: boolean) {
+      const btn = document.querySelector('[data-bloquear]');
+      const candado = document.getElementById('puesto-candado');
+      const abrir = document.querySelector('[data-desbloquear]');
+      if (!(btn instanceof HTMLButtonElement) || !(candado instanceof HTMLElement) || !(abrir instanceof HTMLButtonElement)) return;
+      const abierto = btn.dataset.abierto;
+      const cerrado = btn.dataset.cerrado;
+      if (!abierto || !cerrado) return;
+      if (bloqueado) closeSheet(true);
+      btn.setAttribute('aria-pressed', bloqueado ? 'true' : 'false');
+      btn.textContent = bloqueado ? cerrado : abierto;
+      candado.hidden = !bloqueado;
+      document.documentElement.style.overflow = bloqueado ? 'hidden' : '';
+      puestoTapados().forEach((el) => el.toggleAttribute('inert', bloqueado));
+      if (bloqueado) abrir.focus();
+      else btn.focus();
+    }
+
+    document.querySelector('[data-bloquear]')?.addEventListener('click', () => {
+      aplicarCandado(true);
+    });
+    document.querySelector('[data-desbloquear]')?.addEventListener('click', () => {
+      aplicarCandado(false);
+    });
+
     document.querySelector('[data-logout]')?.addEventListener('click', () => {
       const backdrop = document.getElementById('confirm-backdrop');
       const confirmOk = document.getElementById('confirm-ok');
@@ -913,183 +956,6 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
         return;
       }
       trapTabKey(backdrop, ev);
-    });
-
-    // Install modules (BFF)
-    const root = document.getElementById('tenant-install-root') as HTMLDivElement | null;
-    const dlg = document.getElementById('tenant-install-dialog') as HTMLDialogElement | null;
-    const grid = document.getElementById('tenant-install-grid') as HTMLDivElement | null;
-    const msgEl = document.getElementById('tenant-install-msg') as HTMLElement | null;
-    const form = document.getElementById('tenant-install-form') as HTMLFormElement | null;
-    const openBtn = document.getElementById('tenant-install-open') as HTMLButtonElement | null;
-    const cancelBtn = document.getElementById('tenant-install-cancel') as HTMLButtonElement | null;
-    const submitBtn = document.getElementById('tenant-install-submit') as HTMLButtonElement | null;
-    const tenantId = root ? Number(root.dataset.tenantId) : NaN;
-    const db = root ? String(root.dataset.db || '') : '';
-    const APPLY_LABEL = 'Aplicar módulos';
-    let pollActiva = false;
-
-    function renderGrid() {
-      if (!grid) return;
-      grid.replaceChildren();
-      for (const [key, label] of CATALOGO) {
-        const lbl = document.createElement('label');
-        const input = document.createElement('input');
-        input.type = 'checkbox';
-        input.className = 'mo-check';
-        input.value = key;
-        input.setAttribute('data-mod', '');
-        lbl.append(input, document.createTextNode(` ${label}`));
-        grid.appendChild(lbl);
-      }
-    }
-    renderGrid();
-
-    function showInstallNote(msg: string, alert = false) {
-      if (!msgEl) return;
-      msgEl.hidden = false;
-      msgEl.textContent = msg;
-      msgEl.setAttribute('role', alert ? 'alert' : 'status');
-      msgEl.classList.toggle('mo-banner', alert);
-      msgEl.classList.toggle('mo-banner--danger', alert);
-      msgEl.classList.toggle('mo-field__hint', !alert);
-    }
-
-    function clearInstallError() {
-      if (!msgEl) return;
-      msgEl.hidden = true;
-      msgEl.textContent = '';
-      grid?.querySelectorAll('input').forEach((node) => node.removeAttribute('aria-invalid'));
-    }
-
-    function showInstallError(msg: string) {
-      showInstallNote(msg, true);
-      const first = grid?.querySelector('input');
-      if (first instanceof HTMLInputElement) {
-        first.setAttribute('aria-invalid', 'true');
-        first.setAttribute('aria-describedby', 'tenant-install-msg');
-        first.focus();
-      }
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = APPLY_LABEL;
-      }
-    }
-
-    function resetInstall() {
-      pollActiva = false;
-      clearInstallError();
-      const notes = document.getElementById('tenant-notes');
-      if (notes instanceof HTMLInputElement) notes.value = '';
-      grid?.querySelectorAll<HTMLInputElement>('[data-mod]').forEach((i) => {
-        i.checked = false;
-      });
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = APPLY_LABEL;
-      }
-    }
-
-    function openModules(fromUrl = false) {
-      if (!dlg) return;
-      closeSheet(true, true);
-      if (!fromUrl) patchQuery({ modulos: '1', flujo: null });
-      resetInstall();
-      openBtn?.setAttribute('aria-expanded', 'true');
-      dlg.showModal();
-      const first = grid?.querySelector('input');
-      if (first instanceof HTMLInputElement) first.focus();
-    }
-
-    function closeModules(_keepQuery = false) {
-      if (!dlg?.open) return;
-      pollActiva = false;
-      dlg.close();
-    }
-
-    dlg?.addEventListener('close', () => {
-      pollActiva = false;
-      resetInstall();
-      patchQuery({ modulos: null });
-      openBtn?.setAttribute('aria-expanded', 'false');
-      if (document.activeElement === document.body) openBtn?.focus();
-    });
-
-    openBtn?.addEventListener('click', () => openModules(false));
-    cancelBtn?.addEventListener('click', () => closeModules());
-
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!Number.isFinite(tenantId) || !grid || !msgEl || !form || !submitBtn) return;
-      const mods = [...grid.querySelectorAll<HTMLInputElement>('[data-mod]:checked')].map((i) => i.value);
-      if (!mods.length) {
-        showInstallError('Seleccioná al menos un módulo y volvé a aplicar.');
-        return;
-      }
-      const fd = new FormData(form);
-      const action = String(fd.get('action') || 'install');
-      const notes = String(fd.get('notes') || '');
-      clearInstallError();
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Aplicando…';
-      showInstallNote('Aplicando…');
-      let res: Response;
-      try {
-        res = await fetch(`/api/admin/tenants/${tenantId}/install`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ modules: mods, action, notes }),
-        });
-      } catch {
-        showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
-        return;
-      }
-      const data = (await res.json().catch(() => ({}))) as {
-        job_id?: number | null;
-        job_state?: string;
-        error?: { message?: string };
-      };
-      if (!res.ok) {
-        showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
-        return;
-      }
-      if (typeof data.job_id !== 'number') {
-        showInstallNote('Listo. Recargando…');
-        setTimeout(() => window.location.reload(), 700);
-        return;
-      }
-      const jobId = data.job_id;
-      pollActiva = true;
-      showInstallNote(describeJobState(data.job_state || 'pendiente'));
-      while (pollActiva) {
-        await new Promise((r) => setTimeout(r, 5000));
-        if (!pollActiva) return;
-        try {
-          const jr = await fetch(`/api/admin/tenants/${tenantId}/install/${jobId}`);
-          const jd = (await jr.json().catch(() => ({}))) as { state?: string };
-          if (!jr.ok) {
-            pollActiva = false;
-            showInstallError('No se pudo leer el avance. Probá de nuevo.');
-            return;
-          }
-          const estado = String(jd.state || '');
-          if (estado === 'error') {
-            pollActiva = false;
-            showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
-            return;
-          }
-          showInstallNote(describeJobState(estado));
-          if (!shouldPollJob(estado)) {
-            if (estado === 'hecho') {
-              showInstallNote(`${describeJobState(estado)} Recargando…`);
-              setTimeout(() => window.location.reload(), 900);
-            }
-            return;
-          }
-        } catch {
-          showInstallNote('Sin conexión. Reintentando…');
-        }
-      }
     });
 
     // Home viva
@@ -1150,97 +1016,8 @@ const cerrarSesion = sessionCloseCopy('shell', tenant?.name || slug);
       }
     }
 
-    // Chat IA
-    const chatRoot = document.getElementById('ia-chat-root') as HTMLDivElement | null;
-    const chatLog = document.getElementById('ia-chat-log') as HTMLDivElement | null;
-    const chatForm = document.getElementById('ia-chat-form') as HTMLFormElement | null;
-    const chatInput = document.getElementById('ia-chat-input') as HTMLInputElement | null;
-    const chatSend = document.getElementById('ia-chat-send') as HTMLButtonElement | null;
-    const chatErr = document.getElementById('ia-chat-error');
-    const chatDb = chatRoot?.dataset.db || db;
-    function uuidv4() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = (Math.random() * 16) | 0;
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-      });
-    }
-    function appendChat(text: string) {
-      if (!chatLog) return;
-      const div = document.createElement('div');
-      div.className = 'chat-msg';
-      div.textContent = text;
-      chatLog.appendChild(div);
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
-    function notaAgente(data: { output?: { echo?: unknown } }): string {
-      const echo = data.output?.echo;
-      if (typeof echo === 'string' && echo.trim()) return echo.trim();
-      if (echo && typeof echo === 'object') {
-        const rec = echo as Record<string, unknown>;
-        if (typeof rec.message === 'string' && rec.message.trim()) return rec.message.trim();
-        if (typeof rec.text === 'string' && rec.text.trim()) return rec.text.trim();
-      }
-      return 'Listo.';
-    }
-    function chatFail(msg: string) {
-      if (chatErr instanceof HTMLElement) {
-        chatErr.hidden = false;
-        chatErr.textContent = msg;
-      }
-      chatInput?.setAttribute('aria-invalid', 'true');
-      chatInput?.focus();
-      if (chatSend) {
-        chatSend.disabled = false;
-        chatSend.textContent = 'Enviar';
-      }
-    }
-    chatForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const msg = (chatInput?.value || '').trim();
-      if (chatErr instanceof HTMLElement) {
-        chatErr.hidden = true;
-        chatErr.textContent = '';
-      }
-      chatInput?.removeAttribute('aria-invalid');
-      if (!msg) {
-        chatFail('Escribí un mensaje.');
-        return;
-      }
-      if (chatSend) {
-        chatSend.disabled = true;
-        chatSend.textContent = 'Enviando…';
-      }
-      const requestId = uuidv4();
-      try {
-        const res = await fetch(`/api/modoops/${chatDb}/agent/run`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ message: msg, requestId }),
-        });
-        const data = (await res.json().catch(() => ({}))) as {
-          output?: { echo?: unknown };
-          error?: string;
-        };
-        if (!res.ok) {
-          chatFail('No se pudo enviar. Probá de nuevo.');
-          return;
-        }
-        if (chatInput) chatInput.value = '';
-        appendChat(msg);
-        appendChat(notaAgente(data));
-        if (chatSend) {
-          chatSend.disabled = false;
-          chatSend.textContent = 'Enviar';
-        }
-      } catch {
-        chatFail('No se pudo enviar. Probá de nuevo.');
-      }
-    });
-
     const boot = new URLSearchParams(window.location.search);
     const flujoBoot = boot.get('flujo') || '';
     if (FLUJOS.has(flujoBoot)) openSheet(flujoBoot, true);
-    else if (boot.get('modulos') === '1') openModules(true);
   </script>
 </LightAppLayout>

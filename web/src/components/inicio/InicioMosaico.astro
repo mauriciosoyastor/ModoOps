@@ -1,5 +1,6 @@
 ---
 import type { Inicio } from "../../lib/bff/inicio.ts";
+import Capsula from "./Capsula.astro";
 
 interface Props {
   inicio: Inicio;
@@ -7,49 +8,60 @@ interface Props {
   plano?: boolean;
   /** Shell: color denotativo sobre el cromado quieto. */
   color?: boolean;
+  /** Shell: disposición Captura. El Control Plane no la usa. */
+  captura?: boolean;
 }
 
-const { inicio, plano = false, color = false } = Astro.props;
+const { inicio, plano = false, color = false, captura = false } = Astro.props;
 const areas = inicio.filas.map((fila) => `"${fila.join(" ")}"`).join(" ");
 const usadas = new Set(inicio.filas.flat());
 const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor) ?? [0]));
 ---
 
-<div class:list={["inicio-mosaico", plano && "inicio-mosaico--plano", color && "inicio-mosaico--color"]} style={`grid-template-areas: ${areas}`}>
+<div class:list={["inicio-mosaico", plano && "inicio-mosaico--plano", color && "inicio-mosaico--color", captura && "inicio-mosaico--captura"]} style={`grid-template-areas: ${areas}`}>
   {
     usadas.has("greet") && (
       <section class="bloque saludo" style="grid-area: greet" aria-labelledby="inicio-saludo">
         <h1 id="inicio-saludo">{inicio.saludo}</h1>
-        <p>{inicio.bajada}</p>
+        {captura ? null : inicio.bajada ? <p>{inicio.bajada}</p> : null}
       </section>
     )
   }
   {
     usadas.has("bar") && inicio.barra && (
-      <section class="bloque" style="grid-area: bar" aria-labelledby="inicio-barra">
+      <section class="bloque bloque--banda" style="grid-area: bar" aria-labelledby="inicio-barra">
         <h2 id="inicio-barra">{inicio.barraTitulo}</h2>
-        {
-          inicio.barra.every((parte) => parte.pct === 0) ? (
-            <p class="muted">0</p>
-          ) : (
+        {captura ? (
+          <div class="capsulas">
+            {inicio.barra.map((parte) => (
+              <Capsula href={parte.href} tono={parte.tono}>
+                <span>{parte.label}</span>
+                <span>{parte.pct}%</span>
+              </Capsula>
+            ))}
+          </div>
+        ) : inicio.barra.every((parte) => parte.pct === 0) ? (
+          <p class="muted">0</p>
+        ) : (
+          <>
             <div class="pista" aria-hidden="true">
               {inicio.barra.map((parte) => (
                 <span class:list={["tramo", parte.tono ? `tramo--${parte.tono}` : parte.href ? "tramo--enlace" : "tramo--quieto"]} style={`width: ${parte.pct}%`}></span>
               ))}
             </div>
-          )
-        }
-        <ul class="leyenda">
-          {inicio.barra.map((parte) => (
-            <li>
-              {parte.href ? (
-                <a href={parte.href}>{parte.tono ? <span class:list={["punto", `punto--${parte.tono}`]} aria-hidden="true"></span> : null}{parte.label} {parte.pct}%</a>
-              ) : (
-                <span>{parte.tono ? <span class:list={["punto", `punto--${parte.tono}`]} aria-hidden="true"></span> : null}{parte.label} {parte.pct}%</span>
-              )}
-            </li>
-          ))}
-        </ul>
+            <ul class="leyenda">
+              {inicio.barra.map((parte) => (
+                <li>
+                  {parte.href ? (
+                    <a href={parte.href}>{parte.tono ? <span class:list={["punto", `punto--${parte.tono}`]} aria-hidden="true"></span> : null}{parte.label} {parte.pct}%</a>
+                  ) : (
+                    <span>{parte.tono ? <span class:list={["punto", `punto--${parte.tono}`]} aria-hidden="true"></span> : null}{parte.label} {parte.pct}%</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </section>
     )
   }
@@ -75,7 +87,7 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
   {
     usadas.has("agenda") && (
       <section class="bloque" style="grid-area: agenda" aria-labelledby="inicio-agenda">
-        <h2 id="inicio-agenda">Hoy</h2>
+        <h2 id="inicio-agenda">{captura ? "Agenda" : "Hoy"}</h2>
         {inicio.agenda.length === 0 ? (
           <p class="muted">Nada vence hoy.</p>
         ) : (
@@ -254,6 +266,12 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
     line-height: 1;
     font-variant-numeric: tabular-nums;
     color: var(--mo-ink);
+  }
+  .capsulas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: stretch;
   }
   .pista {
     display: flex;
@@ -435,7 +453,7 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
   @media (hover: hover) and (pointer: fine) {
     .inicio-mosaico--plano .bloque a:hover { color: var(--mo-ink); }
   }
-  @media (max-width: 960px) {
+  @media (max-width: 720px) {
     .inicio-mosaico {
       grid-template-columns: 1fr;
       grid-template-areas: none !important;
@@ -500,6 +518,28 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
     border-color: color-mix(in srgb, var(--mo-accent) 28%, var(--mo-line));
   }
   .estado--accent::before { background: var(--mo-accent); }
+  .inicio-mosaico--plano.inicio-mosaico--captura .bloque:not(.saludo):not(.numeros):not(.bloque--banda) {
+    background: var(--mo-canvas);
+    border: 1px solid var(--mo-line);
+    border-radius: 1.75rem;
+    padding: 1.05rem 1.15rem;
+  }
+  .inicio-mosaico--plano.inicio-mosaico--captura .bloque h2 {
+    color: var(--mo-ink);
+    font-size: 1rem;
+    letter-spacing: -0.02em;
+    text-transform: none;
+  }
+  .inicio-mosaico--plano.inicio-mosaico--captura .veredicto {
+    color: var(--mo-ink);
+  }
+  .inicio-mosaico--plano.inicio-mosaico--captura .veredicto__principal {
+    color: var(--mo-ink);
+    font-size: clamp(1.6rem, 2.5vw, 2rem);
+    font-weight: 650;
+    letter-spacing: -0.03em;
+  }
+  .inicio-mosaico--plano.inicio-mosaico--captura .veredicto__secundario { color: var(--mo-muted); }
   .inicio-mosaico--color .numero--accent .numero__valor { color: var(--mo-accent); }
   .inicio-mosaico--color .numero--warn .numero__valor { color: var(--mo-warn); }
   .inicio-mosaico--color .veredicto__principal { color: var(--mo-accent); }
