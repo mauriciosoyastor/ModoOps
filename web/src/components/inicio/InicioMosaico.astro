@@ -3,15 +3,19 @@ import type { Inicio } from "../../lib/bff/inicio.ts";
 
 interface Props {
   inicio: Inicio;
+  /** Inicio de producto: cromado quieto. */
+  plano?: boolean;
+  /** Shell: color denotativo sobre el cromado quieto. */
+  color?: boolean;
 }
 
-const { inicio } = Astro.props;
+const { inicio, plano = false, color = false } = Astro.props;
 const areas = inicio.filas.map((fila) => `"${fila.join(" ")}"`).join(" ");
 const usadas = new Set(inicio.filas.flat());
 const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor) ?? [0]));
 ---
 
-<div class="inicio-mosaico" style={`grid-template-areas: ${areas}`}>
+<div class:list={["inicio-mosaico", plano && "inicio-mosaico--plano", color && "inicio-mosaico--color"]} style={`grid-template-areas: ${areas}`}>
   {
     usadas.has("greet") && (
       <section class="bloque saludo" style="grid-area: greet" aria-labelledby="inicio-saludo">
@@ -30,7 +34,7 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
           ) : (
             <div class="pista" aria-hidden="true">
               {inicio.barra.map((parte) => (
-                <span class:list={["tramo", parte.href ? "tramo--enlace" : "tramo--quieto"]} style={`width: ${parte.pct}%`}></span>
+                <span class:list={["tramo", parte.tono ? `tramo--${parte.tono}` : parte.href ? "tramo--enlace" : "tramo--quieto"]} style={`width: ${parte.pct}%`}></span>
               ))}
             </div>
           )
@@ -39,9 +43,9 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
           {inicio.barra.map((parte) => (
             <li>
               {parte.href ? (
-                <a href={parte.href}>{parte.label} {parte.pct}%</a>
+                <a href={parte.href}>{parte.tono ? <span class:list={["punto", `punto--${parte.tono}`]} aria-hidden="true"></span> : null}{parte.label} {parte.pct}%</a>
               ) : (
-                <span>{parte.label} {parte.pct}%</span>
+                <span>{parte.tono ? <span class:list={["punto", `punto--${parte.tono}`]} aria-hidden="true"></span> : null}{parte.label} {parte.pct}%</span>
               )}
             </li>
           ))}
@@ -54,12 +58,12 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
       <section class="bloque numeros" style="grid-area: stats" aria-label="Números del día">
         {inicio.numeros.map((numero) =>
           numero.href ? (
-            <a class="numero" href={numero.href}>
+            <a class:list={["numero", numero.tono && `numero--${numero.tono}`]} href={numero.href}>
               <span class="numero__valor">{numero.valor}</span>
               <span class="numero__rotulo">{numero.label}</span>
             </a>
           ) : (
-            <p class="numero">
+            <p class:list={["numero", numero.tono && `numero--${numero.tono}`]}>
               <span class="numero__valor">{numero.valor}</span>
               <span class="numero__rotulo">{numero.label}</span>
             </p>
@@ -79,7 +83,7 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
             {inicio.agenda.map((item) => (
               <li>
                 {item.href ? <a href={item.href}>{item.titulo}</a> : <span>{item.titulo}</span>}
-                <span class="muted">{item.detalle}</span>
+                {item.detalle ? <span class="muted">{item.detalle}</span> : null}
               </li>
             ))}
           </ol>
@@ -89,15 +93,16 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
   }
   {
     usadas.has("table") && inicio.tabla && (
-      <section class="bloque" style="grid-area: table" aria-labelledby="inicio-tabla">
+      <section class="bloque bloque--tabla" style="grid-area: table" aria-labelledby="inicio-tabla">
         <h2 id="inicio-tabla">
           {inicio.tabla.href ? <a href={inicio.tabla.href}>{inicio.tabla.titulo}</a> : inicio.tabla.titulo}
         </h2>
         {inicio.tabla.filas.length === 0 ? (
           <p class="muted">La cola está vacía.</p>
         ) : (
-          <table>
-            <caption class="muted">{inicio.tabla.filas.length} en la cola.</caption>
+          <div class="table-wrap">
+          <table class:list={[plano && "mo-table"]}>
+            {!plano && <caption class="muted">{inicio.tabla.filas.length} en la cola.</caption>}
             <thead>
               <tr>
                 {inicio.tabla.columnas.map((columna) => (
@@ -108,13 +113,16 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
             <tbody>
               {inicio.tabla.filas.map((fila) => (
                 <tr>
-                  {fila.celdas.map((celda) => (
-                    <td>{celda}</td>
+                  {fila.celdas.map((celda, i) => (
+                    <td>
+                      {fila.tonos?.[i] ? <span class:list={["estado", `estado--${fila.tonos[i]}`]}>{celda}</span> : celda}
+                    </td>
                   ))}
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
     )
@@ -132,7 +140,7 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
   }
   {
     usadas.has("series") && inicio.serie && (
-      <section class="bloque" style="grid-area: series" aria-labelledby="inicio-serie">
+      <section class="bloque bloque--serie" style="grid-area: series" aria-labelledby="inicio-serie">
         <h2 id="inicio-serie">
           {inicio.serie.href ? <a href={inicio.serie.href}>{inicio.serie.titulo}</a> : inicio.serie.titulo}
         </h2>
@@ -150,7 +158,7 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
   }
   {
     usadas.has("comp") && inicio.composicion && (
-      <section class="bloque" style="grid-area: comp" aria-labelledby="inicio-composicion">
+      <section class="bloque bloque--comp" style="grid-area: comp" aria-labelledby="inicio-composicion">
         <h2 id="inicio-composicion">
           {inicio.composicion.href ? (
             <a href={inicio.composicion.href}>{inicio.composicion.titulo}</a>
@@ -328,14 +336,172 @@ const maxSerie = Math.max(1, ...(inicio.serie?.puntos.map((punto) => punto.valor
     place-items: center;
     align-content: center;
   }
+  .inicio-mosaico--plano { gap: 1.25rem 2.5rem; }
+  .inicio-mosaico--plano .bloque {
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+  .inicio-mosaico--plano .saludo h1,
+  .inicio-mosaico--plano .bloque h2 { text-wrap: balance; }
+  .inicio-mosaico--plano .bloque h2 {
+    margin: 0 0 0.6rem;
+    color: var(--mo-muted);
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .inicio-mosaico--plano .pista { height: 0.65rem; }
+  .inicio-mosaico--plano .numeros {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 1.5rem;
+  }
+  .inicio-mosaico--plano .bloque a.numero,
+  .inicio-mosaico--plano .numero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
+    align-items: start;
+    justify-items: start;
+  }
+  .inicio-mosaico--plano .numero__rotulo {
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+  .inicio-mosaico--plano .bloque--tabla {
+    background: transparent;
+    padding: 0;
+  }
+  .inicio-mosaico--plano .table-wrap {
+    overflow: auto;
+    scroll-padding-top: 3rem;
+    scroll-padding-bottom: 4.5rem;
+  }
+  .inicio-mosaico--plano .mo-table th,
+  .inicio-mosaico--plano .mo-table td {
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  .inicio-mosaico--plano tbody tr {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 2.75rem;
+  }
+  .inicio-mosaico--plano .veredicto {
+    background: transparent;
+    color: var(--mo-ink);
+    border: 0;
+    border-left: 3px solid var(--mo-accent);
+    border-radius: 0;
+    padding: 0.15rem 0 0.15rem 0.85rem;
+  }
+  .inicio-mosaico--plano .veredicto a,
+  .inicio-mosaico--plano .veredicto__principal { color: var(--mo-ink); }
+  .inicio-mosaico--plano .veredicto__principal {
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+  .inicio-mosaico--plano .bloque--serie { min-width: 0; }
+  .inicio-mosaico--plano .bloque--serie .num {
+    color: var(--mo-muted);
+    font-weight: 500;
+  }
+  .inicio-mosaico--plano .bloque--comp {
+    min-width: 0;
+    border-left: 0;
+    padding-left: 0;
+  }
+  .inicio-mosaico--plano .bloque--comp .dona { margin: 0; }
+  .inicio-mosaico--plano .bloque--comp .numero__valor { font-size: 1.35rem; }
+  .inicio-mosaico--plano .bloque--comp .leyenda {
+    display: grid;
+    justify-items: start;
+    margin-top: 0.85rem;
+    color: var(--mo-muted);
+  }
+  .inicio-mosaico--plano .veredicto__secundario { color: var(--mo-muted); }
+  .inicio-mosaico--plano .dona {
+    width: 6.5rem;
+    height: 6.5rem;
+    background: conic-gradient(var(--mo-accent) var(--pct), var(--mo-line) 0);
+  }
+  .inicio-mosaico--plano .dona p {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .inicio-mosaico--plano .bloque a:hover { color: var(--mo-ink); }
+  }
   @media (max-width: 960px) {
     .inicio-mosaico {
       grid-template-columns: 1fr;
       grid-template-areas: none !important;
     }
     .inicio-mosaico > * { grid-area: auto !important; }
+    .inicio-mosaico--plano > .bloque { order: 2; }
+    .inicio-mosaico--plano > .saludo,
+    .inicio-mosaico--plano > .numeros { order: 1; }
   }
   @media (prefers-reduced-motion: reduce) {
     .inicio-mosaico { scroll-behavior: auto; }
   }
+  .pista .tramo.tramo--accent { background: var(--mo-accent); }
+  .pista .tramo.tramo--ok { background: var(--mo-ok); }
+  .pista .tramo.tramo--warn { background: var(--mo-warn); }
+  .pista .tramo.tramo--ink { background: var(--mo-ink); }
+  .pista .tramo.tramo--line { background: var(--mo-line-strong); }
+  .punto {
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-right: 0.4rem;
+    border-radius: 50%;
+    flex: none;
+  }
+  .punto--accent { background: var(--mo-accent); }
+  .punto--ok { background: var(--mo-ok); }
+  .punto--warn { background: var(--mo-warn); }
+  .punto--ink { background: var(--mo-ink); }
+  .punto--line { background: var(--mo-line-strong); }
+  .estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 26px;
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--mo-line);
+    font-size: 0.75rem;
+    font-weight: 650;
+  }
+  .estado::before {
+    content: "";
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+  }
+  .estado--ok {
+    background: var(--mo-ok-soft);
+    color: var(--mo-ok);
+    border-color: color-mix(in srgb, var(--mo-ok) 28%, var(--mo-line));
+  }
+  .estado--ok::before { background: var(--mo-ok); }
+  .estado--warn {
+    background: color-mix(in srgb, var(--mo-warn) 14%, var(--mo-canvas));
+    color: var(--mo-warn);
+    border-color: color-mix(in srgb, var(--mo-warn) 30%, var(--mo-line));
+  }
+  .estado--warn::before { background: var(--mo-warn); }
+  .estado--accent {
+    background: var(--mo-accent-soft);
+    color: var(--mo-accent);
+    border-color: color-mix(in srgb, var(--mo-accent) 28%, var(--mo-line));
+  }
+  .estado--accent::before { background: var(--mo-accent); }
+  .inicio-mosaico--color .numero--accent .numero__valor { color: var(--mo-accent); }
+  .inicio-mosaico--color .numero--warn .numero__valor { color: var(--mo-warn); }
+  .inicio-mosaico--color .veredicto__principal { color: var(--mo-accent); }
+  .inicio-mosaico--color .veredicto__secundario { color: var(--mo-warn); }
 </style>
