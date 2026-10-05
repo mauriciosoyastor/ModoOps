@@ -83,6 +83,17 @@ const puesto = sesionDelPuesto({ persona: userName });
 <LightAppLayout title={`${tenant?.name ?? slug} — ModoOps`} description={`Shell · ${slug}`} theme="papel" ops>
   <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
 
+  <div id="puesto-candado" class="puesto-candado" hidden>
+    <div class="puesto-candado__lienzo">
+      <button type="button" class="puesto-candado__abrir" data-desbloquear aria-label="Desbloquear puesto">
+        <svg width="72" height="72" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="11" width="14" height="9" rx="2"></rect>
+          <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
   <div class="shell" id="contenido">
     <header class="app-bar">
       <p class="app-bar__brand" translate="no">ModoOps</p>
@@ -93,7 +104,6 @@ const puesto = sesionDelPuesto({ persona: userName });
       </nav>
       <div class="app-bar__sesion">
         {puesto.persona ? <p class="app-bar__persona">{puesto.persona}</p> : null}
-        <p class="app-bar__caja">{puesto.caja}</p>
         <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puesto.aviso}</p>
         <button type="button" class="app-bar__accion" data-bloquear aria-pressed="false" data-abierto={puesto.bloquear} data-cerrado={puesto.desbloquear}>{puesto.bloquear}</button>
         <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
@@ -451,6 +461,30 @@ const puesto = sesionDelPuesto({ persona: userName });
       color: var(--mo-on-hero);
       font-weight: 650;
     }
+    .puesto-candado[hidden] { display: none !important; }
+    .puesto-candado__lienzo {
+      position: fixed;
+      inset: 0;
+      z-index: 110;
+      display: grid;
+      place-items: center;
+      background: var(--mo-wash);
+    }
+    .puesto-candado__abrir {
+      display: grid;
+      place-items: center;
+      width: 5.5rem;
+      height: 5.5rem;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0;
+      border: 0;
+      border-radius: 1rem;
+      background: transparent;
+      color: var(--mo-ink);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
     .app-bar__sesion {
       display: flex;
       flex-wrap: wrap;
@@ -459,13 +493,11 @@ const puesto = sesionDelPuesto({ persona: userName });
       justify-self: end;
     }
     .app-bar__persona,
-    .app-bar__caja,
     .app-bar__aviso {
       margin: 0;
       font-size: 0.92rem;
     }
     .app-bar__persona { color: var(--mo-ink); font-weight: 650; }
-    .app-bar__caja,
     .app-bar__aviso { color: var(--mo-muted); }
     .app-bar__aviso { flex-basis: 100%; }
     .app-bar__accion {
@@ -887,25 +919,32 @@ const puesto = sesionDelPuesto({ persona: userName });
       announce(`${hit.name}: ${hit.stock} unidades`);
     });
 
-    document.querySelector('[data-bloquear]')?.addEventListener('click', () => {
+    const puestoTapados = () =>
+      document.querySelectorAll('.mo-skip, .mo-live, .shell, #toast-region, .mo-dialog-backdrop, .mo-sheet-backdrop');
+
+    function aplicarCandado(bloqueado: boolean) {
       const btn = document.querySelector('[data-bloquear]');
-      const aviso = document.querySelector('[data-puesto-aviso]');
-      const trabajo = document.getElementById('puesto-trabajo');
-      const modulos = document.querySelector('.app-bar__nav');
-      if (!(btn instanceof HTMLButtonElement) || !(aviso instanceof HTMLElement)) return;
+      const candado = document.getElementById('puesto-candado');
+      const abrir = document.querySelector('[data-desbloquear]');
+      if (!(btn instanceof HTMLButtonElement) || !(candado instanceof HTMLElement) || !(abrir instanceof HTMLButtonElement)) return;
       const abierto = btn.dataset.abierto;
       const cerrado = btn.dataset.cerrado;
       if (!abierto || !cerrado) return;
-      const bloqueado = btn.getAttribute('aria-pressed') !== 'true';
+      if (bloqueado) closeSheet(true);
       btn.setAttribute('aria-pressed', bloqueado ? 'true' : 'false');
       btn.textContent = bloqueado ? cerrado : abierto;
-      aviso.hidden = !bloqueado;
-      if (trabajo) {
-        trabajo.hidden = bloqueado;
-        trabajo.toggleAttribute('inert', bloqueado);
-      }
-      if (modulos instanceof HTMLElement) modulos.toggleAttribute('inert', bloqueado);
-      if (bloqueado) aviso.focus();
+      candado.hidden = !bloqueado;
+      document.documentElement.style.overflow = bloqueado ? 'hidden' : '';
+      puestoTapados().forEach((el) => el.toggleAttribute('inert', bloqueado));
+      if (bloqueado) abrir.focus();
+      else btn.focus();
+    }
+
+    document.querySelector('[data-bloquear]')?.addEventListener('click', () => {
+      aplicarCandado(true);
+    });
+    document.querySelector('[data-desbloquear]')?.addEventListener('click', () => {
+      aplicarCandado(false);
     });
 
     document.querySelector('[data-logout]')?.addEventListener('click', () => {

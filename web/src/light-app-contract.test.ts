@@ -137,7 +137,10 @@ describe('contrato light-app papel (#215)', () => {
     expect(header).toContain('data-logout');
     expect(header).not.toContain('tenant?.name');
     expect(header).not.toContain('tenant.state');
-    expect(header).toContain('{puesto.caja}');
+    expect(header).not.toContain('puesto.caja');
+    expect(header).not.toContain('app-bar__caja');
+    expect(text).toContain('id="puesto-candado"');
+    expect(text).toContain('aria-label="Desbloquear puesto"');
     expect(text).toContain('sesionDelPuesto({ persona: userName })');
     expect(text).not.toMatch(/sesionDelPuesto\(\{[^}]*caja/);
   });

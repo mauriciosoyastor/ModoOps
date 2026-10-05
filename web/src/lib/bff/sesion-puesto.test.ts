@@ -5,7 +5,6 @@ describe("Sesión del puesto", () => {
   it("una lectura deja bloquear, desbloquear y el aviso de la sesión abierta", () => {
     const sesion = sesionDelPuesto({ persona: "Lucía Gómez" });
     expect(sesion.persona).toBe("Lucía Gómez");
-    expect(sesion.caja).toBe("Caja 1");
     expect(sesion.bloquear).toBe("Bloquear puesto");
     expect(sesion.desbloquear).toBe("Desbloquear puesto");
     expect(sesion.aviso).toBe("Puesto bloqueado. La sesión de Lucía Gómez sigue abierta.");
