@@ -1,0 +1,495 @@
+---
+import LightAppLayout from '../../../layouts/LightAppLayout.astro';
+import { BffError } from '../../../lib/bff/errors.ts';
+import { invalidateBffSession } from '../../../lib/bff/http.ts';
+import { loadTenantLauncher } from '../../../lib/bff/launcher.ts';
+import { withMasterSession } from '../../../lib/bff/tenant-status.ts';
+
+export const prerender = false;
+
+const slug = String(Astro.params.slug || '').trim();
+if (!slug || !/^[a-z0-9_]+$/.test(slug)) {
+  return new Response('slug inválido', { status: 400 });
+}
+
+const _odooT = (Astro.locals as Record<string, unknown>).odooSessionId as string | undefined;
+if (!_odooT) return Astro.redirect('/login');
+const odooSessionId: string = _odooT;
+
+let tenant: import('../../../lib/bff/backend-client.ts').TenantRow | null = null;
+let tenantError = '';
+
+try {
+  const res = await loadTenantLauncher(slug, odooSessionId);
+  tenant = res.tenant;
+} catch (cause) {
+  if (cause instanceof BffError && cause.code === 'unauthorized') {
+    invalidateBffSession(Astro.cookies);
+    return Astro.redirect('/login');
+  }
+  if (cause instanceof BffError && cause.code === 'not_found') {
+    tenantError = cause.message;
+  } else {
+    try {
+      tenant = await withMasterSession((master, sessionId) => master.getTenantBySlug(sessionId, slug));
+      if (!tenant) tenantError = `Tenant '${slug}' no existe en modoops_master`;
+    } catch {
+      tenantError = `Tenant '${slug}' no existe en modoops_master`;
+    }
+    if (!tenantError) {
+      const raw = (cause as Error)?.message || 'No se pudo cargar el comercio';
+      tenantError =
+        cause instanceof BffError && cause.code === 'odoo_unavailable'
+          ? `DB del tenant no responde — ${raw}`
+          : raw;
+    }
+  }
+}
+
+const hasIA = tenant?.modules_installed?.includes('IA ModoOps') ?? false;
+const inicioHref = `/tenant/${slug}/app`;
+---
+
+<LightAppLayout title={`Configuración — ${tenant?.name ?? slug}`} description={`Configuración · ${slug}`} theme="papel" ops>
+  <header class="cfg-bar">
+    <a class="cfg-back" href={inicioHref}>Volver al inicio</a>
+    <h1>Configuración</h1>
+  </header>
+
+  <main class="page" id="contenido">
+    {tenantError ? (
+      <p class="mo-banner mo-banner--danger" role="alert">{tenantError}</p>
+    ) : null}
+
+    {tenant && !tenantError ? (
+      <section class="panel-block region" aria-labelledby="cfg-armar">
+        <h2 class="mo-section-label" id="cfg-armar">Armar sistema</h2>
+        <p class="mo-empty__text">Instalá o quitá módulos de este comercio.</p>
+        <div id="tenant-install-root" data-tenant-id={tenant.id} data-db={tenant.db_name} data-installed={tenant.modules_installed ?? ''}></div>
+        <div class="actions">
+          <button type="button" id="tenant-install-open" class="mo-btn mo-btn--ghost" aria-expanded="false" aria-controls="tenant-install-dialog">Gestionar módulos</button>
+          <span class="mo-count">{tenant.modules_installed ? `Instalados: ${tenant.modules_installed}` : '0 módulos'}</span>
+        </div>
+        {hasIA ? (
+          <div class="chat" id="ia-chat-root" data-db={tenant.db_name}>
+            <h2 class="mo-section-label">Chat IA</h2>
+            <div id="ia-chat-log" class="chat-log" aria-live="polite"></div>
+            <form id="ia-chat-form" class="chat-form">
+              <label class="sr-only" for="ia-chat-input">Mensaje</label>
+              <input class="mo-field__control" id="ia-chat-input" name="message" placeholder="Ej.: stock del producto 42…" autocomplete="off" spellcheck="false" aria-describedby="ia-chat-error" />
+              <button type="submit" class="mo-btn mo-btn--ghost" id="ia-chat-send">Enviar</button>
+              <p id="ia-chat-error" class="mo-field__error" role="alert" hidden></p>
+            </form>
+          </div>
+        ) : (
+          <p class="mo-empty__text">IA no instalada — tildala en Gestionar módulos.</p>
+        )}
+      </section>
+    ) : null}
+  </main>
+
+  <dialog id="tenant-install-dialog" class="mo-install-dialog" aria-labelledby="tenant-install-title">
+    <form method="dialog" id="tenant-install-form">
+      <h2 class="mo-dialog__title" id="tenant-install-title">Gestionar módulos — {tenant?.name}</h2>
+      <div class="mo-dialog__grid" id="tenant-install-grid"></div>
+      <div class="mo-field">
+        <label class="mo-field__label" for="tenant-notes">Notas</label>
+        <input class="mo-field__control" id="tenant-notes" name="notes" placeholder="Ticket, motivo…" spellcheck="false" autocomplete="off" />
+      </div>
+      <div class="mo-dialog__actions">
+        <label class="mo-field__label">
+          Acción
+          <select class="mo-field__control" name="action">
+            <option value="install">Instalar</option>
+            <option value="remove">Quitar</option>
+          </select>
+        </label>
+        <button type="submit" class="mo-btn mo-btn--primary" id="tenant-install-submit">Aplicar módulos</button>
+        <button type="button" class="mo-btn mo-btn--ghost" id="tenant-install-cancel">Cancelar</button>
+      </div>
+      <p id="tenant-install-msg" class="mo-banner mo-banner--danger" role="alert" hidden></p>
+    </form>
+  </dialog>
+
+  <style>
+    .cfg-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      align-items: center;
+      max-width: 72rem;
+      margin: 0 auto;
+      padding:
+        max(0.85rem, env(safe-area-inset-top))
+        max(1.35rem, env(safe-area-inset-right))
+        0.85rem
+        max(1.35rem, env(safe-area-inset-left));
+    }
+    .cfg-bar h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 650;
+    }
+    .cfg-back {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 0.75rem;
+      border: 1px solid var(--mo-line);
+      border-radius: 999px;
+      background: var(--mo-card);
+      color: var(--mo-ink);
+      text-decoration: none;
+      touch-action: manipulation;
+    }
+    .page {
+      max-width: 72rem;
+      margin: 0 auto;
+      padding:
+        0.75rem
+        max(1.35rem, env(safe-area-inset-right))
+        max(2.75rem, env(safe-area-inset-bottom))
+        max(1.35rem, env(safe-area-inset-left));
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.75rem; }
+    .panel-block { margin-top: 1rem; }
+    .region {
+      margin-top: 0.35rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--mo-line);
+    }
+    .mo-install-dialog { overscroll-behavior: contain; }
+    .mo-install-dialog {
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius);
+      padding: 1.25rem;
+      background: var(--mo-canvas);
+      color: var(--mo-ink);
+      max-width: 36rem;
+      width: min(36rem, calc(100% - 2rem));
+    }
+    .mo-install-dialog::backdrop { background: color-mix(in srgb, var(--mo-ink) 45%, transparent); }
+    .mo-dialog__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin: 0.5rem 0; }
+    .mo-dialog__grid :global(label) {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      min-height: 44px;
+      font-size: 0.85rem;
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius-sm);
+      padding: 0.5rem 0.75rem;
+      background: var(--mo-field);
+    }
+    .chat { margin-top: 1rem; display: grid; gap: 0.5rem; }
+    .chat-log {
+      min-height: 6rem;
+      max-height: 14rem;
+      overflow: auto;
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius-sm);
+      padding: 0.75rem;
+      background: var(--mo-field);
+    }
+    .chat-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      border: 1px solid var(--mo-line);
+      border-radius: var(--mo-radius-sm);
+      background: var(--mo-canvas);
+      padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+    }
+    .chat-form:focus-within {
+      outline: 2px solid var(--mo-focus);
+      outline-offset: 2px;
+    }
+    .chat-form .mo-field__control {
+      flex: 1 1 12rem;
+      border: 0;
+      background: transparent;
+      min-height: 44px;
+      font-size: 16px;
+    }
+    .chat-form .mo-field__control:focus-visible { outline: none; }
+    .chat-form .mo-field__error { flex: 1 1 100%; }
+  </style>
+
+  <script>
+    import { CATALOGO_LABELS } from '../../../lib/catalogo.generated.ts';
+    import { describeJobState, shouldPollJob } from '../../../lib/bff/install-job.ts';
+
+    const CATALOGO = Object.entries(CATALOGO_LABELS) as unknown as readonly (readonly [string, string])[];
+    const root = document.getElementById('tenant-install-root') as HTMLDivElement | null;
+    const dlg = document.getElementById('tenant-install-dialog') as HTMLDialogElement | null;
+    const grid = document.getElementById('tenant-install-grid') as HTMLDivElement | null;
+    const msgEl = document.getElementById('tenant-install-msg') as HTMLElement | null;
+    const form = document.getElementById('tenant-install-form') as HTMLFormElement | null;
+    const openBtn = document.getElementById('tenant-install-open') as HTMLButtonElement | null;
+    const cancelBtn = document.getElementById('tenant-install-cancel') as HTMLButtonElement | null;
+    const submitBtn = document.getElementById('tenant-install-submit') as HTMLButtonElement | null;
+    const tenantId = root ? Number(root.dataset.tenantId) : NaN;
+    const db = root ? String(root.dataset.db || '') : '';
+    const APPLY_LABEL = 'Aplicar módulos';
+    let pollActiva = false;
+
+    function renderGrid() {
+      if (!grid) return;
+      grid.replaceChildren();
+      for (const [key, label] of CATALOGO) {
+        const lbl = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.className = 'mo-check';
+        input.value = key;
+        input.setAttribute('data-mod', '');
+        lbl.append(input, document.createTextNode(` ${label}`));
+        grid.appendChild(lbl);
+      }
+    }
+    renderGrid();
+
+    function showInstallNote(msg: string, alert = false) {
+      if (!msgEl) return;
+      msgEl.hidden = false;
+      msgEl.textContent = msg;
+      msgEl.setAttribute('role', alert ? 'alert' : 'status');
+      msgEl.classList.toggle('mo-banner', alert);
+      msgEl.classList.toggle('mo-banner--danger', alert);
+      msgEl.classList.toggle('mo-field__hint', !alert);
+    }
+
+    function clearInstallError() {
+      if (!msgEl) return;
+      msgEl.hidden = true;
+      msgEl.textContent = '';
+      grid?.querySelectorAll('input').forEach((node) => node.removeAttribute('aria-invalid'));
+    }
+
+    function showInstallError(msg: string) {
+      showInstallNote(msg, true);
+      const first = grid?.querySelector('input');
+      if (first instanceof HTMLInputElement) {
+        first.setAttribute('aria-invalid', 'true');
+        first.setAttribute('aria-describedby', 'tenant-install-msg');
+        first.focus();
+      }
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = APPLY_LABEL;
+      }
+    }
+
+    function resetInstall() {
+      pollActiva = false;
+      clearInstallError();
+      const notes = document.getElementById('tenant-notes');
+      if (notes instanceof HTMLInputElement) notes.value = '';
+      grid?.querySelectorAll<HTMLInputElement>('[data-mod]').forEach((i) => {
+        i.checked = false;
+      });
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = APPLY_LABEL;
+      }
+    }
+
+    function patchModulos(on: boolean) {
+      const url = new URL(window.location.href);
+      if (on) url.searchParams.set('modulos', '1');
+      else url.searchParams.delete('modulos');
+      history.replaceState(null, '', `${url.pathname}${url.search}`);
+    }
+
+    function openModules(fromUrl = false) {
+      if (!dlg) return;
+      if (!fromUrl) patchModulos(true);
+      resetInstall();
+      openBtn?.setAttribute('aria-expanded', 'true');
+      dlg.showModal();
+      const first = grid?.querySelector('input');
+      if (first instanceof HTMLInputElement) first.focus();
+    }
+
+    function closeModules() {
+      if (!dlg?.open) return;
+      pollActiva = false;
+      dlg.close();
+    }
+
+    dlg?.addEventListener('close', () => {
+      pollActiva = false;
+      resetInstall();
+      patchModulos(false);
+      openBtn?.setAttribute('aria-expanded', 'false');
+      if (document.activeElement === document.body) openBtn?.focus();
+    });
+
+    openBtn?.addEventListener('click', () => openModules(false));
+    cancelBtn?.addEventListener('click', () => closeModules());
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!Number.isFinite(tenantId) || !grid || !msgEl || !form || !submitBtn) return;
+      const mods = [...grid.querySelectorAll<HTMLInputElement>('[data-mod]:checked')].map((i) => i.value);
+      if (!mods.length) {
+        showInstallError('Seleccioná al menos un módulo y volvé a aplicar.');
+        return;
+      }
+      const fd = new FormData(form);
+      const action = String(fd.get('action') || 'install');
+      const notes = String(fd.get('notes') || '');
+      clearInstallError();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Aplicando…';
+      showInstallNote('Aplicando…');
+      let res: Response;
+      try {
+        res = await fetch(`/api/admin/tenants/${tenantId}/install`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ modules: mods, action, notes }),
+        });
+      } catch {
+        showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
+        return;
+      }
+      const data = (await res.json().catch(() => ({}))) as {
+        job_id?: number | null;
+        job_state?: string;
+        error?: { message?: string };
+      };
+      if (!res.ok) {
+        showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
+        return;
+      }
+      if (typeof data.job_id !== 'number') {
+        showInstallNote('Listo. Recargando…');
+        setTimeout(() => window.location.reload(), 700);
+        return;
+      }
+      const jobId = data.job_id;
+      pollActiva = true;
+      showInstallNote(describeJobState(data.job_state || 'pendiente'));
+      while (pollActiva) {
+        await new Promise((r) => setTimeout(r, 5000));
+        if (!pollActiva) return;
+        try {
+          const jr = await fetch(`/api/admin/tenants/${tenantId}/install/${jobId}`);
+          const jd = (await jr.json().catch(() => ({}))) as { state?: string };
+          if (!jr.ok) {
+            pollActiva = false;
+            showInstallError('No se pudo leer el avance. Probá de nuevo.');
+            return;
+          }
+          const estado = String(jd.state || '');
+          if (estado === 'error') {
+            pollActiva = false;
+            showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
+            return;
+          }
+          showInstallNote(describeJobState(estado));
+          if (!shouldPollJob(estado)) {
+            if (estado === 'hecho') {
+              showInstallNote(`${describeJobState(estado)} Recargando…`);
+              setTimeout(() => window.location.reload(), 900);
+            }
+            return;
+          }
+        } catch {
+          showInstallNote('Sin conexión. Reintentando…');
+        }
+      }
+    });
+
+    const chatRoot = document.getElementById('ia-chat-root') as HTMLDivElement | null;
+    const chatLog = document.getElementById('ia-chat-log') as HTMLDivElement | null;
+    const chatForm = document.getElementById('ia-chat-form') as HTMLFormElement | null;
+    const chatInput = document.getElementById('ia-chat-input') as HTMLInputElement | null;
+    const chatSend = document.getElementById('ia-chat-send') as HTMLButtonElement | null;
+    const chatErr = document.getElementById('ia-chat-error');
+    const chatDb = chatRoot?.dataset.db || db;
+    function uuidv4() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+    }
+    function appendChat(text: string) {
+      if (!chatLog) return;
+      const div = document.createElement('div');
+      div.className = 'chat-msg';
+      div.textContent = text;
+      chatLog.appendChild(div);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+    function notaAgente(data: { output?: { echo?: unknown } }): string {
+      const echo = data.output?.echo;
+      if (typeof echo === 'string' && echo.trim()) return echo.trim();
+      if (echo && typeof echo === 'object') {
+        const rec = echo as Record<string, unknown>;
+        if (typeof rec.message === 'string' && rec.message.trim()) return rec.message.trim();
+        if (typeof rec.text === 'string' && rec.text.trim()) return rec.text.trim();
+      }
+      return 'Listo.';
+    }
+    function chatFail(msg: string) {
+      if (chatErr instanceof HTMLElement) {
+        chatErr.hidden = false;
+        chatErr.textContent = msg;
+      }
+      chatInput?.setAttribute('aria-invalid', 'true');
+      chatInput?.focus();
+      if (chatSend) {
+        chatSend.disabled = false;
+        chatSend.textContent = 'Enviar';
+      }
+    }
+    chatForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = (chatInput?.value || '').trim();
+      if (chatErr instanceof HTMLElement) {
+        chatErr.hidden = true;
+        chatErr.textContent = '';
+      }
+      chatInput?.removeAttribute('aria-invalid');
+      if (!msg) {
+        chatFail('Escribí un mensaje.');
+        return;
+      }
+      if (chatSend) {
+        chatSend.disabled = true;
+        chatSend.textContent = 'Enviando…';
+      }
+      const requestId = uuidv4();
+      try {
+        const res = await fetch(`/api/modoops/${chatDb}/agent/run`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ message: msg, requestId }),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          output?: { echo?: unknown };
+          error?: string;
+        };
+        if (!res.ok) {
+          chatFail('No se pudo enviar. Probá de nuevo.');
+          return;
+        }
+        if (chatInput) chatInput.value = '';
+        appendChat(msg);
+        appendChat(notaAgente(data));
+        if (chatSend) {
+          chatSend.disabled = false;
+          chatSend.textContent = 'Enviar';
+        }
+      } catch {
+        chatFail('No se pudo enviar. Probá de nuevo.');
+      }
+    });
+
+    if (new URLSearchParams(window.location.search).get('modulos') === '1') openModules(true);
+  </script>
+</LightAppLayout>

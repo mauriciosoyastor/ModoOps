@@ -142,6 +142,11 @@ describe('contrato light-app papel (#215)', () => {
     expect(text).toContain('id="puesto-candado"');
     expect(text).toContain('aria-label="Desbloquear puesto"');
     expect(text).toContain('sesionDelPuesto({ persona: userName })');
+    expect(text).not.toContain('Armar sistema');
+    expect(text).toContain('/configuracion');
+    const configuracion = read('pages/tenant/[slug]/configuracion.astro');
+    expect(configuracion).toContain('Armar sistema');
+    expect(configuracion).toContain('id="tenant-install-dialog"');
     expect(text).not.toMatch(/sesionDelPuesto\(\{[^}]*caja/);
   });
 

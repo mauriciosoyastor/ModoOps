@@ -56,7 +56,6 @@ try {
   }
 }
 
-const hasIA = tenant?.modules_installed?.includes('IA ModoOps') ?? false;
 const homeTabParam = Astro.url.searchParams.get('tab') || '';
 const ancla: readonly ModuloAncla[] = ['mostrador', 'deposito', 'compras', 'fiscal_ar'];
 const enInicio = !ancla.includes(homeTabParam as ModuloAncla);
@@ -105,7 +104,10 @@ const puesto = sesionDelPuesto({ persona: userName });
       <div class="app-bar__sesion">
         {puesto.persona ? <p class="app-bar__persona">{puesto.persona}</p> : null}
         <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puesto.aviso}</p>
-        <button type="button" class="app-bar__accion" data-bloquear aria-pressed="false" data-abierto={puesto.bloquear} data-cerrado={puesto.desbloquear}>{puesto.bloquear}</button>
+        <div class="app-bar__par">
+          <button type="button" class="app-bar__accion" data-bloquear aria-pressed="false" data-abierto={puesto.bloquear} data-cerrado={puesto.desbloquear}>{puesto.bloquear}</button>
+          <a class="app-bar__accion" href={`/tenant/${slug}/configuracion`}>Configuración</a>
+        </div>
         <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
       </div>
     </header>
@@ -223,30 +225,6 @@ const puesto = sesionDelPuesto({ persona: userName });
             </div>
           )}
         </section>
-
-        <section class="panel-block region">
-          <h2 class="mo-section-label">Armar sistema</h2>
-          <p class="mo-empty__text">Instalá o quitá módulos de este comercio.</p>
-          <div id="tenant-install-root" data-tenant-id={tenant.id} data-db={tenant.db_name} data-installed={tenant.modules_installed ?? ''}></div>
-          <div class="actions">
-            <button type="button" id="tenant-install-open" class="mo-btn mo-btn--ghost" aria-expanded="false" aria-controls="tenant-install-dialog">Gestionar módulos</button>
-            <span class="mo-count">{tenant.modules_installed ? `Instalados: ${tenant.modules_installed}` : '0 módulos'}</span>
-          </div>
-          {hasIA ? (
-            <div class="chat" id="ia-chat-root" data-db={tenant.db_name}>
-              <h2 class="mo-section-label">Chat IA</h2>
-              <div id="ia-chat-log" class="chat-log" aria-live="polite"></div>
-              <form id="ia-chat-form" class="chat-form">
-                <label class="sr-only" for="ia-chat-input">Mensaje</label>
-                <input class="mo-field__control" id="ia-chat-input" name="message" placeholder="Ej.: stock del producto 42…" autocomplete="off" spellcheck="false" aria-describedby="ia-chat-error" />
-                <button type="submit" class="mo-btn mo-btn--ghost" id="ia-chat-send">Enviar</button>
-                <p id="ia-chat-error" class="mo-field__error" role="alert" hidden></p>
-              </form>
-            </div>
-          ) : (
-            <p class="mo-empty__text">IA no instalada — tildala en Gestionar módulos.</p>
-          )}
-        </section>
       </>
     ) : null}
     </div>
@@ -360,29 +338,6 @@ const puesto = sesionDelPuesto({ persona: userName });
     </div>
   </div>
 
-  <dialog id="tenant-install-dialog" class="mo-install-dialog" aria-labelledby="tenant-install-title">
-    <form method="dialog" id="tenant-install-form">
-      <h2 class="mo-dialog__title" id="tenant-install-title">Gestionar módulos — {tenant?.name}</h2>
-      <div class="mo-dialog__grid" id="tenant-install-grid"></div>
-      <div class="mo-field">
-        <label class="mo-field__label" for="tenant-notes">Notas</label>
-        <input class="mo-field__control" id="tenant-notes" name="notes" placeholder="Ticket, motivo…" spellcheck="false" autocomplete="off" />
-      </div>
-      <div class="mo-dialog__actions">
-        <label class="mo-field__label">
-          Acción
-          <select class="mo-field__control" name="action">
-            <option value="install">Instalar</option>
-            <option value="remove">Quitar</option>
-          </select>
-        </label>
-        <button type="submit" class="mo-btn mo-btn--primary" id="tenant-install-submit">Aplicar módulos</button>
-        <button type="button" class="mo-btn mo-btn--ghost" id="tenant-install-cancel">Cancelar</button>
-      </div>
-      <p id="tenant-install-msg" class="mo-banner mo-banner--danger" role="alert" hidden></p>
-    </form>
-  </dialog>
-
   <style>
     .shell { min-height: 100dvh; }
     .app-bar {
@@ -492,6 +447,12 @@ const puesto = sesionDelPuesto({ persona: userName });
       align-items: center;
       justify-self: end;
     }
+    .app-bar__par {
+      display: inline-flex;
+      flex-wrap: nowrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
     .app-bar__persona,
     .app-bar__aviso {
       margin: 0;
@@ -513,6 +474,7 @@ const puesto = sesionDelPuesto({ persona: userName });
       font-size: 0.92rem;
       cursor: pointer;
       touch-action: manipulation;
+      text-decoration: none;
       transition: background-color 140ms var(--mo-ease-out), color 140ms var(--mo-ease-out);
     }
     .page {
@@ -684,8 +646,6 @@ const puesto = sesionDelPuesto({ persona: userName });
   </style>
 
   <script>
-    import { CATALOGO_LABELS } from '../../../lib/catalogo.generated.ts';
-    import { describeJobState, shouldPollJob } from '../../../lib/bff/install-job.ts';
     import {
       resolveLeaveMs,
       openWithEnter,
@@ -694,7 +654,6 @@ const puesto = sesionDelPuesto({ persona: userName });
       trapTabKey,
     } from '../../../scripts/light-app-chrome.ts';
 
-    const CATALOGO = Object.entries(CATALOGO_LABELS) as unknown as readonly (readonly [string, string])[];
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const LEAVE_MS = resolveLeaveMs(reduceMotion, 140);
     const live = document.getElementById('live-polite');
@@ -999,183 +958,6 @@ const puesto = sesionDelPuesto({ persona: userName });
       trapTabKey(backdrop, ev);
     });
 
-    // Install modules (BFF)
-    const root = document.getElementById('tenant-install-root') as HTMLDivElement | null;
-    const dlg = document.getElementById('tenant-install-dialog') as HTMLDialogElement | null;
-    const grid = document.getElementById('tenant-install-grid') as HTMLDivElement | null;
-    const msgEl = document.getElementById('tenant-install-msg') as HTMLElement | null;
-    const form = document.getElementById('tenant-install-form') as HTMLFormElement | null;
-    const openBtn = document.getElementById('tenant-install-open') as HTMLButtonElement | null;
-    const cancelBtn = document.getElementById('tenant-install-cancel') as HTMLButtonElement | null;
-    const submitBtn = document.getElementById('tenant-install-submit') as HTMLButtonElement | null;
-    const tenantId = root ? Number(root.dataset.tenantId) : NaN;
-    const db = root ? String(root.dataset.db || '') : '';
-    const APPLY_LABEL = 'Aplicar módulos';
-    let pollActiva = false;
-
-    function renderGrid() {
-      if (!grid) return;
-      grid.replaceChildren();
-      for (const [key, label] of CATALOGO) {
-        const lbl = document.createElement('label');
-        const input = document.createElement('input');
-        input.type = 'checkbox';
-        input.className = 'mo-check';
-        input.value = key;
-        input.setAttribute('data-mod', '');
-        lbl.append(input, document.createTextNode(` ${label}`));
-        grid.appendChild(lbl);
-      }
-    }
-    renderGrid();
-
-    function showInstallNote(msg: string, alert = false) {
-      if (!msgEl) return;
-      msgEl.hidden = false;
-      msgEl.textContent = msg;
-      msgEl.setAttribute('role', alert ? 'alert' : 'status');
-      msgEl.classList.toggle('mo-banner', alert);
-      msgEl.classList.toggle('mo-banner--danger', alert);
-      msgEl.classList.toggle('mo-field__hint', !alert);
-    }
-
-    function clearInstallError() {
-      if (!msgEl) return;
-      msgEl.hidden = true;
-      msgEl.textContent = '';
-      grid?.querySelectorAll('input').forEach((node) => node.removeAttribute('aria-invalid'));
-    }
-
-    function showInstallError(msg: string) {
-      showInstallNote(msg, true);
-      const first = grid?.querySelector('input');
-      if (first instanceof HTMLInputElement) {
-        first.setAttribute('aria-invalid', 'true');
-        first.setAttribute('aria-describedby', 'tenant-install-msg');
-        first.focus();
-      }
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = APPLY_LABEL;
-      }
-    }
-
-    function resetInstall() {
-      pollActiva = false;
-      clearInstallError();
-      const notes = document.getElementById('tenant-notes');
-      if (notes instanceof HTMLInputElement) notes.value = '';
-      grid?.querySelectorAll<HTMLInputElement>('[data-mod]').forEach((i) => {
-        i.checked = false;
-      });
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = APPLY_LABEL;
-      }
-    }
-
-    function openModules(fromUrl = false) {
-      if (!dlg) return;
-      closeSheet(true, true);
-      if (!fromUrl) patchQuery({ modulos: '1', flujo: null });
-      resetInstall();
-      openBtn?.setAttribute('aria-expanded', 'true');
-      dlg.showModal();
-      const first = grid?.querySelector('input');
-      if (first instanceof HTMLInputElement) first.focus();
-    }
-
-    function closeModules(_keepQuery = false) {
-      if (!dlg?.open) return;
-      pollActiva = false;
-      dlg.close();
-    }
-
-    dlg?.addEventListener('close', () => {
-      pollActiva = false;
-      resetInstall();
-      patchQuery({ modulos: null });
-      openBtn?.setAttribute('aria-expanded', 'false');
-      if (document.activeElement === document.body) openBtn?.focus();
-    });
-
-    openBtn?.addEventListener('click', () => openModules(false));
-    cancelBtn?.addEventListener('click', () => closeModules());
-
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!Number.isFinite(tenantId) || !grid || !msgEl || !form || !submitBtn) return;
-      const mods = [...grid.querySelectorAll<HTMLInputElement>('[data-mod]:checked')].map((i) => i.value);
-      if (!mods.length) {
-        showInstallError('Seleccioná al menos un módulo y volvé a aplicar.');
-        return;
-      }
-      const fd = new FormData(form);
-      const action = String(fd.get('action') || 'install');
-      const notes = String(fd.get('notes') || '');
-      clearInstallError();
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Aplicando…';
-      showInstallNote('Aplicando…');
-      let res: Response;
-      try {
-        res = await fetch(`/api/admin/tenants/${tenantId}/install`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ modules: mods, action, notes }),
-        });
-      } catch {
-        showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
-        return;
-      }
-      const data = (await res.json().catch(() => ({}))) as {
-        job_id?: number | null;
-        job_state?: string;
-        error?: { message?: string };
-      };
-      if (!res.ok) {
-        showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
-        return;
-      }
-      if (typeof data.job_id !== 'number') {
-        showInstallNote('Listo. Recargando…');
-        setTimeout(() => window.location.reload(), 700);
-        return;
-      }
-      const jobId = data.job_id;
-      pollActiva = true;
-      showInstallNote(describeJobState(data.job_state || 'pendiente'));
-      while (pollActiva) {
-        await new Promise((r) => setTimeout(r, 5000));
-        if (!pollActiva) return;
-        try {
-          const jr = await fetch(`/api/admin/tenants/${tenantId}/install/${jobId}`);
-          const jd = (await jr.json().catch(() => ({}))) as { state?: string };
-          if (!jr.ok) {
-            pollActiva = false;
-            showInstallError('No se pudo leer el avance. Probá de nuevo.');
-            return;
-          }
-          const estado = String(jd.state || '');
-          if (estado === 'error') {
-            pollActiva = false;
-            showInstallError('No se pudo aplicar. Revisá los módulos e intentá de nuevo.');
-            return;
-          }
-          showInstallNote(describeJobState(estado));
-          if (!shouldPollJob(estado)) {
-            if (estado === 'hecho') {
-              showInstallNote(`${describeJobState(estado)} Recargando…`);
-              setTimeout(() => window.location.reload(), 900);
-            }
-            return;
-          }
-        } catch {
-          showInstallNote('Sin conexión. Reintentando…');
-        }
-      }
-    });
-
     // Home viva
     {
       const estadoEl = document.querySelector('[data-home-estado]');
@@ -1234,97 +1016,8 @@ const puesto = sesionDelPuesto({ persona: userName });
       }
     }
 
-    // Chat IA
-    const chatRoot = document.getElementById('ia-chat-root') as HTMLDivElement | null;
-    const chatLog = document.getElementById('ia-chat-log') as HTMLDivElement | null;
-    const chatForm = document.getElementById('ia-chat-form') as HTMLFormElement | null;
-    const chatInput = document.getElementById('ia-chat-input') as HTMLInputElement | null;
-    const chatSend = document.getElementById('ia-chat-send') as HTMLButtonElement | null;
-    const chatErr = document.getElementById('ia-chat-error');
-    const chatDb = chatRoot?.dataset.db || db;
-    function uuidv4() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = (Math.random() * 16) | 0;
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-      });
-    }
-    function appendChat(text: string) {
-      if (!chatLog) return;
-      const div = document.createElement('div');
-      div.className = 'chat-msg';
-      div.textContent = text;
-      chatLog.appendChild(div);
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
-    function notaAgente(data: { output?: { echo?: unknown } }): string {
-      const echo = data.output?.echo;
-      if (typeof echo === 'string' && echo.trim()) return echo.trim();
-      if (echo && typeof echo === 'object') {
-        const rec = echo as Record<string, unknown>;
-        if (typeof rec.message === 'string' && rec.message.trim()) return rec.message.trim();
-        if (typeof rec.text === 'string' && rec.text.trim()) return rec.text.trim();
-      }
-      return 'Listo.';
-    }
-    function chatFail(msg: string) {
-      if (chatErr instanceof HTMLElement) {
-        chatErr.hidden = false;
-        chatErr.textContent = msg;
-      }
-      chatInput?.setAttribute('aria-invalid', 'true');
-      chatInput?.focus();
-      if (chatSend) {
-        chatSend.disabled = false;
-        chatSend.textContent = 'Enviar';
-      }
-    }
-    chatForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const msg = (chatInput?.value || '').trim();
-      if (chatErr instanceof HTMLElement) {
-        chatErr.hidden = true;
-        chatErr.textContent = '';
-      }
-      chatInput?.removeAttribute('aria-invalid');
-      if (!msg) {
-        chatFail('Escribí un mensaje.');
-        return;
-      }
-      if (chatSend) {
-        chatSend.disabled = true;
-        chatSend.textContent = 'Enviando…';
-      }
-      const requestId = uuidv4();
-      try {
-        const res = await fetch(`/api/modoops/${chatDb}/agent/run`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ message: msg, requestId }),
-        });
-        const data = (await res.json().catch(() => ({}))) as {
-          output?: { echo?: unknown };
-          error?: string;
-        };
-        if (!res.ok) {
-          chatFail('No se pudo enviar. Probá de nuevo.');
-          return;
-        }
-        if (chatInput) chatInput.value = '';
-        appendChat(msg);
-        appendChat(notaAgente(data));
-        if (chatSend) {
-          chatSend.disabled = false;
-          chatSend.textContent = 'Enviar';
-        }
-      } catch {
-        chatFail('No se pudo enviar. Probá de nuevo.');
-      }
-    });
-
     const boot = new URLSearchParams(window.location.search);
     const flujoBoot = boot.get('flujo') || '';
     if (FLUJOS.has(flujoBoot)) openSheet(flujoBoot, true);
-    else if (boot.get('modulos') === '1') openModules(true);
   </script>
 </LightAppLayout>
