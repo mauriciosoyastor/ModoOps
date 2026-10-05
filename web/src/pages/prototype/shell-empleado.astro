@@ -25,12 +25,30 @@ const WIDGETS: Record<string, { a: string; b: string; la: string; lb: string }> 
 
 const w = WIDGETS[tab] ?? WIDGETS.mostrador;
 
-const TILES = [
-  { id: 'caja1', label: 'Abrir caja 1', hint: 'Turno en curso · listo para cobrar', value: 'Abrir' },
-  { id: 'caja2', label: 'Abrir caja 2', hint: 'Cerrada · listo para arrancar', value: 'Abrir' },
-  { id: 'stock', label: 'Consultar stock', hint: 'Por código o nombre', value: 'Buscar' },
-  { id: 'cobrar', label: 'Cobrar una OT', hint: 'Monto + efectivo/transferencia', value: 'Cobrar' },
-] as const;
+type Tile = { id: string; label: string; hint: string; value: string };
+
+const TILES_BY_TAB: Record<string, Tile[]> = {
+  mostrador: [
+    { id: 'caja1', label: 'Abrir caja 1', hint: 'Turno en curso · listo para cobrar', value: 'Abrir' },
+    { id: 'caja2', label: 'Abrir caja 2', hint: 'Cerrada · listo para arrancar', value: 'Abrir' },
+    { id: 'stock', label: 'Consultar stock', hint: 'Por código o nombre', value: 'Buscar' },
+    { id: 'cobrar', label: 'Cobrar una OT', hint: 'Monto + efectivo/transferencia', value: 'Cobrar' },
+  ],
+  deposito: [
+    { id: 'stock', label: 'Consultar stock', hint: 'Por código o nombre', value: 'Buscar' },
+    { id: 'minimo', label: 'Productos bajo mínimo', hint: '3 SKU para reponer', value: 'Ver' },
+  ],
+  compras: [
+    { id: 'oc', label: 'Compras sin recibir', hint: '4 órdenes abiertas', value: 'Ver' },
+    { id: 'recibir', label: 'Registrar recepción', hint: 'Contra la orden del proveedor', value: 'Recibir' },
+  ],
+  fiscal: [
+    { id: 'fc', label: 'Comprobantes de hoy', hint: '18 facturas emitidas', value: 'Ver' },
+    { id: 'rechazos', label: 'Revisar rechazos', hint: 'Ninguno pendiente', value: 'Revisar' },
+  ],
+};
+
+const tiles = TILES_BY_TAB[tab] ?? TILES_BY_TAB.mostrador;
 
 const isDev = Astro.url.searchParams.get('dev') === '1';
 const href = (v: string, t: string) => {
@@ -47,7 +65,7 @@ const SALUDO: Record<string, string> = {
 ---
 
 <!doctype html>
-<html lang="es-AR" data-theme={variant}>
+<html lang="es-AR" data-theme={variant} data-ops="1">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -58,46 +76,54 @@ const SALUDO: Record<string, string> = {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
     <style>
-      .page { max-width: 70rem; margin: 0 auto; padding: 0 1.25rem 2.75rem; }
+      .page { max-width: 70rem; margin: 0 auto; padding: 0 1rem 1.5rem; }
       .top {
         display: flex; flex-wrap: wrap; justify-content: space-between;
-        gap: 1rem; align-items: flex-start;
-        padding: 1.25rem 0 0.75rem;
+        gap: 0.75rem; align-items: flex-start;
+        padding: 0.75rem 0 0.5rem;
       }
-      .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-      .panel-block { margin-top: 1.05rem; }
+      .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      /* Regions: tabs → work (atajos) → secondary metrics */
+      .panel-block { margin-top: 0.75rem; }
       .widgets {
-        display: grid; gap: 0.55rem;
+        display: grid; gap: 0.5rem;
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .tiles {
-        display: grid; gap: 0.65rem; grid-template-columns: 1fr;
+        display: grid; gap: 0.5rem; grid-template-columns: 1fr;
       }
       @media (min-width: 640px) {
         .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
       .tenant-name {
-        margin: 0.15rem 0 0; font-size: 0.95rem; font-weight: 650;
+        margin: 0.15rem 0 0; font-size: 0.9375rem; font-weight: 650;
       }
-      .db { font-size: 0.75rem; font-weight: 500; color: var(--mo-muted); margin-left: 0.35rem; }
+      .db {
+        font-size: 0.8125rem; font-weight: 500; color: var(--mo-muted);
+        margin-left: 0.5rem; letter-spacing: 0.01em;
+      }
       .sheet-field-row {
-        display: grid; gap: 0.65rem;
+        display: grid; gap: 0.75rem;
         grid-template-columns: 1fr;
       }
       @media (min-width: 480px) {
         .sheet-field-row { grid-template-columns: 1fr 1fr; }
       }
       .sheet-result {
-        border: 1px solid var(--mo-line);
+        border: 0;
         border-radius: var(--mo-radius-sm);
         background: var(--mo-card);
-        padding: 0.75rem 0.9rem;
+        padding: 0.75rem 1rem;
         display: grid; gap: 0.25rem;
       }
       .sheet-result[hidden] { display: none; }
       .pay-options {
-        display: flex; flex-wrap: wrap; gap: 0.35rem;
+        display: flex; flex-wrap: wrap; gap: 0.5rem;
       }
+      .mo-sheet__actions {
+        justify-content: flex-end;
+      }
+      .sheet-list { display: grid; gap: 0.5rem; }
     </style>
   </head>
   <body>
@@ -127,7 +153,7 @@ const SALUDO: Record<string, string> = {
         </div>
         <div class="actions">
           <a class="mo-btn mo-btn--ghost" href={`/prototype/control-plane-light?variant=${variant}`}>← Tenants</a>
-          <button type="button" class="mo-btn" id="btn-cerrar">Cerrar sesión</button>
+          <button type="button" class="mo-btn mo-btn--ghost" id="btn-cerrar">Cerrar sesión</button>
         </div>
       </header>
 
@@ -140,20 +166,20 @@ const SALUDO: Record<string, string> = {
       <section class="panel-block" aria-label="Atajos">
         <p class="mo-section-label">Empezá por acá</p>
         <div class="tiles">
-          {TILES.map((tile) => (
+          {tiles.map((tile) => (
             <button type="button" class="mo-tile" data-sheet={tile.id}>
               <div>
                 <p class="mo-tile__label">{tile.label}</p>
                 <p class="mo-tile__hint">{tile.hint}</p>
               </div>
-              <span class="mo-pill mo-pill--accent">{tile.value} →</span>
+              <span class="mo-pill mo-pill--quiet">{tile.value} →</span>
             </button>
           ))}
         </div>
       </section>
 
       <section class="panel-block" aria-label="Resumen del día">
-        <p class="mo-section-label">Hoy</p>
+        <p class="mo-section-label">Hoy · {TABS.find((t) => t.id === tab)?.label ?? 'Mostrador'}</p>
         <div class="widgets">
           <article class="mo-kpi">
             <p class="mo-kpi__label">{w.la}</p>
@@ -169,7 +195,7 @@ const SALUDO: Record<string, string> = {
 
     <div class="mo-toast-region" id="toast-region"></div>
 
-    {/* FlowSheet: Cobrar OT */}
+    {tab === 'mostrador' && (
     <div class="mo-sheet-backdrop" id="sheet-cobrar" hidden>
       <div
         class="mo-sheet"
@@ -205,14 +231,16 @@ const SALUDO: Record<string, string> = {
             </div>
           </fieldset>
           <div class="mo-sheet__actions">
-            <button type="submit" class="mo-btn mo-btn--primary">Cobrar</button>
             <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cancelar</button>
+            <button type="submit" class="mo-btn mo-btn--primary">Cobrar</button>
           </div>
         </form>
       </div>
     </div>
+    )}
 
-    {/* FlowSheet: Caja 1 */}
+    {tab === 'mostrador' && (
+    <>
     <div class="mo-sheet-backdrop" id="sheet-caja1" hidden>
       <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja1-title">
         <div class="mo-sheet__top">
@@ -227,14 +255,12 @@ const SALUDO: Record<string, string> = {
             <p class="mo-field__error" id="err-fondo1" role="alert" hidden></p>
           </div>
           <div class="mo-sheet__actions">
-            <button type="submit" class="mo-btn mo-btn--primary">Abrir turno</button>
             <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cancelar</button>
+            <button type="submit" class="mo-btn mo-btn--primary">Abrir turno</button>
           </div>
         </form>
       </div>
     </div>
-
-    {/* FlowSheet: Caja 2 */}
     <div class="mo-sheet-backdrop" id="sheet-caja2" hidden>
       <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja2-title">
         <div class="mo-sheet__top">
@@ -249,14 +275,16 @@ const SALUDO: Record<string, string> = {
             <p class="mo-field__error" id="err-fondo2" role="alert" hidden></p>
           </div>
           <div class="mo-sheet__actions">
-            <button type="submit" class="mo-btn mo-btn--primary">Abrir turno</button>
             <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cancelar</button>
+            <button type="submit" class="mo-btn mo-btn--primary">Abrir turno</button>
           </div>
         </form>
       </div>
     </div>
+    </>
+    )}
 
-    {/* FlowSheet: Stock */}
+    {(tab === 'mostrador' || tab === 'deposito') && (
     <div class="mo-sheet-backdrop" id="sheet-stock" hidden>
       <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-stock-title">
         <div class="mo-sheet__top">
@@ -275,12 +303,127 @@ const SALUDO: Record<string, string> = {
             <span id="stock-meta" style="color:var(--mo-muted);font-size:0.88rem"></span>
           </div>
           <div class="mo-sheet__actions">
-            <button type="submit" class="mo-btn mo-btn--primary">Buscar</button>
             <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+            <button type="submit" class="mo-btn mo-btn--primary">Buscar</button>
           </div>
         </form>
       </div>
     </div>
+    )}
+
+    {tab === 'deposito' && (
+    <div class="mo-sheet-backdrop" id="sheet-minimo" hidden>
+      <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-minimo-title">
+        <div class="mo-sheet__top">
+          <h2 class="mo-sheet__title" id="sheet-minimo-title">Productos bajo mínimo</h2>
+          <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+        </div>
+        <p class="mo-sheet__hint">Tres SKU para reponer. Demo: no genera la compra.</p>
+        <div class="mo-sheet__body">
+          <div class="sheet-list">
+            <div class="sheet-result">
+              <strong>Látex interior blanco 20&nbsp;L</strong>
+              <span style="color:var(--mo-muted);font-size:0.88rem">2&nbsp;u. · mínimo 8</span>
+            </div>
+            <div class="sheet-result">
+              <strong>Esmalte sintético negro 4&nbsp;L</strong>
+              <span style="color:var(--mo-muted);font-size:0.88rem">1&nbsp;u. · mínimo 6</span>
+            </div>
+            <div class="sheet-result">
+              <strong>Rodillo lanilla 22&nbsp;cm</strong>
+              <span style="color:var(--mo-muted);font-size:0.88rem">3&nbsp;u. · mínimo 10</span>
+            </div>
+          </div>
+          <div class="mo-sheet__actions">
+            <button type="button" class="mo-btn mo-btn--primary" data-sheet-close>Listo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    )}
+
+    {tab === 'compras' && (
+    <>
+    <div class="mo-sheet-backdrop" id="sheet-oc" hidden>
+      <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-oc-title">
+        <div class="mo-sheet__top">
+          <h2 class="mo-sheet__title" id="sheet-oc-title">Compras sin recibir</h2>
+          <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+        </div>
+        <p class="mo-sheet__hint">Cuatro órdenes abiertas. Demo: no avisa al proveedor.</p>
+        <div class="mo-sheet__body">
+          <div class="sheet-list">
+            <div class="sheet-result"><strong>Alba</strong><span style="color:var(--mo-muted);font-size:0.88rem">Por recibir · USD&nbsp;1.240</span></div>
+            <div class="sheet-result"><strong>Colorín</strong><span style="color:var(--mo-muted);font-size:0.88rem">En camino · USD&nbsp;860</span></div>
+            <div class="sheet-result"><strong>Sinteplast</strong><span style="color:var(--mo-muted);font-size:0.88rem">Por recibir · USD&nbsp;410</span></div>
+            <div class="sheet-result"><strong>Tersuave</strong><span style="color:var(--mo-muted);font-size:0.88rem">Confirmada · USD&nbsp;220</span></div>
+          </div>
+          <div class="mo-sheet__actions">
+            <button type="button" class="mo-btn mo-btn--primary" data-sheet-close>Listo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mo-sheet-backdrop" id="sheet-recibir" hidden>
+      <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-recibir-title">
+        <div class="mo-sheet__top">
+          <h2 class="mo-sheet__title" id="sheet-recibir-title">Registrar recepción</h2>
+          <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+        </div>
+        <p class="mo-sheet__hint">Anotá la orden que llegó. Demo: no mueve el stock.</p>
+        <form class="mo-sheet__body" id="form-recibir" novalidate>
+          <div class="mo-field" id="field-oc">
+            <label class="mo-field__label" for="oc-num">Nº de orden</label>
+            <input class="mo-field__control" id="oc-num" name="oc" type="text" inputmode="text" autocomplete="off" required placeholder="OC-104" />
+            <p class="mo-field__error" id="err-oc" role="alert" hidden></p>
+          </div>
+          <div class="mo-sheet__actions">
+            <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cancelar</button>
+            <button type="submit" class="mo-btn mo-btn--primary">Registrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    </>
+    )}
+
+    {tab === 'fiscal' && (
+    <>
+    <div class="mo-sheet-backdrop" id="sheet-fc" hidden>
+      <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-fc-title">
+        <div class="mo-sheet__top">
+          <h2 class="mo-sheet__title" id="sheet-fc-title">Comprobantes de hoy</h2>
+          <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+        </div>
+        <p class="mo-sheet__hint">18 facturas emitidas. Estas tres son las últimas.</p>
+        <div class="mo-sheet__body">
+          <div class="sheet-list">
+            <div class="sheet-result"><strong>FC A 0003-00018421</strong><span style="color:var(--mo-muted);font-size:0.88rem">Pinturerías del Sur · USD&nbsp;86.400</span></div>
+            <div class="sheet-result"><strong>FC B 0003-00018420</strong><span style="color:var(--mo-muted);font-size:0.88rem">Consumidor final · USD&nbsp;12.350</span></div>
+            <div class="sheet-result"><strong>FC A 0003-00018419</strong><span style="color:var(--mo-muted);font-size:0.88rem">Obra Mitre · USD&nbsp;41.200</span></div>
+          </div>
+          <div class="mo-sheet__actions">
+            <button type="button" class="mo-btn mo-btn--primary" data-sheet-close>Listo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mo-sheet-backdrop" id="sheet-rechazos" hidden>
+      <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-rechazos-title">
+        <div class="mo-sheet__top">
+          <h2 class="mo-sheet__title" id="sheet-rechazos-title">Revisar rechazos</h2>
+          <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
+        </div>
+        <p class="mo-sheet__hint">No hay rechazos hoy.</p>
+        <div class="mo-sheet__body">
+          <div class="mo-sheet__actions">
+            <button type="button" class="mo-btn mo-btn--primary" data-sheet-close>Listo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </>
+    )}
 
     <div class="mo-dialog-backdrop" id="confirm-backdrop" hidden>
       <div
@@ -506,6 +649,18 @@ const SALUDO: Record<string, string> = {
         if (metaEl) metaEl.textContent = `${hit.stock} u. · ubicación ${hit.ubi}`;
         if (result) result.hidden = false;
         announce(`${hit.name}: ${hit.stock} unidades`);
+      });
+
+      document.getElementById('form-recibir')?.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        clearErr('field-oc', 'err-oc');
+        const oc = /** @type {HTMLInputElement} */ (document.getElementById('oc-num'));
+        if (!oc?.value.trim()) {
+          setErr('field-oc', 'err-oc', 'Escribí el número de orden.', oc);
+          return;
+        }
+        closeSheet();
+        showToast('Recepción registrada', `Orden ${oc.value.trim()} ingresada a depósito.`);
       });
 
       btnCerrar?.addEventListener('click', openConfirm);
