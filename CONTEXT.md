@@ -111,6 +111,14 @@ _Avoid_: prometer POS + B2B avanzado + e-commerce en Fase 1.
 App de caja/mostrador para ventas presenciales; canal de venta incluido por defecto en el **Paquete ancla** retail (hasta **2 cajas** en 1 sucursal).
 _Avoid_: usar “ventas” genérico cuando el alcance es solo backend sin TPV; ilimitar cajas sin cotizar.
 
+**Ticket**:
+La venta que se arma en una caja del **Punto de venta**: líneas, cantidades y el total que paga quien está en el mostrador.
+_Avoid_: factura, cotización, orden de venta.
+
+**Moneda del mostrador**:
+Pesos (ARS) en el **Ticket**. Distinta de la **Moneda de cotización**, que sigue en dólares para honorarios y propuestas.
+_Avoid_: mezclar pesos y dólares en la misma pantalla; tratar el ticket como una cotización.
+
 **Variantes básicas (producto)**:
 Productos con atributos limitados (default: hasta **2 atributos** por plantilla de producto); adecuado a retail pinturería sin explosión de combinaciones.
 _Avoid_: “variantes ilimitadas” en el ancla; matrices de cientos de SKUs sin migración/add-on.

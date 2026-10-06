@@ -3,6 +3,7 @@ import { BffError } from "./errors.ts";
 import type { HubPayload, LauncherPayload, SessionInfo } from "./types.ts";
 import { LEAD_FIELDS, buildLeadDomain, type LeadFilters, type LeadRow } from "./leads.ts";
 import { captacionAuditDetail, captacionLeadPayload, type CaptacionInput } from "./captacion.ts";
+import { elegirCaja, urlEntradaPos, type CajaConfig } from "./caja-pos.ts";
 
 type JsonRpcResponse<T> = { result?: T; error?: unknown };
 
@@ -325,5 +326,31 @@ export class OdooAdapter implements BackendClient {
   async purgeLeads(odooSessionId: string): Promise<{ purged: number }> {
     const purged = await this.#callKw<number>(odooSessionId, "modoops.lead", "purge_expired_leads", [[]]);
     return { purged: Number(purged) || 0 };
+  }
+
+  async entrarAlPuntoDeVenta(
+    odooSessionId: string,
+    caja: 1 | 2,
+    fondo: number,
+    db: string,
+  ): Promise<{ url: string }> {
+    const rows = await this.#callKw<CajaConfig[]>(
+      odooSessionId,
+      "pos.config",
+      "search_read",
+      [[], ["id", "name"]],
+      { order: "id", limit: 2 },
+    );
+    const elegida = elegirCaja(rows || [], caja);
+    if (!elegida) throw new BffError("action_failed", 502, "No hay punto de venta para esa caja.");
+    const prep = await this.#callKw<{ token?: string }>(
+      odooSessionId,
+      "pos.config",
+      "modoops_preparar_entrada",
+      [[elegida.id], fondo],
+    );
+    const token = prep?.token;
+    if (!token) throw new BffError("action_failed", 502, "No se pudo abrir el punto de venta.");
+    return { url: urlEntradaPos(this.#baseUrl, db, token) };
   }
 }

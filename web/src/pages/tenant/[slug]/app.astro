@@ -96,20 +96,24 @@ const puesto = sesionDelPuesto({ persona: userName });
   <div class="shell" id="contenido">
     <header class="app-bar">
       <p class="app-bar__brand" translate="no">ModoOps</p>
-      <nav class="app-bar__nav" aria-label="Módulos">
-        {inicio.nav.map((item) => (
-          <a class="app-link" href={item.href} aria-current={item.actual ? 'page' : undefined}>{item.label}</a>
-        ))}
-      </nav>
-      <div class="app-bar__sesion">
-        {puesto.persona ? <p class="app-bar__persona">{puesto.persona}</p> : null}
-        <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puesto.aviso}</p>
-        <div class="app-bar__par">
-          <button type="button" class="app-bar__accion" data-bloquear aria-pressed="false" data-abierto={puesto.bloquear} data-cerrado={puesto.desbloquear}>{puesto.bloquear}</button>
+      <div class="app-bar__pills">
+        <nav class="app-bar__nav" aria-label="Módulos">
+          {inicio.nav.map((item) => (
+            <a class="app-link" href={item.href} aria-current={item.actual ? 'page' : undefined}>{item.label}</a>
+          ))}
+        </nav>
+        <div class="app-bar__sesion">
+          <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puesto.aviso}</p>
           <a class="app-bar__accion" href={`/tenant/${slug}/configuracion`}>Configuración</a>
+          <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
         </div>
-        <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
       </div>
+      <button type="button" class="app-bar__candado" data-bloquear aria-pressed="false" aria-label={puesto.bloquear} data-abierto={puesto.bloquear} data-cerrado={puesto.desbloquear}>
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="11" width="14" height="9" rx="2"></rect>
+          <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
+        </svg>
+      </button>
     </header>
 
     <div class="page" id="puesto-trabajo">
@@ -139,37 +143,35 @@ const puesto = sesionDelPuesto({ persona: userName });
 
         <section class="panel-block" aria-label="Atajos operativos">
           <p class="mo-section-label">Empezá por acá</p>
-          <div class="work">
+          <div class="tiles">
             <button type="button" class="mo-tile mo-tile--now" data-sheet="caja1">
               <span>
                 <p class="mo-tile__label">Abrir caja 1</p>
                 <p class="mo-tile__hint">Turno en curso · listo para cobrar</p>
               </span>
-              <span class="mo-tile__go" aria-hidden="true">Abrir</span>
+              <span class="mo-pill mo-pill--quiet" aria-hidden="true">Abrir</span>
             </button>
-            <div class="tiles">
-              <button type="button" class="mo-tile" data-sheet="caja2">
-                <span>
-                  <p class="mo-tile__label">Abrir caja 2</p>
-                  <p class="mo-tile__hint">Cerrada · listo para arrancar</p>
-                </span>
-                <span class="mo-pill mo-pill--quiet" aria-hidden="true">Abrir</span>
-              </button>
-              <button type="button" class="mo-tile" data-sheet="stock">
-                <span>
-                  <p class="mo-tile__label">Consultar stock</p>
-                  <p class="mo-tile__hint">Por código o nombre</p>
-                </span>
-                <span class="mo-pill mo-pill--quiet" aria-hidden="true">Buscar</span>
-              </button>
-              <button type="button" class="mo-tile" data-sheet="cobrar">
-                <span>
-                  <p class="mo-tile__label">Cobrar una OT</p>
-                  <p class="mo-tile__hint">Monto + efectivo/transferencia</p>
-                </span>
-                <span class="mo-pill mo-pill--quiet" aria-hidden="true">Cobrar</span>
-              </button>
-            </div>
+            <button type="button" class="mo-tile" data-sheet="caja2">
+              <span>
+                <p class="mo-tile__label">Abrir caja 2</p>
+                <p class="mo-tile__hint">Cerrada · listo para arrancar</p>
+              </span>
+              <span class="mo-pill mo-pill--quiet" aria-hidden="true">Abrir</span>
+            </button>
+            <button type="button" class="mo-tile" data-sheet="stock">
+              <span>
+                <p class="mo-tile__label">Consultar stock</p>
+                <p class="mo-tile__hint">Por código o nombre</p>
+              </span>
+              <span class="mo-pill mo-pill--quiet" aria-hidden="true">Buscar</span>
+            </button>
+            <button type="button" class="mo-tile" data-sheet="cobrar">
+              <span>
+                <p class="mo-tile__label">Cobrar una OT</p>
+                <p class="mo-tile__hint">Monto + efectivo/transferencia</p>
+              </span>
+              <span class="mo-pill mo-pill--quiet" aria-hidden="true">Cobrar</span>
+            </button>
           </div>
         </section>
 
@@ -278,11 +280,12 @@ const puesto = sesionDelPuesto({ persona: userName });
   </div>
 
   <div class="mo-sheet-backdrop" id="sheet-caja1" hidden>
-    <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja1-title">
+    <div class="mo-sheet mo-sheet--caja" role="dialog" aria-modal="true" aria-labelledby="sheet-caja1-title">
       <div class="mo-sheet__top">
         <h2 class="mo-sheet__title" id="sheet-caja1-title">Abrir caja 1</h2>
         <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
       </div>
+      <p class="mo-sheet__hint">Con este fondo entrás al punto de venta.</p>
       <form class="mo-sheet__body" id="form-caja1">
         <div class="mo-field" id="field-fondo1">
           <label class="mo-field__label" for="fondo1">Fondo inicial (USD)</label>
@@ -297,11 +300,12 @@ const puesto = sesionDelPuesto({ persona: userName });
   </div>
 
   <div class="mo-sheet-backdrop" id="sheet-caja2" hidden>
-    <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja2-title">
+    <div class="mo-sheet mo-sheet--caja" role="dialog" aria-modal="true" aria-labelledby="sheet-caja2-title">
       <div class="mo-sheet__top">
         <h2 class="mo-sheet__title" id="sheet-caja2-title">Abrir caja 2</h2>
         <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
       </div>
+      <p class="mo-sheet__hint">Con este fondo entrás al punto de venta.</p>
       <form class="mo-sheet__body" id="form-caja2">
         <div class="mo-field" id="field-fondo2">
           <label class="mo-field__label" for="fondo2">Fondo inicial (USD)</label>
@@ -341,10 +345,10 @@ const puesto = sesionDelPuesto({ persona: userName });
   <style>
     .shell { min-height: 100dvh; }
     .app-bar {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-      gap: 0.75rem 1.25rem;
+      display: flex;
+      flex-wrap: nowrap;
       align-items: center;
+      gap: 0.75rem 1rem;
       padding:
         max(0.85rem, env(safe-area-inset-top))
         max(1.35rem, env(safe-area-inset-right))
@@ -379,17 +383,27 @@ const puesto = sesionDelPuesto({ persona: userName });
       font-size: 0.85rem;
       color: var(--mo-muted);
     }
-    .app-bar__nav {
+    .app-bar__pills {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.15rem;
+      flex-wrap: nowrap;
       align-items: center;
-      justify-self: center;
-      margin: 0;
+      gap: 0.15rem;
+      margin-left: auto;
       padding: 0.2rem;
       border: 1px solid var(--mo-line);
       border-radius: 999px;
       background: var(--mo-card);
+    }
+    .app-bar__nav,
+    .app-bar__sesion {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.15rem;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
     }
     .app-link {
       display: inline-flex;
@@ -409,7 +423,9 @@ const puesto = sesionDelPuesto({ persona: userName });
       transition: color 140ms var(--mo-ease-out), background-color 140ms var(--mo-ease-out);
     }
     @media (hover: hover) and (pointer: fine) {
-      .app-link:hover { color: var(--mo-ink); }
+      .app-link:hover,
+      .app-bar__accion:hover,
+      .app-bar__candado:hover { color: var(--mo-ink); }
     }
     .app-link[aria-current='page'] {
       background: var(--mo-hero);
@@ -440,38 +456,38 @@ const puesto = sesionDelPuesto({ persona: userName });
       cursor: pointer;
       touch-action: manipulation;
     }
-    .app-bar__sesion {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem 0.75rem;
-      align-items: center;
-      justify-self: end;
-    }
-    .app-bar__par {
-      display: inline-flex;
-      flex-wrap: nowrap;
-      gap: 0.75rem;
-      align-items: center;
-    }
-    .app-bar__persona,
-    .app-bar__aviso {
-      margin: 0;
-      font-size: 0.92rem;
-    }
-    .app-bar__persona { color: var(--mo-ink); font-weight: 650; }
-    .app-bar__aviso { color: var(--mo-muted); }
-    .app-bar__aviso { flex-basis: 100%; }
-    .app-bar__accion {
+    .app-bar__candado {
       display: inline-flex;
       align-items: center;
-      min-height: 44px;
-      padding: 0 0.75rem;
+      justify-content: center;
+      flex: none;
+      width: 44px;
+      height: 44px;
+      padding: 0;
       border: 1px solid var(--mo-line);
       border-radius: 999px;
       background: var(--mo-card);
       color: var(--mo-ink);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .app-bar__aviso {
+      margin: 0;
+      font-size: 0.92rem;
+      color: var(--mo-muted);
+    }
+    .app-bar__accion {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 0.85rem;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--mo-muted);
       font: inherit;
       font-size: 0.92rem;
+      font-weight: 500;
       cursor: pointer;
       touch-action: manipulation;
       text-decoration: none;
@@ -525,26 +541,23 @@ const puesto = sesionDelPuesto({ persona: userName });
       padding-top: 0.85rem;
       border-top: 1px solid var(--mo-line);
     }
-    .work { display: grid; gap: 0.5rem; }
     .mo-tile--now {
       border-left: 3px solid var(--mo-accent);
       background: var(--mo-canvas);
     }
-    .mo-tile__go {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 44px;
-      padding: 0.5rem 1rem;
-      border-radius: var(--mo-radius-sm);
-      background: var(--mo-accent);
-      color: var(--mo-accent-ink);
-      font-weight: 650;
-      font-size: 0.92rem;
+    .mo-sheet--caja {
+      min-height: 0;
+    }
+    .mo-sheet--caja .mo-sheet__body {
+      flex: 0 0 auto;
+      align-content: start;
+    }
+    .mo-sheet--caja .mo-field__control {
+      height: 2.75rem;
     }
     .tiles { display: grid; gap: 0.5rem; grid-template-columns: 1fr; }
     @media (min-width: 720px) {
-      .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     .launcher-grid {
       display: grid;
@@ -735,7 +748,6 @@ const puesto = sesionDelPuesto({ persona: userName });
     function openSheet(id: string, fromUrl = false) {
       const el = document.getElementById(`sheet-${id}`);
       if (!el) return;
-      closeModules(true);
       closeSheet(true, true);
       if (!fromUrl) patchQuery({ flujo: id, modulos: null });
       lastFocus = document.activeElement as HTMLElement | null;
@@ -837,7 +849,7 @@ const puesto = sesionDelPuesto({ persona: userName });
       showToast('Cobro registrado', `OT ${otNum} · USD ${montoNum} · ${pagoVal}`);
     });
 
-    function bindCaja(formId: string, fieldId: string, errId: string, inputId: string, label: string) {
+    function bindCaja(formId: string, fieldId: string, errId: string, inputId: string, caja: 1 | 2) {
       document.getElementById(formId)?.addEventListener('submit', (ev) => {
         ev.preventDefault();
         clearErr(fieldId, errId);
@@ -847,12 +859,32 @@ const puesto = sesionDelPuesto({ persona: userName });
           return;
         }
         const fondoVal = fondo.value.trim();
-        closeSheet();
-        showToast(`${label} abierta`, `Fondo inicial USD ${fondoVal}.`);
+        const slugM = window.location.pathname.match(/^\/tenant\/([^/]+)\/app/);
+        const homeSlug = slugM ? slugM[1] : '';
+        const submit = (ev.target as HTMLFormElement).querySelector('button[type="submit"]') as HTMLButtonElement | null;
+        if (submit) submit.disabled = true;
+        void fetch(`/api/tenant/${homeSlug}/caja`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ caja, fondo: fondoVal }),
+        })
+          .then(async (res) => {
+            const data = (await res.json().catch(() => null)) as { url?: string; error?: { message?: string } } | null;
+            if (!res.ok || !data?.url) {
+              setErr(fieldId, errId, data?.error?.message || 'No se pudo abrir el punto de venta.', fondo);
+              if (submit) submit.disabled = false;
+              return;
+            }
+            window.location.assign(data.url);
+          })
+          .catch(() => {
+            setErr(fieldId, errId, 'No se pudo abrir el punto de venta.', fondo);
+            if (submit) submit.disabled = false;
+          });
       });
     }
-    bindCaja('form-caja1', 'field-fondo1', 'err-fondo1', 'fondo1', 'Caja 1');
-    bindCaja('form-caja2', 'field-fondo2', 'err-fondo2', 'fondo2', 'Caja 2');
+    bindCaja('form-caja1', 'field-fondo1', 'err-fondo1', 'fondo1', 1);
+    bindCaja('form-caja2', 'field-fondo2', 'err-fondo2', 'fondo2', 2);
 
     document.getElementById('form-stock')?.addEventListener('submit', (ev) => {
       ev.preventDefault();
@@ -891,7 +923,7 @@ const puesto = sesionDelPuesto({ persona: userName });
       if (!abierto || !cerrado) return;
       if (bloqueado) closeSheet(true);
       btn.setAttribute('aria-pressed', bloqueado ? 'true' : 'false');
-      btn.textContent = bloqueado ? cerrado : abierto;
+      btn.setAttribute('aria-label', bloqueado ? cerrado : abierto);
       candado.hidden = !bloqueado;
       document.documentElement.style.overflow = bloqueado ? 'hidden' : '';
       puestoTapados().forEach((el) => el.toggleAttribute('inert', bloqueado));
