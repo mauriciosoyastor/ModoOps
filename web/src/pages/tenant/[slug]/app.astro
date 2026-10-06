@@ -253,7 +253,7 @@ const puesto = sesionDelPuesto({ persona: userName });
         <h2 class="mo-sheet__title" id="sheet-cobrar-title">Cobrar una OT</h2>
         <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
       </div>
-      <p class="mo-sheet__hint">Registrá el cobro con monto en USD.</p>
+      <p class="mo-sheet__hint">Registrá el cobro con monto en ARS.</p>
       <form class="mo-sheet__body" id="form-cobrar">
         <div class="mo-field" id="field-ot">
           <label class="mo-field__label" for="ot-num">Número de OT</label>
@@ -261,7 +261,7 @@ const puesto = sesionDelPuesto({ persona: userName });
           <p class="mo-field__error" id="err-ot" role="alert" hidden></p>
         </div>
         <div class="mo-field" id="field-monto">
-          <label class="mo-field__label" for="ot-monto">Monto (USD)</label>
+          <label class="mo-field__label" for="ot-monto">Monto (ARS)</label>
           <input class="mo-field__control" id="ot-monto" name="monto" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="err-monto" />
           <p class="mo-field__error" id="err-monto" role="alert" hidden></p>
         </div>
@@ -666,6 +666,7 @@ const puesto = sesionDelPuesto({ persona: userName });
       showToast as mountToast,
       trapTabKey,
     } from '../../../scripts/light-app-chrome.ts';
+    import { textoCajaHoy, textoSinMoneda } from '../../../lib/bff/caja-pos.ts';
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const LEAVE_MS = resolveLeaveMs(reduceMotion, 140);
@@ -846,7 +847,7 @@ const puesto = sesionDelPuesto({ persona: userName });
       const montoNum = monto.value.trim();
       const pagoVal = pago?.value || 'efectivo';
       closeSheet();
-      showToast('Cobro registrado', `OT ${otNum} · USD ${montoNum} · ${pagoVal}`);
+      showToast('Cobro registrado', `OT ${otNum} · ARS ${montoNum} · ${pagoVal}`);
     });
 
     function bindCaja(formId: string, fieldId: string, errId: string, inputId: string, caja: 1 | 2) {
@@ -1003,7 +1004,6 @@ const puesto = sesionDelPuesto({ persona: userName });
         const slugM = window.location.pathname.match(/^\/tenant\/([^/]+)\/app/);
         const homeSlug = slugM ? slugM[1] : '';
         const homeTab = new URLSearchParams(window.location.search).get('tab') || '';
-        const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
         let montos: { cajaHoy: number; porCobrar: number; stockValorizado: number; vsAyerPct: number } | null = null;
         let oculto = false;
         const skeleton = document.querySelector('[data-home-skeleton]');
@@ -1014,10 +1014,9 @@ const puesto = sesionDelPuesto({ persona: userName });
           ojoBtn.hidden = false;
         };
         const pinta = () => {
-          const txt = (v: number) => (oculto ? 'ARS ∗∗∗' : fmt.format(v));
-          cajaEl.textContent = montos ? txt(montos.cajaHoy) : '—';
-          if (porCobrarEl) porCobrarEl.textContent = montos ? txt(montos.porCobrar) : '—';
-          if (stockEl) stockEl.textContent = montos ? txt(montos.stockValorizado) : '—';
+          cajaEl.textContent = montos ? textoCajaHoy(montos.cajaHoy, oculto) : '—';
+          if (porCobrarEl) porCobrarEl.textContent = montos ? textoSinMoneda(montos.porCobrar, oculto) : '—';
+          if (stockEl) stockEl.textContent = montos ? textoSinMoneda(montos.stockValorizado, oculto) : '—';
           if (vsEl instanceof HTMLElement && montos) {
             const p = montos.vsAyerPct;
             vsEl.textContent = p === 0 ? '' : `${p > 0 ? '↑' : '↓'} ${Math.abs(p)}% vs ayer`;

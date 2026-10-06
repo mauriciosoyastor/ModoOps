@@ -2,14 +2,26 @@ export type CajaConfig = { id: number; name: string };
 
 /** Fondo inicial en pesos. Acepta coma decimal. Vacío o negativo no sirven. */
 
-/** El precio del ticket es el de la caja, en pesos. Otra moneda no entra. */
-export function precioDelMostrador(
-  moneda: string,
-  precio: number,
-): { moneda: "ARS"; precio: number } | null {
-  if (moneda !== "ARS") return null;
-  if (!Number.isFinite(precio) || precio < 0) return null;
-  return { moneda: "ARS", precio };
+/** El número de la caja es el precio del ticket. No se convierte ni se descarta. */
+export function precioDelMostrador(_moneda: string, precio: number): number {
+  return precio;
+}
+
+const pesos = new Intl.NumberFormat("es-AR", {
+  style: "currency",
+  currency: "ARS",
+  maximumFractionDigits: 0,
+});
+const numero = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 });
+
+/** Caja de hoy, en pesos. */
+export function textoCajaHoy(valor: number, oculto: boolean): string {
+  return oculto ? "ARS ∗∗∗" : pesos.format(valor);
+}
+
+/** Por cobrar y stock: el número, sin llamarlo pesos. */
+export function textoSinMoneda(valor: number, oculto: boolean): string {
+  return oculto ? "∗∗∗" : numero.format(valor);
 }
 export function fondoInicial(raw: string): number | null {
   const t = raw.trim().replace(/\s/g, "").replace(",", ".");
