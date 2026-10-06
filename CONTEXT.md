@@ -116,8 +116,8 @@ La venta que se arma en una caja del **Punto de venta**: líneas, cantidades y e
 _Avoid_: factura, cotización, orden de venta.
 
 **Moneda del mostrador**:
-Pesos (ARS) en el **Ticket**. Distinta de la **Moneda de cotización**, que sigue en dólares para honorarios y propuestas.
-_Avoid_: mezclar pesos y dólares en la misma pantalla; tratar el ticket como una cotización.
+Pesos (ARS). Es la moneda de la caja del **Punto de venta**: los precios del **Ticket** ya están en pesos. Distinta de la **Moneda de cotización**.
+_Avoid_: mostrar el ticket en dólares; convertir el precio al cobrar; mezclar pesos y dólares en la misma pantalla; tratar el ticket como una cotización.
 
 **Variantes básicas (producto)**:
 Productos con atributos limitados (default: hasta **2 atributos** por plantilla de producto); adecuado a retail pinturería sin explosión de combinaciones.

@@ -288,7 +288,7 @@ const puesto = sesionDelPuesto({ persona: userName });
       <p class="mo-sheet__hint">Con este fondo entrás al punto de venta.</p>
       <form class="mo-sheet__body" id="form-caja1">
         <div class="mo-field" id="field-fondo1">
-          <label class="mo-field__label" for="fondo1">Fondo inicial (USD)</label>
+          <label class="mo-field__label" for="fondo1">Fondo inicial (ARS)</label>
           <input class="mo-field__control" id="fondo1" name="fondo" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="err-fondo1" />
           <p class="mo-field__error" id="err-fondo1" role="alert" hidden></p>
         </div>
@@ -308,7 +308,7 @@ const puesto = sesionDelPuesto({ persona: userName });
       <p class="mo-sheet__hint">Con este fondo entrás al punto de venta.</p>
       <form class="mo-sheet__body" id="form-caja2">
         <div class="mo-field" id="field-fondo2">
-          <label class="mo-field__label" for="fondo2">Fondo inicial (USD)</label>
+          <label class="mo-field__label" for="fondo2">Fondo inicial (ARS)</label>
           <input class="mo-field__control" id="fondo2" name="fondo" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="err-fondo2" />
           <p class="mo-field__error" id="err-fondo2" role="alert" hidden></p>
         </div>
@@ -1003,7 +1003,7 @@ const puesto = sesionDelPuesto({ persona: userName });
         const slugM = window.location.pathname.match(/^\/tenant\/([^/]+)\/app/);
         const homeSlug = slugM ? slugM[1] : '';
         const homeTab = new URLSearchParams(window.location.search).get('tab') || '';
-        const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+        const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
         let montos: { cajaHoy: number; porCobrar: number; stockValorizado: number; vsAyerPct: number } | null = null;
         let oculto = false;
         const skeleton = document.querySelector('[data-home-skeleton]');
@@ -1014,7 +1014,7 @@ const puesto = sesionDelPuesto({ persona: userName });
           ojoBtn.hidden = false;
         };
         const pinta = () => {
-          const txt = (v: number) => (oculto ? 'USD ∗∗∗' : fmt.format(v));
+          const txt = (v: number) => (oculto ? 'ARS ∗∗∗' : fmt.format(v));
           cajaEl.textContent = montos ? txt(montos.cajaHoy) : '—';
           if (porCobrarEl) porCobrarEl.textContent = montos ? txt(montos.porCobrar) : '—';
           if (stockEl) stockEl.textContent = montos ? txt(montos.stockValorizado) : '—';

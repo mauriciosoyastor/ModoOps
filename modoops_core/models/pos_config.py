@@ -38,3 +38,18 @@ class PosConfig(models.Model):
         )
         self.env["ir.config_parameter"].sudo().set_param(HANDOFF_PREFIX + token, payload)
         return {"token": token, "config_id": self.id}
+
+    def modoops_pasar_a_pesos(self):
+        """La caja cobra en pesos: la compañía y sus listas dejan el dólar."""
+        ars = self.env["res.currency"].with_context(active_test=False).search([("name", "=", "ARS")], limit=1)
+        if not ars:
+            raise UserError(_("No está cargado el peso argentino."))
+        if not ars.active:
+            ars.active = True
+        companies = self.company_id
+        for company in companies:
+            if company.currency_id != ars:
+                company.currency_id = ars
+        listas = self.pricelist_id | self.available_pricelist_ids
+        listas.filtered(lambda lista: lista.currency_id != ars).write({"currency_id": ars.id})
+        return {"currency": "ARS", "companies": companies.ids, "pricelists": listas.ids}
