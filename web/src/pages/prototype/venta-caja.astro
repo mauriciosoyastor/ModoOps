@@ -1,0 +1,1071 @@
+---
+/**
+ * PROTOTYPE. Tres variantes de la venta en la caja, ?variant=a|b|c.
+ * Throwaway. No es la ruta de producción.
+ * A Partido: catálogo de fotos a la izquierda, ticket y teclado a la derecha.
+ * B Teclado: el ticket y el teclado ocupan la izquierda; el catálogo es una lista.
+ * C Ficha: una foto grande, una tira de productos y el ticket abajo.
+ */
+import LightAppLayout from '../../layouts/LightAppLayout.astro';
+
+const pesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
+
+const products = [
+  { id: 1, name: 'Látex interior 4 L', code: 'LAT-4', price: 18500, qty: 12 },
+  { id: 2, name: 'Esmalte sintético blanco', code: 'ESM-1', price: 9200, qty: 2 },
+  { id: 3, name: 'Enduido 1 kg', code: 'END-1', price: 3400, qty: 1 },
+  { id: 4, name: 'Rodillo 22 cm', code: 'ROD-22', price: 2100, qty: 8 },
+  { id: 5, name: 'Cinta de papel 24 mm', code: 'CIN-24', price: 890, qty: 3 },
+  { id: 6, name: 'Pincel 2"', code: 'PIN-2', price: 1560, qty: 0 },
+];
+
+const key = (Astro.url.searchParams.get('variant') || 'a').toLowerCase();
+const variant = key === 'b' || key === 'c' ? key : 'a';
+const names = { a: 'Partido', b: 'Teclado', c: 'Ficha' } as const;
+
+function stockLabel(qty: number) {
+  if (qty <= 0) return 'Sin stock';
+  if (qty < 3) return `Quedan ${qty}`;
+  return '';
+}
+
+function stockTone(qty: number) {
+  if (qty <= 0) return 'is-suspendido';
+  if (qty < 3) return 'is-warn';
+  return 'is-activo';
+}
+
+const padKeys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '.', '0', '←'];
+---
+
+<LightAppLayout title="Venta en la caja — prototipo" theme="papel" ops>
+  <header class="bar">
+    <p class="mo-brand" translate="no">ModoOps</p>
+    <p class="bar__place">Mostrador · Caja 1</p>
+    <p class="bar__mark">Prototipo</p>
+  </header>
+
+  <main id="contenido" class:list={['venta', `venta--${variant}`]} data-variant={variant}>
+    {
+      variant === 'a' && (
+        <>
+          <section class="catalog" aria-label="Productos">
+            <h1>Productos</h1>
+            <div class="grid">
+              {products.map((product) => (
+                <article class="card">
+                  <button class="card__hit" type="button" data-add={product.id}>
+                    <span class="photo" data-photo={product.id} aria-hidden="true">
+                      {product.name.slice(0, 1)}
+                    </span>
+                    <span class="card__name">{product.name}</span>
+                    <span class="card__code">{product.code}</span>
+                    <span class="card__price">{pesos.format(product.price)}</span>
+                    {stockLabel(product.qty) ? (
+                      <span class:list={['mo-badge', product.qty <= 0 ? 'is-suspendido' : 'is-warn']}>
+                        {stockLabel(product.qty)}
+                      </span>
+                    ) : null}
+                  </button>
+                  <button class="cam" type="button" data-cam={product.id} aria-label={`Cargar foto de ${product.name}`}>
+                    Foto
+                  </button>
+                </article>
+              ))}
+            </div>
+          </section>
+          <section class="ticket" aria-label="Ticket">
+            <h2 data-ticket-title>Ticket</h2>
+            <div data-ticket></div>
+            <div class="pad" data-pad>
+              <div class="pad__modes" role="group" aria-label="Modo del teclado">
+                <button type="button" data-mode="qty" aria-pressed="true">Cant.</button>
+                <button type="button" data-mode="discount" aria-pressed="false">Desc. %</button>
+              </div>
+              <p class="pad__hint" data-pad-hint>Cantidad de la línea</p>
+              <p class="pad__buf" data-pad-buf aria-live="polite">—</p>
+              <div class="pad__keys">
+                {padKeys.map((key) => (
+                  <button type="button" data-key={key === '←' ? 'back' : key}>{key}</button>
+                ))}
+              </div>
+              <button type="button" data-key="ok">Aplicar</button>
+            </div>
+            <div class="sums" data-sums>
+              <p class="sum sum--quiet"><span>Subtotal</span><strong data-subtotal></strong></p>
+              <p class="sum sum--quiet"><span>IVA 21%</span><strong data-iva></strong></p>
+              <p class="sum"><span>Total</span><strong data-total></strong></p>
+              <button type="button" class="mo-btn mo-btn--primary" data-charge disabled>Cobrar</button>
+            </div>
+          </section>
+        </>
+      )
+    }
+
+    {
+      variant === 'b' && (
+        <>
+          <section class="ticket ticket--lead" aria-label="Ticket">
+            <h2 data-ticket-title>Ticket</h2>
+            <div data-ticket></div>
+            <div class="pad" data-pad>
+              <div class="pad__modes" role="group" aria-label="Modo del teclado">
+                <button type="button" data-mode="qty" aria-pressed="true">Cant.</button>
+                <button type="button" data-mode="discount" aria-pressed="false">Desc. %</button>
+              </div>
+              <p class="pad__hint" data-pad-hint>Cantidad de la línea</p>
+              <p class="pad__buf" data-pad-buf aria-live="polite">—</p>
+              <div class="pad__keys">
+                {padKeys.map((key) => (
+                  <button type="button" data-key={key === '←' ? 'back' : key}>{key}</button>
+                ))}
+              </div>
+              <button type="button" data-key="ok">Aplicar</button>
+            </div>
+            <div class="sums" data-sums>
+              <p class="sum sum--quiet"><span>Subtotal</span><strong data-subtotal></strong></p>
+              <p class="sum sum--quiet"><span>IVA 21%</span><strong data-iva></strong></p>
+              <p class="sum"><span>Total</span><strong data-total></strong></p>
+              <button type="button" class="mo-btn mo-btn--primary" data-charge disabled>Cobrar</button>
+            </div>
+          </section>
+          <section class="list" aria-label="Productos">
+            <h1>Buscar producto</h1>
+            <label class="find">
+              <span class="sr">Buscar</span>
+              <input class="mo-input" type="search" placeholder="Nombre o código…" data-find />
+            </label>
+            <ul>
+              {products.map((product) => (
+                <li>
+                  <button type="button" data-add={product.id} data-name={product.name.toLowerCase()}>
+                    <span class="thumb" data-photo={product.id} aria-hidden="true"></span>
+                    <span>
+                      <strong>{product.name}</strong>
+                      <small>{product.code}</small>
+                    </span>
+                    <span class="list__price">{pesos.format(product.price)}</span>
+                    <span
+                      class:list={['mo-badge', stockTone(product.qty)]}
+                      aria-label={`${product.qty} en stock`}
+                    >
+                      {product.qty}
+                    </span>
+                  </button>
+                  <button class="cam" type="button" data-cam={product.id} aria-label={`Cargar foto de ${product.name}`}>
+                    Foto
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </>
+      )
+    }
+
+    {
+      variant === 'c' && (
+        <>
+          <section class="strip" aria-label="Productos">
+            {products.map((product, index) => (
+              <button type="button" data-add={product.id} data-focus-product={product.id} class:list={[{ 'is-on': index === 0 }]}>
+                <span class="photo photo--sm" data-photo={product.id} aria-hidden="true">
+                  {product.name.slice(0, 1)}
+                </span>
+                <span>{product.name}</span>
+                {stockLabel(product.qty) ? <span class="mo-badge is-warn">{stockLabel(product.qty)}</span> : null}
+              </button>
+            ))}
+          </section>
+          <section class="hero" aria-label="Producto elegido" data-hero>
+            <span class="photo photo--lg" data-photo={products[0].id} aria-hidden="true">
+              {products[0].name.slice(0, 1)}
+            </span>
+            <div>
+              <h1 data-hero-name>{products[0].name}</h1>
+              <p data-hero-price>{pesos.format(products[0].price)}</p>
+              <button class="cam" type="button" data-cam={products[0].id} data-hero-cam aria-label={`Cargar foto de ${products[0].name}`}>
+                Cargar foto
+              </button>
+            </div>
+          </section>
+          <section class="ticket ticket--foot" aria-label="Ticket">
+            <h2 data-ticket-title>Ticket</h2>
+            <div data-ticket></div>
+            <div class="pad" data-pad>
+              <div class="pad__modes" role="group" aria-label="Modo del teclado">
+                <button type="button" data-mode="qty" aria-pressed="true">Cant.</button>
+                <button type="button" data-mode="discount" aria-pressed="false">Desc. %</button>
+              </div>
+              <p class="pad__hint" data-pad-hint>Cantidad de la línea</p>
+              <p class="pad__buf" data-pad-buf aria-live="polite">—</p>
+              <div class="pad__keys">
+                {padKeys.map((key) => (
+                  <button type="button" data-key={key === '←' ? 'back' : key}>{key}</button>
+                ))}
+              </div>
+              <button type="button" data-key="ok">Aplicar</button>
+            </div>
+            <div class="sums" data-sums>
+              <p class="sum sum--quiet"><span>Subtotal</span><strong data-subtotal></strong></p>
+              <p class="sum sum--quiet"><span>IVA 21%</span><strong data-iva></strong></p>
+              <p class="sum"><span>Total</span><strong data-total></strong></p>
+              <button type="button" class="mo-btn mo-btn--primary" data-charge disabled>Cobrar</button>
+            </div>
+          </section>
+        </>
+      )
+    }
+  </main>
+
+  <div class="pay" data-pay hidden>
+    <div class="pay__card">
+      <h1>Método de pago</h1>
+      <p class="pay__total" data-pay-total></p>
+      <div class="pay__methods" role="group" aria-label="Método de pago">
+        {
+          ['Efectivo', 'Transferencia', 'Débito', 'Tarjeta de crédito', 'Mercado Pago'].map((method) => (
+            <button type="button" class="mo-btn" data-pay-method={method}>
+              {method}
+            </button>
+          ))
+        }
+      </div>
+      <button type="button" class="mo-btn" data-pay-back>Volver al ticket</button>
+    </div>
+  </div>
+
+  {
+    import.meta.env.DEV && (
+      <nav class="switch" aria-label="Variantes del prototipo">
+        <button type="button" data-step="-1" aria-label="Variante anterior">←</button>
+        <p>
+          {variant.toUpperCase()} · {names[variant]}
+        </p>
+        <button type="button" data-step="1" aria-label="Variante siguiente">→</button>
+        <p class="switch__state" data-state aria-live="polite">
+          Ticket vacío
+        </p>
+      </nav>
+    )
+  }
+</LightAppLayout>
+
+<script define:vars={{ products, variant }}>
+  const order = ['a', 'b', 'c'];
+  const cart = [];
+  let selected = null;
+  let buffer = '';
+  let saleSeq = 2;
+  let receipt = null;
+  let padMode = 'qty';
+  const IVA = 0.21;
+  const pesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
+
+  function money(value) {
+    return pesos.format(value);
+  }
+
+  function productById(id) {
+    return products.find((item) => item.id === id);
+  }
+
+  function lineNet(line) {
+    const discount = Math.min(100, Math.max(0, Number(line.discount) || 0));
+    return line.price * line.qty * (1 - discount / 100);
+  }
+
+  function totalsOf(lines) {
+    const subtotal = lines.reduce((sum, line) => sum + lineNet(line), 0);
+    const iva = subtotal * IVA;
+    return { subtotal, iva, total: subtotal + iva };
+  }
+
+  function totals() {
+    return totalsOf(cart);
+  }
+
+  function paintState() {
+    const node = document.querySelector('[data-state]');
+    if (!node) return;
+    const pay = document.querySelector('[data-pay]');
+    if (pay && !pay.hidden) {
+      node.textContent = `Elegí el medio de pago · ${money(totals().total)}`;
+      return;
+    }
+    if (receipt) {
+      node.textContent = `Venta registrada · ${receipt.name} · ${receipt.pay} · ${money(receipt.total)}`;
+      return;
+    }
+    if (!cart.length) {
+      node.textContent = 'Ticket vacío';
+      return;
+    }
+    const bits = cart.map((line) => `${line.qty} × ${line.name}`).join(' · ');
+    node.textContent = `${bits} · ${money(totals().total)}`;
+  }
+
+  function renderTicket() {
+    const host = document.querySelector('[data-ticket]');
+    const title = document.querySelector('[data-ticket-title]');
+    const pad = document.querySelector('[data-pad]');
+    const sums = document.querySelector('[data-sums]');
+    if (!host) return;
+    if (title) title.textContent = receipt ? 'Venta registrada' : 'Ticket';
+    if (pad) pad.hidden = Boolean(receipt);
+    if (sums) sums.hidden = Boolean(receipt);
+    if (receipt) {
+      const lines = receipt.lines
+        .map(
+          (line) => `
+          <li>
+            <span>${line.name}</span>
+            <span>${line.qty} × ${money(line.price)}${line.discount ? ` · desc. ${line.discount}%` : ''}</span>
+            <strong>${money(lineNet(line))}</strong>
+          </li>`,
+        )
+        .join('');
+      host.innerHTML = `
+        <p class="receipt__name">${receipt.name}</p>
+        <ul class="receipt__lines">${lines}</ul>
+        <p class="receipt__pay">Pago: ${receipt.pay}</p>
+        <p class="sum sum--quiet"><span>Subtotal</span><strong>${money(receipt.subtotal)}</strong></p>
+        <p class="sum sum--quiet"><span>IVA 21%</span><strong>${money(receipt.iva)}</strong></p>
+        <p class="sum"><span>Total</span><strong>${money(receipt.total)}</strong></p>
+        <button type="button" class="mo-btn mo-btn--primary" data-new-sale>Nueva venta</button>
+        <button type="button" class="mo-btn" data-see-order>Ver pedido</button>
+      `;
+      paintState();
+      host.querySelector('[data-new-sale]')?.focus();
+      return;
+    }
+    const lines = cart
+      .map(
+        (line) => `
+        <li class="${line.id === selected ? 'is-on' : ''}">
+          <button type="button" data-select="${line.id}">
+            <span>${line.name}</span>
+            <span>${line.qty} × ${money(line.price)}${line.discount ? ` · desc. ${line.discount}%` : ''}</span>
+            <strong>${money(lineNet(line))}</strong>
+          </button>
+        </li>`,
+      )
+      .join('');
+    host.innerHTML = cart.length
+      ? `<ul>${lines}</ul>`
+      : '<p class="empty">Tocá un producto para armar el ticket.</p>';
+    const hint = document.querySelector('[data-pad-hint]');
+    const buf = document.querySelector('[data-pad-buf]');
+    if (hint) hint.textContent = padMode === 'discount' ? 'Descuento % de la línea' : 'Cantidad de la línea';
+    if (buf) buf.textContent = buffer || '—';
+    document.querySelectorAll('[data-mode]').forEach((button) => {
+      button.setAttribute('aria-pressed', button.getAttribute('data-mode') === padMode ? 'true' : 'false');
+    });
+    const amounts = totals();
+    const subtotal = document.querySelector('[data-subtotal]');
+    const iva = document.querySelector('[data-iva]');
+    const total = document.querySelector('[data-total]');
+    const charge = document.querySelector('[data-charge]');
+    if (subtotal) subtotal.textContent = money(amounts.subtotal);
+    if (iva) iva.textContent = money(amounts.iva);
+    if (total) total.textContent = money(amounts.total);
+    if (charge) charge.disabled = cart.length === 0;
+    paintState();
+  }
+
+  function addProduct(id) {
+    if (receipt) return;
+    const pay = document.querySelector('[data-pay]');
+    if (pay && !pay.hidden) return;
+    const product = productById(id);
+    if (!product) return;
+    const line = cart.find((item) => item.id === id);
+    if (line) line.qty += 1;
+    else cart.push({ id: product.id, name: product.name, price: product.price, qty: 1, discount: 0 });
+    selected = id;
+    buffer = '';
+    renderTicket();
+    const heroName = document.querySelector('[data-hero-name]');
+    const heroPrice = document.querySelector('[data-hero-price]');
+    const heroPhoto = document.querySelector('.photo--lg');
+    const heroCam = document.querySelector('[data-hero-cam]');
+    if (heroName && heroPrice && heroPhoto) {
+      heroName.textContent = product.name;
+      heroPrice.textContent = money(product.price);
+      heroPhoto.textContent = product.name.slice(0, 1);
+      heroPhoto.setAttribute('data-photo', String(product.id));
+      if (heroCam) heroCam.setAttribute('aria-label', `Cargar foto de ${product.name}`);
+    }
+    document.querySelectorAll('[data-focus-product]').forEach((node) => {
+      node.classList.toggle('is-on', Number(node.getAttribute('data-focus-product')) === id);
+    });
+  }
+
+  function applyBuffer() {
+    const value = Number(buffer);
+    const line = cart.find((item) => item.id === selected);
+    if (!line || !buffer || !Number.isFinite(value)) return;
+    if (padMode === 'discount') {
+      line.discount = Math.min(100, Math.max(0, value));
+    } else if (value <= 0) {
+      const index = cart.findIndex((item) => item.id === selected);
+      cart.splice(index, 1);
+      selected = cart[0]?.id ?? null;
+    } else {
+      line.qty = value;
+    }
+    buffer = '';
+    renderTicket();
+  }
+
+  function openPay() {
+    const panel = document.querySelector('[data-pay]');
+    const amount = panel?.querySelector('[data-pay-total]');
+    if (!panel || !amount) return;
+    amount.textContent = money(totals().total);
+    panel.hidden = false;
+    panel.querySelector('[data-pay-method]')?.focus();
+    paintState();
+  }
+
+  function closePay() {
+    const panel = document.querySelector('[data-pay]');
+    if (panel) panel.hidden = true;
+    paintState();
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+    const add = target.closest('[data-add]');
+    if (add) {
+      addProduct(Number(add.getAttribute('data-add')));
+      return;
+    }
+    const cam = target.closest('[data-cam]');
+    if (cam) {
+      const id = cam.getAttribute('data-cam');
+      document.querySelectorAll(`[data-photo="${id}"]`).forEach((node) => {
+        node.classList.toggle('has-photo');
+      });
+      return;
+    }
+    const select = target.closest('[data-select]');
+    if (select) {
+      selected = Number(select.getAttribute('data-select'));
+      buffer = '';
+      renderTicket();
+      return;
+    }
+    const mode = target.closest('[data-mode]');
+    if (mode) {
+      padMode = mode.getAttribute('data-mode') === 'discount' ? 'discount' : 'qty';
+      buffer = '';
+      renderTicket();
+      return;
+    }
+    const key = target.closest('[data-key]');
+    if (key) {
+      const value = key.getAttribute('data-key');
+      if (value === 'ok') {
+        applyBuffer();
+        return;
+      }
+      if (value === 'back') buffer = buffer.slice(0, -1);
+      else if (value === '.') {
+        if (!buffer.includes('.')) buffer = `${buffer || '0'}.`;
+      } else if (buffer.length < 6) buffer += value;
+      renderTicket();
+      return;
+    }
+    if (target.closest('[data-charge]')) {
+      if (!cart.length || receipt) return;
+      openPay();
+      return;
+    }
+    if (target.closest('[data-pay-back]')) {
+      closePay();
+      return;
+    }
+    const method = target.closest('[data-pay-method]');
+    if (method) {
+      const amounts = totals();
+      saleSeq += 1;
+      receipt = {
+        name: `Caja 1 - ${String(saleSeq).padStart(6, '0')}`,
+        pay: method.getAttribute('data-pay-method'),
+        subtotal: amounts.subtotal,
+        iva: amounts.iva,
+        total: amounts.total,
+        lines: cart.map((line) => ({ ...line })),
+      };
+      cart.splice(0, cart.length);
+      selected = null;
+      buffer = '';
+      closePay();
+      renderTicket();
+      return;
+    }
+    if (target.closest('[data-new-sale]')) {
+      receipt = null;
+      renderTicket();
+      return;
+    }
+    if (target.closest('[data-see-order]')) {
+      const node = document.querySelector('[data-state]');
+      if (node && receipt) node.textContent = `Pedido ${receipt.name}. En el prototipo seguís en esta pantalla.`;
+      return;
+    }
+    const step = target.closest('[data-step]');
+    if (step) go(Number(step.getAttribute('data-step')));
+  });
+
+  const find = document.querySelector('[data-find]');
+  find?.addEventListener('input', () => {
+    const q = find.value.trim().toLowerCase();
+    document.querySelectorAll('[data-name]').forEach((node) => {
+      const row = node.closest('li');
+      if (!row) return;
+      row.hidden = q.length > 0 && !node.getAttribute('data-name').includes(q);
+    });
+  });
+
+  function go(delta) {
+    const index = order.indexOf(variant);
+    const next = order[(index + delta + order.length) % order.length];
+    const url = new URL(location.href);
+    url.searchParams.set('variant', next);
+    location.assign(url);
+  }
+
+  document.addEventListener('keydown', (event) => {
+    const el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+    if (document.querySelector('[data-pay]') && !document.querySelector('[data-pay]').hidden) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      go(-1);
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      go(1);
+    }
+  });
+
+  renderTicket();
+</script>
+
+<style>
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 3.5rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--mo-line);
+    background: var(--mo-canvas);
+  }
+  .bar__place {
+    margin: 0;
+    color: var(--mo-muted);
+  }
+  .bar__mark {
+    margin: 0 0 0 auto;
+    font-size: 0.75rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mo-warn);
+  }
+  .venta {
+    min-height: calc(100dvh - 3.5rem);
+    padding: 1rem 1rem 6.5rem;
+    background: var(--mo-wash);
+  }
+  .venta h1,
+  .ticket h2 {
+    margin: 0 0 0.75rem;
+    font-family: var(--mo-display);
+    font-size: 1.35rem;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  .venta--a,
+  .venta--b {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 22rem);
+    gap: 1rem;
+    align-items: start;
+  }
+  .venta--b {
+    grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr);
+  }
+  .venta--c {
+    display: grid;
+    gap: 1rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    gap: 0.75rem;
+  }
+  .card {
+    position: relative;
+    background: var(--mo-canvas);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+  }
+  .card__hit,
+  .list button[data-add],
+  .strip button {
+    display: grid;
+    gap: 0.2rem;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.7rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .card__name,
+  .list strong {
+    font-weight: 650;
+  }
+  .card__code,
+  .list small,
+  .list__ok {
+    color: var(--mo-muted);
+    font-size: 0.8rem;
+  }
+  .list small {
+    white-space: nowrap;
+  }
+  .card__price,
+  .list__price {
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+  }
+  .photo,
+  .thumb {
+    display: grid;
+    place-items: center;
+    background: var(--mo-card);
+    color: var(--mo-muted);
+    font-family: var(--mo-display);
+    font-weight: 650;
+  }
+  .photo {
+    aspect-ratio: 1;
+    border-radius: var(--mo-radius-sm);
+    margin-bottom: 0.35rem;
+  }
+  .photo--sm {
+    width: 2.5rem;
+    height: 2.5rem;
+    aspect-ratio: auto;
+    margin: 0;
+  }
+  .photo--lg {
+    width: min(16rem, 100%);
+    aspect-ratio: 1;
+    font-size: 3rem;
+  }
+  .photo.has-photo,
+  .thumb.has-photo {
+    background: var(--mo-accent-soft);
+    color: var(--mo-accent);
+  }
+  .cam {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    min-height: 44px;
+    min-width: 44px;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    background: var(--mo-canvas);
+    font: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .ticket {
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+    padding: 1rem;
+    background: var(--mo-canvas);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+  }
+  .ticket :global(ul) {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .ticket :global(li button) {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.15rem 0.5rem;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--mo-radius-sm);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .ticket :global(li button span:nth-child(2)) {
+    grid-column: 1;
+    color: var(--mo-muted);
+    font-size: 0.85rem;
+  }
+  .ticket :global(li.is-on button) {
+    border-color: var(--mo-accent);
+    background: var(--mo-accent-soft);
+  }
+  .ticket :global(.empty),
+  .ticket :global(.receipt__pay) {
+    margin: 0;
+    color: var(--mo-muted);
+  }
+  .ticket :global(.receipt__name) {
+    margin: 0;
+    font-weight: 650;
+  }
+  .ticket :global(.receipt__lines li) {
+    display: grid;
+    gap: 0.1rem;
+  }
+  .ticket :global(.receipt__lines span:last-of-type) {
+    color: var(--mo-muted);
+    font-size: 0.85rem;
+  }
+  .ticket :global(.mo-btn) {
+    width: 100%;
+  }
+  .ticket :global(.sum) {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0;
+    font-size: 1.25rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .ticket :global(.sum.sum--quiet) {
+    font-size: 0.95rem;
+    color: var(--mo-muted);
+  }
+  .pad {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 9.5rem;
+    grid-template-rows: repeat(4, auto);
+    column-gap: 0.75rem;
+    row-gap: 0.25rem;
+    width: 100%;
+    align-items: center;
+  }
+  .pad[hidden],
+  .sums[hidden] {
+    display: none;
+  }
+  .pad__modes {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .pad__hint {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 0;
+    color: var(--mo-muted);
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+  .pad__buf {
+    grid-column: 1;
+    grid-row: 3;
+    margin: 0;
+    min-height: 1.1rem;
+    text-align: right;
+    font-size: 1rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .pad__keys {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+  .sums {
+    display: grid;
+    gap: 0.35rem;
+  }
+  .pad button[data-key='ok'] {
+    grid-column: 1;
+    grid-row: 4;
+    width: 100%;
+    min-height: 32px;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    background: var(--mo-canvas);
+    font: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .pad__keys button {
+    min-height: 32px;
+    padding: 0;
+    font-size: 0.9rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    background: var(--mo-field);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .receipt__name {
+    margin: 0;
+    font-weight: 650;
+  }
+  .receipt__lines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .receipt__lines li {
+    display: grid;
+    gap: 0.1rem;
+  }
+  .receipt__lines span:last-of-type {
+    color: var(--mo-muted);
+    font-size: 0.85rem;
+  }
+  .receipt__pay {
+    margin: 0;
+    color: var(--mo-muted);
+  }
+  .ticket .mo-btn {
+    width: 100%;
+  }
+  .sum--quiet {
+    font-size: 0.95rem;
+    color: var(--mo-muted);
+  }
+  .pad__modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25rem;
+  }
+  .pad__modes button {
+    min-height: 32px;
+    padding: 0.2rem 0.35rem;
+    font-size: 0.8rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    background: var(--mo-canvas);
+    font: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .pad__modes button[aria-pressed='true'] {
+    background: var(--mo-accent-soft);
+    border-color: var(--mo-accent);
+  }
+  .pay[hidden] {
+    display: none;
+  }
+  .pay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: var(--mo-wash);
+  }
+  .pay__card {
+    display: grid;
+    gap: 0.75rem;
+    width: min(24rem, 100%);
+    height: auto;
+    padding: 1rem;
+    background: var(--mo-canvas);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+  }
+  .pay__card h1 {
+    margin: 0;
+    font-family: var(--mo-display);
+    font-size: 1.5rem;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  .pay__total {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+  }
+  .pay__methods {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .pay__methods .mo-btn,
+  .pay__card > .mo-btn {
+    width: 100%;
+  }
+  .sum {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0;
+    font-size: 1.25rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .sum.sum--quiet {
+    font-size: 0.95rem;
+    color: var(--mo-muted);
+  }
+  .list ul {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .list li {
+    position: relative;
+    background: var(--mo-canvas);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+  }
+  .list button[data-add] {
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    padding-right: 4.5rem;
+  }
+  .thumb {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--mo-radius-sm);
+  }
+  .find {
+    display: block;
+  }
+  .mo-input {
+    width: 100%;
+    height: 2.75rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    background: var(--mo-field);
+    font: inherit;
+    font-size: 1rem;
+  }
+  .strip {
+    display: flex;
+    gap: 0.5rem;
+    overflow: auto;
+  }
+  .strip button {
+    flex: 0 0 9rem;
+    background: var(--mo-canvas);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+  }
+  .strip button.is-on {
+    border-color: var(--mo-accent);
+    background: var(--mo-accent-soft);
+  }
+  .hero {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: var(--mo-canvas);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+    position: relative;
+  }
+  .hero .cam {
+    position: static;
+  }
+  .hero p {
+    margin: 0.25rem 0 0.75rem;
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+  }
+  .switch {
+    position: fixed;
+    left: 50%;
+    bottom: 0.75rem;
+    transform: translateX(-50%);
+    z-index: 80;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 0.75rem;
+    max-width: calc(100% - 1.5rem);
+    padding: 0.35rem 0.5rem;
+    border-radius: 999px;
+    background: var(--mo-ink);
+    color: var(--mo-on-hero);
+  }
+  .switch button {
+    min-width: 44px;
+    min-height: 44px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .switch p {
+    margin: 0;
+    font-weight: 650;
+  }
+  .switch__state {
+    flex-basis: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--mo-on-hero) 80%, transparent);
+  }
+  @media (max-width: 800px) {
+    .venta--a,
+    .venta--b {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
