@@ -81,4 +81,10 @@ export interface BackendClient {
   ): Promise<{ id: number; estado: "nuevo" | "descartado" }>;
   optOutLead(odooSessionId: string, leadId: number): Promise<{ ok: true }>;
   purgeLeads(odooSessionId: string): Promise<{ purged: number }>;
+  entrarAlPuntoDeVenta(
+    odooSessionId: string,
+    caja: 1 | 2,
+    fondo: number,
+    db: string,
+  ): Promise<{ url: string }>;
 }
