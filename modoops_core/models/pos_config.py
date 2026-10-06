@@ -38,3 +38,17 @@ class PosConfig(models.Model):
         )
         self.env["ir.config_parameter"].sudo().set_param(HANDOFF_PREFIX + token, payload)
         return {"token": token, "config_id": self.id}
+
+    def modoops_dejar_caja_en_pesos(self):
+        """Deja la compañía y la lista de cada caja en pesos. No convierte importes ni toca otras listas."""
+        ars = self.env["res.currency"].search([("name", "=", "ARS")], limit=1)
+        if not ars:
+            raise UserError(_("No está cargado el peso argentino."))
+        companies = self.company_id
+        for company in companies:
+            if company.currency_id != ars:
+                company.currency_id = ars
+        cajas = self.env["pos.config"].search([("company_id", "in", companies.ids)])
+        listas = cajas.mapped("pricelist_id")
+        listas.filtered(lambda lista: lista.currency_id != ars).write({"currency_id": ars.id})
+        return {"currency": "ARS", "companies": companies.ids, "pricelists": listas.ids}
