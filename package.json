@@ -13,6 +13,6 @@
     "check:grafo": "python -m pytest tools/grafo/tests -q"
   },
   "devDependencies": {
-    "wrangler": "^4.127.1"
+    "wrangler": "^4.147.0"
   }
 }
