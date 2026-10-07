@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # Prometido en SECURITY.md (semanal npm + pip)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/web"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/modoops_ia"
+    schedule:
+      interval: "weekly"
