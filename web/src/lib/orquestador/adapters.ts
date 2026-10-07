@@ -24,7 +24,7 @@ export function createEnvApiKeyValidator(env: Record<string, string>) {
   return async (db: string, apiKey: string): Promise<boolean> => {
     const slug = db.replace(/^modoops_/, "").toUpperCase();
     const expected = env[`MODOOPS_AGENT_API_KEY_${slug}`] ?? env.MODOOPS_AGENT_API_KEY ?? env.MODOOPS_AGENT_API_KEY_DEFAULT;
-    if (!expected) return true; // dev echo mode: allow missing key if no expected configured (fail open en dev)
+    if (!expected) return false; // fail-closed: sin key configurada no se autoriza (dev debe setear .env)
     if (!apiKey) return false;
     return hmacCompare(apiKey, expected);
   };
