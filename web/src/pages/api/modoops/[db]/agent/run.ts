@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { decide } from '../../../../../lib/orquestador/decide.ts';
-import { createEnvApiKeyValidator, createEnvSuspensionChecker, createMemoryQuotaStore, createMemoryRateLimiter, getEnv } from '../../../../../lib/orquestador/adapters.ts';
+import { createEnvApiKeyValidator, createEnvSuspensionChecker, createCompositeSuspensionChecker, createMemoryQuotaStore, createMemoryRateLimiter, getEnv } from '../../../../../lib/orquestador/adapters.ts';
+import { getGateCache } from '../../../../../lib/bff/tenant-status.ts';
 import { callLLM } from '../../../../../lib/orquestador/llm.ts';
 
 export const prerender = false;
@@ -53,7 +54,16 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
 
   // adapters inyectados — deep module seam
   const validateApiKey = createEnvApiKeyValidator(env);
-  const isSuspended = createEnvSuspensionChecker(env);
+  // Suspensión env OR master (fail-open si master cae; master solo puede bloquear).
+  // Nota: el gate de master cachea 45s (tenant-status TTL) — la suspensión tarda
+  // como máximo eso en llegar a esta ruta; el login la aplica al instante.
+  // Sin creds master (dev sin ODOO_ADMIN_*) se salta el gate: manda env.
+  const gateCache = getGateCache();
+  const hasMasterCreds = Boolean(env.ODOO_ADMIN_LOGIN?.trim() && env.ODOO_ADMIN_PASSWORD?.trim());
+  const isSuspended = createCompositeSuspensionChecker(
+    createEnvSuspensionChecker(env),
+    (slug) => (hasMasterCreds ? gateCache.getGate(slug) : Promise.resolve({ http: 200 as const }))
+  );
   const quotaStore = createMemoryQuotaStore(env, rateMap);
   const checkRateLimit = createMemoryRateLimiter(rateMap);
 

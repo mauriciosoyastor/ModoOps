@@ -161,8 +161,10 @@ export async function withMasterSession<T>(
 
 /** Singleton para el middleware (un cache por proceso). */
 let cached: GateCache | undefined;
+let testOverride: GateCache | undefined;
 
 export function getGateCache(): GateCache {
+  if (testOverride) return testOverride;
   if (!cached) {
     const env = (typeof process !== "undefined" ? process.env : {}) as Record<string, string | undefined>;
     cached = createGateCache({ ttlMs: resolveGateTtlMs(env.BFF_GATE_TTL_MS) });
@@ -170,7 +172,14 @@ export function getGateCache(): GateCache {
   return cached;
 }
 
+/** Solo tests — inyecta un GateCache falso (mirror __setBackendForTests). */
+export function __setGateCacheForTests(cache: GateCache | undefined): void {
+  if (process.env.NODE_ENV !== "test") return;
+  testOverride = cache;
+}
+
 /** Reset factory cache (tests). */
 export function resetGateCache(): void {
   cached = undefined;
+  testOverride = undefined;
 }

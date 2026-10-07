@@ -40,6 +40,30 @@ export function createEnvSuspensionChecker(env: Record<string, string>) {
   };
 }
 
+export type SuspensionChecker = (db: string) => Promise<{ suspended: boolean; reason?: string | null }>;
+export type GateFetcher = (slug: string) => Promise<{ http: number; code?: string; message?: string }>;
+
+/** Suspensión env OR master: env bloquea primero (rápido); master solo puede bloquear.
+ *  Master caído/mal configurado = fail-open a env (la sesión ya era válida al emitirse).
+ */
+export function createCompositeSuspensionChecker(envChecker: SuspensionChecker, getGate: GateFetcher): SuspensionChecker {
+  return async (db: string): Promise<{ suspended: boolean; reason?: string | null }> => {
+    const envRes = await envChecker(db);
+    if (envRes.suspended) return envRes;
+    const slug = db.replace(/^modoops_/, "");
+    try {
+      const gate = await getGate(slug);
+      if (gate && gate.http === 403) {
+        return { suspended: true, reason: gate.message ?? "Tenant suspendido — regularizá abono" };
+      }
+    } catch (e) {
+      // Config rota = fail-closed ruidoso (mirror tenant-status.ts); master caído = fail-open a env.
+      if ((e as { code?: string })?.code === "misconfigured") throw e;
+    }
+    return envRes;
+  };
+}
+
 // --- QuotaStore (Techo IA 200/mes) ---
 export type QuotaStore = {
   isQuotaExceeded: (db: string) => Promise<boolean>;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createEnvApiKeyValidator } from "./adapters.ts";
+import { createEnvApiKeyValidator, createCompositeSuspensionChecker } from "./adapters.ts";
 
 describe("adapters createEnvApiKeyValidator — fail-closed", () => {
   it("sin expected configurado => false (no fail-open)", async () => {
@@ -22,5 +22,38 @@ describe("adapters createEnvApiKeyValidator — fail-closed", () => {
     const def = createEnvApiKeyValidator({ MODOOPS_AGENT_API_KEY_DEFAULT: "dev-key" });
     expect(await def("modoops_otro", "dev-key")).toBe(true);
     expect(await def("modoops_otro", "bad")).toBe(false);
+  });
+});
+
+describe("adapters createCompositeSuspensionChecker — env OR master", () => {
+  const envOk = async () => ({ suspended: false, reason: null });
+  const envBlocked = async () => ({ suspended: true, reason: "Tenant suspendido — regularizá abono" });
+  const gateOk = async () => ({ http: 200 as const });
+  const gateBlocked = async () => ({ http: 403 as const, code: "tenant_suspended" as const, message: "mora" });
+
+  it("bloquea si env bloquea aunque master diga ok", async () => {
+    const check = createCompositeSuspensionChecker(envBlocked, gateOk);
+    expect(await check("modoops_demo")).toMatchObject({ suspended: true });
+  });
+
+  it("bloquea si master bloquea aunque env diga ok", async () => {
+    const check = createCompositeSuspensionChecker(envOk, gateBlocked);
+    expect(await check("modoops_demo")).toMatchObject({ suspended: true });
+  });
+
+  it("pasa si ambos dicen ok", async () => {
+    const check = createCompositeSuspensionChecker(envOk, gateOk);
+    expect(await check("modoops_demo")).toEqual({ suspended: false, reason: null });
+  });
+
+  it("fail-open si master revienta: manda env", async () => {
+    const boom = async () => { throw new Error("master caído"); };
+    expect(await createCompositeSuspensionChecker(envOk, boom)("modoops_demo")).toEqual({ suspended: false, reason: null });
+    expect(await createCompositeSuspensionChecker(envBlocked, boom)("modoops_demo")).toMatchObject({ suspended: true });
+  });
+
+  it("config rota (misconfigured) no se traga: propaga", async () => {
+    const misconfigured = async () => { throw Object.assign(new Error("Falta ODOO_ADMIN_LOGIN"), { code: "misconfigured" }); };
+    await expect(createCompositeSuspensionChecker(envOk, misconfigured)("modoops_demo")).rejects.toMatchObject({ code: "misconfigured" });
   });
 });
