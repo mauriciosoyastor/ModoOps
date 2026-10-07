@@ -10,7 +10,7 @@
     "check:deploy-contract": "node tools/check-cf-deploy-contract.mjs",
     "test": "python -m pytest modoops_ia/tests -q",
     "test:py": "python -m pytest modoops_ia/tests -v",
-    "check:grafo": "node tools/check-grafo.mjs"
+    "check:grafo": "python -m pytest tools/grafo/tests -q"
   },
   "devDependencies": {
     "wrangler": "^4.127.1"
