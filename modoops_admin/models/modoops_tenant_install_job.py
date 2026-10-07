@@ -7,6 +7,7 @@ El wizard ya no escribe `modules_installed` directo: encola un job
 (fuera de alcance: desinstalar puede perder datos).
 """
 
+import logging
 import re
 import shutil
 import subprocess
@@ -16,6 +17,8 @@ from odoo.exceptions import UserError
 
 from odoo.addons.modoops_admin.logic.modules_instalados import ModulesInstalados
 from odoo.addons.modoops_admin.logic.tenant_module_service import apply_modules
+
+_logger = logging.getLogger(__name__)
 
 DB_RE = re.compile(r"^modoops_[a-z0-9_]+$")
 ODOO_BIN_TIMEOUT_S = 20 * 60
@@ -52,13 +55,37 @@ class ModoopsTenantInstallJob(models.Model):
 
     @api.model
     def run_pending_jobs(self, limit=1):
-        """Cron/smoke: ejecuta el job pendiente más viejo. Sin solape."""
-        if self.search_count([("state", "=", "en_proceso")]):
-            return False
-        pending = self.search([("state", "=", "pendiente")], order="id asc", limit=limit)
-        for job in pending:
-            job._run_job()
-        return True
+        """Cron: ejecuta pendientes con claim atómico (sin solape entre workers).
+
+        Claim = SELECT ... FOR UPDATE SKIP LOCKED + write en_proceso + commit:
+        dos workers/cron solapados nunca ejecutan el mismo job (el cron corre
+        cada 5min y un job puede tardar 20min). El guard por tenant vive DENTRO
+        del SELECT (NOT EXISTS en_proceso mismo tenant): ningún worker lanza
+        `odoo -i` sobre una DB ya en curso. `limit` acota jobs por tick.
+        """
+        ran = 0
+        for _ in range(max(1, limit or 1)):
+            self.env.cr.execute(
+                "SELECT j.id FROM modoops_tenant_install_job j"
+                " WHERE j.state='pendiente'"
+                " AND NOT EXISTS (SELECT 1 FROM modoops_tenant_install_job o"
+                " WHERE o.tenant_id = j.tenant_id AND o.state='en_proceso' AND o.id != j.id)"
+                " ORDER BY j.id ASC LIMIT 1 FOR UPDATE SKIP LOCKED"
+            )
+            row = self.env.cr.fetchone()
+            if not row:
+                break
+            job = self.browse(row[0])
+            job.write({"state": "en_proceso"})
+            self.env.cr.commit()  # publica el claim y libera el lock
+            try:
+                job._run_job()
+            except Exception as e:
+                # _run_job cubre Timeout/OSError; esto evita jobs en_proceso eternos.
+                _logger.exception("Job install %s falló sin control", job.id)
+                job._fail(f"Excepción no controlada: {e}")
+            ran += 1
+        return ran > 0
 
     def _run_job(self):
         self.ensure_one()

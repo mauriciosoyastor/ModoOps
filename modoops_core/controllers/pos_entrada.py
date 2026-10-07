@@ -30,13 +30,17 @@ class ModoopsPosEntrada(http.Controller):
             registry = Registry(db)
         except Exception:
             _logger.exception("No se pudo abrir la base %s para entrar al POS", db)
-            raise
+            raise request.not_found()
         with registry.cursor() as cr:
-            env = Environment(cr, SUPERUSER_ID, {})
-            icp = env["ir.config_parameter"]
-            raw = icp.get_param(key) or ""
+            # Consumo atómico del token single-use: el lock por fila serializa
+            # dos hits paralelos; el segundo lee "" y cae a login (sin TOCTOU).
+            # Sin rate-limit dedicado aquí (follow-up): el token es 1 uso + TTL 60s.
+            cr.execute("SELECT value FROM ir_config_parameter WHERE key = %s FOR UPDATE", (key,))
+            row = cr.fetchone()
+            raw = row[0] if row else ""
             if raw:
-                icp.set_param(key, "")
+                env = Environment(cr, SUPERUSER_ID, {})
+                env["ir.config_parameter"].set_param(key, "")
             cr.commit()
         if not raw:
             return request.redirect("/web/login?db=%s" % db)
