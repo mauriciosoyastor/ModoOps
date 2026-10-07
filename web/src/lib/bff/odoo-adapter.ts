@@ -175,6 +175,14 @@ export class OdooAdapter implements BackendClient {
     ]);
   }
 
+  // Techo IA (spec 0008): conteo mensual de corridas en tenant.log (action='agent.run').
+  async countAgentRuns(odooSessionId: string, tenantId: number, sinceIso: string): Promise<number> {
+    const n = await this.#callKw<number>(odooSessionId, "modoops.tenant.log", "search_count", [
+      [["tenant_id", "=", tenantId], ["action", "=", "agent.run"], ["create_date", ">=", sinceIso]],
+    ]);
+    return Number(n) || 0;
+  }
+
   async createTenant(odooSessionId: string, vals: { name: string; slug?: string; vertical?: string }): Promise<{ id: number }> {
     const name = String(vals.name || "").trim();
     if (!name) throw new BffError("validation_error", 400, "Nombre requerido");

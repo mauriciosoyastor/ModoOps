@@ -51,8 +51,7 @@ describe("api/modoops/[db]/agent/run — fail-closed sin key", () => {
     expect(data.status).toBe("ok");
   });
 
-  it("master suspendido => 403 aunque env diga ok", async () => {
-    __setGateCacheForTests({
+  it("master suspendido => 403 aunque env diga ok", async () => {    __setGateCacheForTests({
       getGate: async () => ({ http: 403, code: "tenant_suspended", message: "mora" }),
       invalidate: () => {},
       clear: () => {},
@@ -73,5 +72,24 @@ describe("api/modoops/[db]/agent/run — fail-closed sin key", () => {
     const data = (await res.json()) as { code: string; error: string };
     expect(data.code).toBe("tenant_suspended");
     expect(data.error).toMatch(/mora/);
+  });
+
+  it("quota 0 en env => 429 quota_exceeded sin tocar master", async () => {
+    const res = await POST(
+      req(
+        "modoops_demo",
+        {
+          tool: "echo",
+          input: { message: "hola" },
+          requestId: "423e4567-e89b-42d3-a456-426614174000",
+          apiKey: "secret-123",
+        },
+        { MODOOPS_AGENT_API_KEY_DEMO: "secret-123", MODOOPS_AGENT_QUOTA_DEMO: "0" }
+      )
+    );
+    expect(res.status).toBe(429);
+    const data = (await res.json()) as { code: string; quota: number };
+    expect(data.code).toBe("quota_exceeded");
+    expect(data.quota).toBe(0);
   });
 });

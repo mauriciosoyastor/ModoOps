@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { decide } from '../../../../../lib/orquestador/decide.ts';
-import { createEnvApiKeyValidator, createEnvSuspensionChecker, createCompositeSuspensionChecker, createMemoryQuotaStore, createMemoryRateLimiter, getEnv } from '../../../../../lib/orquestador/adapters.ts';
+import { createEnvApiKeyValidator, createEnvSuspensionChecker, createCompositeSuspensionChecker, createMemoryQuotaStore, createMemoryRateLimiter, createCompositeQuotaChecker, quotaFor, monthStartIso, getEnv } from '../../../../../lib/orquestador/adapters.ts';
+import { OdooAdapter } from '../../../../../lib/bff/odoo-adapter.ts';
 import { getGateCache } from '../../../../../lib/bff/tenant-status.ts';
 import { callLLM } from '../../../../../lib/orquestador/llm.ts';
 
@@ -67,6 +68,41 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   const quotaStore = createMemoryQuotaStore(env, rateMap);
   const checkRateLimit = createMemoryRateLimiter(rateMap);
 
+  // Techo IA (spec 0008): memoria OR conteo master en tenant.log action='agent.run'.
+  // Sin creds master (dev) manda memoria; master caído = fail-open a memoria.
+  // Desvío del spec: quota por env (no existe agent_quota_month en modoops.tenant).
+  const masterBaseUrl = env.ODOO_URL || 'http://localhost:8070';
+  async function withMasterTenant<T>(dbName: string, fn: (master: OdooAdapter, sessionId: string, tenantId: number) => Promise<T>): Promise<T | null> {
+    const slug = dbName.replace(/^modoops_/, "");
+    const master = new OdooAdapter({ baseUrl: masterBaseUrl, db: 'modoops_master' });
+    const { sessionId } = await master.login(env.ODOO_ADMIN_LOGIN, env.ODOO_ADMIN_PASSWORD);
+    try {
+      const tenant = await master.getTenantBySlug(sessionId, slug);
+      if (!tenant) return null;
+      return await fn(master, sessionId, tenant.id);
+    } finally {
+      await master.logout(sessionId).catch(() => {});
+    }
+  }
+  const masterQuotaExceeded = async (d: string): Promise<boolean> => {
+    const usage = await withMasterTenant(d, (master, sessionId, tenantId) =>
+      master.countAgentRuns(sessionId, tenantId, monthStartIso())
+    );
+    if (usage === null) return false;
+    return usage >= quotaFor(env, d);
+  };
+  const isQuotaExceeded = createCompositeQuotaChecker(
+    (d) => quotaStore.isQuotaExceeded(d),
+    (d) => (hasMasterCreds ? masterQuotaExceeded(d) : Promise.resolve(false))
+  );
+  // Best-effort: audita la corrida en master para el conteo del Techo (item 5 lo reutiliza).
+  const auditAgentRun = async (d: string, t: unknown, r: unknown): Promise<void> => {
+    if (!hasMasterCreds) return;
+    await withMasterTenant(d, (master, sessionId, tenantId) =>
+      master.auditTenantLog(sessionId, tenantId, "agent.run", `${String(t)} ${String(r)}`.slice(0, 200))
+    );
+  };
+
   // Orquestador decide — tapa chica, mucho adentro (lev. para callers, loc. para maintainers)
   const decision = await decide({
     db,
@@ -76,7 +112,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     apiKey,
     validateApiKey,
     isSuspended,
-    isQuotaExceeded: (db) => quotaStore.isQuotaExceeded(db),
+    isQuotaExceeded,
     checkRateLimit,
   });
 
@@ -88,11 +124,8 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     if (decision.status === 'needs_tool') {
       return json(decision.http, { status: 'needs_tool', code, error: decision.error, reason: 'unknown_tool' }, headers);
     }
-    return json(decision.http, { status: 'error', code, error: decision.error, ...(decision as { retryAfter?: number }).retryAfter ? { retryAfter: (decision as { retryAfter?: number }).retryAfter } : {}, ...(code === 'quota_exceeded' ? { quota: Number(env.MODOOPS_AGENT_QUOTA_DEFAULT ?? '200') } : {}) }, headers);
+    return json(decision.http, { status: 'error', code, error: decision.error, ...(decision as { retryAfter?: number }).retryAfter ? { retryAfter: (decision as { retryAfter?: number }).retryAfter } : {}, ...(code === 'quota_exceeded' ? { quota: quotaFor(env, db) } : {}) }, headers);
   }
-
-  // Audit + quota increment (después de decide ok, locality en QuotaStore)
-  await quotaStore.increment(db);
 
   // Proxy idempotente unique(tenant_db,tool,requestId) — truth en SQL, cache en Map (2 adapters, seam real)
   const idemKey = `${db}:${tool}:${requestId}`;
@@ -101,6 +134,9 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     return json(200, { status: existing.status, output: existing.output, runId: existing.runId }, { 'X-Idempotent-Replayed': 'true' });
   }
 
+  // Audit + quota increment (solo corridas ejecutadas: ni el replay ni el
+  // rechazo fiscal cuentan; el 422 no consumió corrida).
+  // Memoria siempre; master best-effort (sin él, el Techo sigue en memoria).
   const runId = `${db}:${tool}:${requestId}`;
   // Fiscal guard (ot.cobro) — falla cerrada, no improvisa
   if (tool === 'ot.cobro' && env.MODOOPS_FISCAL_ENABLED === '0') {
@@ -108,6 +144,9 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     idempotentMap.set(idemKey, { runId, output, status: 'needs_tool' });
     return json(422, { status: 'needs_tool', code: 'fiscal_not_enabled', error: 'Fiscal no habilitado', output, runId });
   }
+
+  await quotaStore.increment(db);
+  await auditAgentRun(db, tool, requestId).catch(() => {});
 
   const output = { echo: input, tenantDb: db, tool, runId, ...(llmSource ? { llmSource, message } : {}) };
   idempotentMap.set(idemKey, { runId, output, status: 'ok' });

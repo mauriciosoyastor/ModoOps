@@ -27,6 +27,7 @@ class ModoopsTenantLog(models.Model):
             ("aviso", "Aviso mora"),
             ("login_bloqueado", "Login bloqueado"),
             ("configurador_generar", "Configurador — Generar Propuesta"),
+            ("agent.run", "Agente — corrida"),
         ],
         required=True,
     )

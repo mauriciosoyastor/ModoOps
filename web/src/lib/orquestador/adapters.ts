@@ -69,7 +69,6 @@ export type QuotaStore = {
   isQuotaExceeded: (db: string) => Promise<boolean>;
   increment: (db: string) => Promise<void>;
 };
-
 export function createMemoryQuotaStore(env: Record<string, string>, monthMap: Map<string, { count: number; reset: number }>): QuotaStore {
   return {
     async isQuotaExceeded(db: string): Promise<boolean> {
@@ -88,6 +87,36 @@ export function createMemoryQuotaStore(env: Record<string, string>, monthMap: Ma
       if (entry && entry.reset > now) entry.count++;
       else monthMap.set(monthKey, { count: 1, reset: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).getTime() });
     },
+  };
+}
+
+/** Cuota mensual para un db (misma fuente que createMemoryQuotaStore). */
+export function quotaFor(env: Record<string, string>, db: string): number {
+  const slug = db.replace(/^modoops_/, "").toUpperCase();
+  return Number(env[`MODOOPS_AGENT_QUOTA_${slug}`] ?? env.MODOOPS_AGENT_QUOTA_DEFAULT ?? "200");
+}
+
+/** Inicio del mes en curso (ISO, medianoche UTC) para filtrar create_date en Odoo. */
+export function monthStartIso(now: Date = new Date()): string {
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1)).toISOString();
+}
+
+export type QuotaExceededChecker = (db: string) => boolean | Promise<boolean>;
+
+/** Quota memoria OR master: memoria primero (barato, sin red); master solo suma.
+ *  Master caído = fail-open a memoria (coherente con suspensión).
+ */
+export function createCompositeQuotaChecker(
+  memoryExceeded: QuotaExceededChecker,
+  masterExceeded: QuotaExceededChecker
+): (db: string) => Promise<boolean> {
+  return async (db: string): Promise<boolean> => {
+    if (await memoryExceeded(db)) return true;
+    try {
+      return await masterExceeded(db);
+    } catch {
+      return false;
+    }
   };
 }
 
