@@ -1,6 +1,10 @@
 # ModoOps — Stack dev local (Odoo CE 19 + Postgres 16)
 # Uso: docker compose up -d && open http://localhost:8070 (5434 para PG)
 # Evita colisión con Servigas (8069/5433). Ver docs/modoops-control-plane-spec.md y CONTEXT.md:237
+#
+# DEV-ONLY: los defaults odoo/odoo son para localhost. En VPS prod, exportar
+# POSTGRES_PASSWORD distinto (y admin_passwd/db_password en un odoo.conf
+# dedicado, nunca este archivo). Nunca reutilizar estos valores fuera de dev.
 
 services:
   db:
@@ -9,7 +13,7 @@ services:
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: odoo
-      POSTGRES_PASSWORD: odoo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo}
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
@@ -40,7 +44,8 @@ services:
     environment:
       HOST: db
       USER: odoo
-      PASSWORD: odoo
+      # Debe coincidir con POSTGRES_PASSWORD (mismo default dev).
+      PASSWORD: ${POSTGRES_PASSWORD:-odoo}
       PYTHONPATH: /mnt/extra-addons
     volumes:
       - ./modoops_core:/mnt/extra-addons/modoops_core

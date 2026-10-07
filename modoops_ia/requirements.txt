@@ -1,0 +1,3 @@
+# Deps host para tests de lógica pura (CI las instala si existe este archivo).
+# En Odoo runtime cryptography ya viene con la imagen.
+cryptography

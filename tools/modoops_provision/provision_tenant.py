@@ -17,9 +17,12 @@ import datetime
 import re
 import subprocess
 import sys
+from pathlib import Path
 
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
 PREFIX = "modoops_"
+BACKUP_ROOT = "/var/backups/modoops"
+RETENTION_DUMPS = 7
 CATALOGO = ["mostrador", "deposito", "compras", "fiscal_ar", "contactos", "migracion_excel", "taller"]
 
 
@@ -29,6 +32,32 @@ def slug_ok(slug: str) -> bool:
 
 def db_name(slug: str) -> str:
     return f"{PREFIX}{slug}"
+
+
+def db_ok(db: str) -> bool:
+    return db.startswith(PREFIX) and slug_ok(db[len(PREFIX):])
+
+
+def die(msg: str) -> None:
+    print(msg, file=sys.stderr)
+    sys.exit(2)
+
+
+def backup_filename(db: str, stamp: str | None = None) -> str:
+    stamp = stamp or datetime.datetime.now().strftime("%Y%m%d_%H%M")
+    return f"{BACKUP_ROOT}/{db}/{stamp}.dump"
+
+
+def prune_backups(backup_dir: str, keep: int = RETENTION_DUMPS) -> list[str]:
+    """Borra dumps viejos, conserva los `keep` más nuevos. Devuelve borrados."""
+    base = Path(backup_dir)
+    if not base.is_dir():
+        return []
+    dumps = sorted(p.name for p in base.iterdir() if p.is_file() and p.suffix == ".dump")
+    doomed = dumps[: max(0, len(dumps) - keep)]
+    for name in doomed:
+        (base / name).unlink()
+    return doomed
 
 
 def run(cmd: list[str], dry_run=False):
@@ -62,12 +91,26 @@ def cmd_list(args):
 
 def cmd_backup(args):
     db = args.db
-    stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-    out = f"/var/backups/modoops/{db}/{stamp}.dump"
+    out = backup_filename(db)
     print(f"Backup {db} -> {out}")
     run(["pg_dump", "-Fc", "-f", out, db], dry_run=args.dry_run)
+    if not args.dry_run:
+        for name in prune_backups(f"{BACKUP_ROOT}/{db}", keep=args.keep):
+            print(f"Prune {name}")
     # filestore opcional
     print(f"Filestore: /var/lib/odoo/filestore/{db} -> S3 si CONFIG_S3=1")
+
+
+def cmd_restore(db: str, dump: str, dry_run: bool = False) -> None:
+    """Restaura un dump -Fc sobre la DB (RTO 60min). Fail-closed ante traversal."""
+    if not db_ok(db):
+        die(f"DB inválida '{db}': solo modoops_<slug>.")
+    backup_dir = Path(BACKUP_ROOT) / db
+    candidate = (backup_dir / dump).resolve()
+    if candidate.parent != backup_dir.resolve() or candidate.suffix != ".dump":
+        die(f"Dump inválido '{dump}': debe ser un .dump dentro de {backup_dir}.")
+    print(f"Restore {candidate} -> {db}")
+    run(["pg_restore", "--clean", "--if-exists", "-d", db, str(candidate)], dry_run=dry_run)
 
 
 if __name__ == "__main__":
@@ -80,10 +123,14 @@ if __name__ == "__main__":
     p.add_argument("--vertical", default="retail", choices=["retail", "servicios", "distribucion"])
     p.add_argument("--list", action="store_true", help="alias --list")
     p.add_argument("--backup", dest="db", help="db a backupear ej: modoops_pintureria_centro")
+    p.add_argument("--keep", type=int, default=RETENTION_DUMPS, help="dumps a conservar (prune)")
+    p.add_argument("--restore", nargs=2, metavar=("DB", "DUMP"), help="restaura ej: --restore modoops_demo 20260101_0300.dump")
 
     args = p.parse_args()
     if args.list or (hasattr(args, "cmd") and args.cmd == "list"):
         cmd_list(args)
+    elif args.restore:
+        cmd_restore(args.restore[0], args.restore[1], dry_run=args.dry_run)
     elif args.db:
         cmd_backup(args)
     elif args.slug and args.name:

@@ -55,6 +55,15 @@ export type ConfiguradorQuote = {
   hash: string;
 };
 
+export type AgentExecuteEnvelope = {
+  status: "ok" | "needs_tool" | "error";
+  code?: string;
+  error?: string;
+  output?: unknown;
+  runId?: string;
+  replayed?: boolean;
+};
+
 export interface BackendClient {
   login(login: string, password: string): Promise<{ sessionId: string; session: SessionInfo }>;
   logout(odooSessionId: string): Promise<void>;
@@ -65,6 +74,10 @@ export interface BackendClient {
   getTenantBySlug(odooSessionId: string, slug: string): Promise<TenantRow | null>;
   // T5 login-tenant (prototipo): audita intentos en modoops.tenant.log
   auditTenantLog(odooSessionId: string, tenantId: number, action: string, detail?: string): Promise<void>;
+  // Techo IA (spec 0008): conteo mensual de corridas (action='agent.run')
+  countAgentRuns(odooSessionId: string, tenantId: number, sinceIso: string): Promise<number>;
+  // Agente IA (spec 0008): ejecución en Tenant vía controller + apiKey (sin sesión)
+  executeAgentTool(apiKey: string, tool: string, input: unknown, requestId: string): Promise<AgentExecuteEnvelope>;
   createTenant(odooSessionId: string, vals: { name: string; slug?: string; vertical?: string }): Promise<{ id: number }>;
   installTenantModules(
     odooSessionId: string,

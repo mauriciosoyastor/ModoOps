@@ -54,3 +54,55 @@ describe("OdooAdapter sesión muerta (polish replay)", () => {
     expect(err.status).toBe(503);
   });
 });
+
+describe("OdooAdapter agent runs (Techo IA)", () => {
+  function jsonResult(result: unknown): Response {
+    return new Response(JSON.stringify({ jsonrpc: "2.0", result }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  it("countAgentRuns devuelve search_count de agent.run del mes", async () => {
+    const seen: unknown[] = [];
+    const backend = createBackend({
+      ...BASE,
+      fetchImpl: (async (url: unknown, init: unknown) => {
+        seen.push(JSON.parse(String((init as { body: string }).body)));
+        return jsonResult(7);
+      }) as typeof fetch,
+    });
+    const n = await backend.countAgentRuns("s1", 42, "2026-10-01");
+    expect(n).toBe(7);
+    const body = seen[0] as { params: { model: string; method: string; args: unknown[] } };
+    expect(body.params.model).toBe("modoops.tenant.log");
+    expect(body.params.method).toBe("search_count");
+    expect(JSON.stringify(body.params.args[0])).toContain("agent.run");
+  });
+
+  it("executeAgentTool devuelve envelope del controller", async () => {
+    const backend = createBackend({
+      ...BASE,
+      db: "modoops_demo",
+      fetchImpl: (async () => jsonResult({ status: "ok", output: { echo: 1 }, runId: "modoops_demo:echo:r1" })) as typeof fetch,
+    });
+    const env = await backend.executeAgentTool("k", "echo", { message: "h" }, "r1");
+    expect(env.status).toBe("ok");
+    expect(env.runId).toBe("modoops_demo:echo:r1");
+  });
+
+  it("executeAgentTool con Odoo roto => 502 action_failed", async () => {
+    const backend = createBackend({
+      ...BASE,
+      db: "modoops_demo",
+      fetchImpl: (async () =>
+        new Response(JSON.stringify({ error: { message: "boom", data: {} } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })) as typeof fetch,
+    });
+    const err = await backend.executeAgentTool("k", "echo", {}, "r1").catch((e) => e);
+    expect(err).toBeInstanceOf(BffError);
+    expect(err.code).toBe("action_failed");
+  });
+});

@@ -24,7 +24,7 @@ export function createEnvApiKeyValidator(env: Record<string, string>) {
   return async (db: string, apiKey: string): Promise<boolean> => {
     const slug = db.replace(/^modoops_/, "").toUpperCase();
     const expected = env[`MODOOPS_AGENT_API_KEY_${slug}`] ?? env.MODOOPS_AGENT_API_KEY ?? env.MODOOPS_AGENT_API_KEY_DEFAULT;
-    if (!expected) return true; // dev echo mode: allow missing key if no expected configured (fail open en dev)
+    if (!expected) return false; // fail-closed: sin key configurada no se autoriza (dev debe setear .env)
     if (!apiKey) return false;
     return hmacCompare(apiKey, expected);
   };
@@ -40,12 +40,35 @@ export function createEnvSuspensionChecker(env: Record<string, string>) {
   };
 }
 
+export type SuspensionChecker = (db: string) => Promise<{ suspended: boolean; reason?: string | null }>;
+export type GateFetcher = (slug: string) => Promise<{ http: number; code?: string; message?: string }>;
+
+/** Suspensión env OR master: env bloquea primero (rápido); master solo puede bloquear.
+ *  Master caído/mal configurado = fail-open a env (la sesión ya era válida al emitirse).
+ */
+export function createCompositeSuspensionChecker(envChecker: SuspensionChecker, getGate: GateFetcher): SuspensionChecker {
+  return async (db: string): Promise<{ suspended: boolean; reason?: string | null }> => {
+    const envRes = await envChecker(db);
+    if (envRes.suspended) return envRes;
+    const slug = db.replace(/^modoops_/, "");
+    try {
+      const gate = await getGate(slug);
+      if (gate && gate.http === 403) {
+        return { suspended: true, reason: gate.message ?? "Tenant suspendido — regularizá abono" };
+      }
+    } catch (e) {
+      // Config rota = fail-closed ruidoso (mirror tenant-status.ts); master caído = fail-open a env.
+      if ((e as { code?: string })?.code === "misconfigured") throw e;
+    }
+    return envRes;
+  };
+}
+
 // --- QuotaStore (Techo IA 200/mes) ---
 export type QuotaStore = {
   isQuotaExceeded: (db: string) => Promise<boolean>;
   increment: (db: string) => Promise<void>;
 };
-
 export function createMemoryQuotaStore(env: Record<string, string>, monthMap: Map<string, { count: number; reset: number }>): QuotaStore {
   return {
     async isQuotaExceeded(db: string): Promise<boolean> {
@@ -64,6 +87,36 @@ export function createMemoryQuotaStore(env: Record<string, string>, monthMap: Ma
       if (entry && entry.reset > now) entry.count++;
       else monthMap.set(monthKey, { count: 1, reset: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).getTime() });
     },
+  };
+}
+
+/** Cuota mensual para un db (misma fuente que createMemoryQuotaStore). */
+export function quotaFor(env: Record<string, string>, db: string): number {
+  const slug = db.replace(/^modoops_/, "").toUpperCase();
+  return Number(env[`MODOOPS_AGENT_QUOTA_${slug}`] ?? env.MODOOPS_AGENT_QUOTA_DEFAULT ?? "200");
+}
+
+/** Inicio del mes en curso (ISO, medianoche UTC) para filtrar create_date en Odoo. */
+export function monthStartIso(now: Date = new Date()): string {
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1)).toISOString();
+}
+
+export type QuotaExceededChecker = (db: string) => boolean | Promise<boolean>;
+
+/** Quota memoria OR master: memoria primero (barato, sin red); master solo suma.
+ *  Master caído = fail-open a memoria (coherente con suspensión).
+ */
+export function createCompositeQuotaChecker(
+  memoryExceeded: QuotaExceededChecker,
+  masterExceeded: QuotaExceededChecker
+): (db: string) => Promise<boolean> {
+  return async (db: string): Promise<boolean> => {
+    if (await memoryExceeded(db)) return true;
+    try {
+      return await masterExceeded(db);
+    } catch {
+      return false;
+    }
   };
 }
 

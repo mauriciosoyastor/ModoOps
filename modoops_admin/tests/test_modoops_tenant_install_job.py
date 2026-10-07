@@ -23,6 +23,12 @@ class InstallJobModelTests(unittest.TestCase):
         self.assertIn("en_proceso", text)
         self.assertIn("TimeoutExpired", text)
 
+    def test_job_claim_atomico_sin_carrera(self):
+        text = JOB_MODEL.read_text(encoding="utf-8")
+        self.assertIn("FOR UPDATE", text)
+        self.assertIn("SKIP LOCKED", text)
+        self.assertIn("NOT EXISTS", text)
+
     def test_wizard_encola_job_en_install(self):
         text = WIZARD_MODEL.read_text(encoding="utf-8")
         self.assertIn("modoops.tenant.install.job", text)

@@ -45,6 +45,22 @@ jobs:
       - name: Pytest — modoops_ia logic (19 tests)
         run: python -m pytest modoops_ia/tests -q
 
+      - name: Pytest — tooling (grafo, configurador, indice, provision)
+        run: python -m pytest tools/grafo/tests tools/configurador/tests tools/indice_codigo/test_frescor_crg.py tools/indice_codigo/tests tools/modoops_provision/tests -q
+
+      - name: Python script-tests — fiscal guard + POS lock (sin Odoo)
+        run: python modoops_core/tests/test_modoops_fiscal_guard.py && python modoops_core/tests/test_modoops_pos_entrada_lock.py
+
+      - name: Pytest — laya (workdir propio por imports relativos)
+        working-directory: tools/laya
+        run: python -m pytest tests -q
+
+      # Fuera del gate (follow-up ítems 8-9):
+      # - modoops_admin/tests: 1 rojo pre-existente (Provisioning en log views)
+      # - modoops_core/tests: requieren Odoo (import odoo en tests)
+      # - tsc --noEmit: errores pre-existentes (narrowing DecideResult, mocks)
+      # - eslint/ruff: sin config en el repo
+
       - name: Pure-module guard — no Odoo import in logic/
         run: |
           echo "Checking modoops_ia/logic/*.py has no 'import odoo'..."
@@ -52,6 +68,10 @@ jobs:
 
       - name: Install Node deps (root + web)
         run: npm ci --ignore-scripts
+
+      - name: Vitest — web BFF
+        working-directory: web
+        run: npx vitest run
 
       - name: Check — 3D models manifest + weight budget
         run: node tools/check-models.mjs
