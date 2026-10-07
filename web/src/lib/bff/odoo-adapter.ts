@@ -1,4 +1,4 @@
-import type { BackendClient } from "./backend-client.ts";
+import type { AgentExecuteEnvelope, BackendClient } from "./backend-client.ts";
 import { BffError } from "./errors.ts";
 import type { HubPayload, LauncherPayload, SessionInfo } from "./types.ts";
 import { LEAD_FIELDS, buildLeadDomain, type LeadFilters, type LeadRow } from "./leads.ts";
@@ -166,6 +166,29 @@ export class OdooAdapter implements BackendClient {
       { limit: 1 }
     );
     return rows[0] ?? null;
+  }
+
+  // Agente IA (spec 0008): ejecución en Tenant vía controller auth=none + apiKey.
+  // Sin sesión: el controller valida apiKey contra ir.config_parameter.
+  async executeAgentTool(apiKey: string, tool: string, input: unknown, requestId: string): Promise<AgentExecuteEnvelope> {
+    const res = await this.#post("/modoops/agent/execute", {
+      jsonrpc: "2.0",
+      method: "call",
+      params: { db: this.#db, api_key: apiKey, tool, input, request_id: requestId },
+    });
+    if (!res.ok) throw new BffError("odoo_unavailable", 503, "Odoo devolvió error");
+    let payload: JsonRpcResponse<AgentExecuteEnvelope>;
+    try {
+      payload = (await res.json()) as JsonRpcResponse<AgentExecuteEnvelope>;
+    } catch {
+      throw new BffError("odoo_unavailable", 503, "Respuesta Odoo inválida");
+    }
+    if (payload.error !== undefined) {
+      const err = payload.error as { data?: { message?: string }; message?: string };
+      throw new BffError("action_failed", 502, err?.data?.message || err?.message || "Odoo error");
+    }
+    if (!payload.result) throw new BffError("odoo_unavailable", 503, "Odoo sin resultado");
+    return payload.result;
   }
 
   // T5 login-tenant (prototipo): audita intentos en modoops.tenant.log (aditivo, sin callers previos)

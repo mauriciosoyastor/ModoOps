@@ -79,4 +79,30 @@ describe("OdooAdapter agent runs (Techo IA)", () => {
     expect(body.params.method).toBe("search_count");
     expect(JSON.stringify(body.params.args[0])).toContain("agent.run");
   });
+
+  it("executeAgentTool devuelve envelope del controller", async () => {
+    const backend = createBackend({
+      ...BASE,
+      db: "modoops_demo",
+      fetchImpl: (async () => jsonResult({ status: "ok", output: { echo: 1 }, runId: "modoops_demo:echo:r1" })) as typeof fetch,
+    });
+    const env = await backend.executeAgentTool("k", "echo", { message: "h" }, "r1");
+    expect(env.status).toBe("ok");
+    expect(env.runId).toBe("modoops_demo:echo:r1");
+  });
+
+  it("executeAgentTool con Odoo roto => 502 action_failed", async () => {
+    const backend = createBackend({
+      ...BASE,
+      db: "modoops_demo",
+      fetchImpl: (async () =>
+        new Response(JSON.stringify({ error: { message: "boom", data: {} } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })) as typeof fetch,
+    });
+    const err = await backend.executeAgentTool("k", "echo", {}, "r1").catch((e) => e);
+    expect(err).toBeInstanceOf(BffError);
+    expect(err.code).toBe("action_failed");
+  });
 });

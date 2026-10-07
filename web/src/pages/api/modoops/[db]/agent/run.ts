@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { decide } from '../../../../../lib/orquestador/decide.ts';
 import { createEnvApiKeyValidator, createEnvSuspensionChecker, createCompositeSuspensionChecker, createMemoryQuotaStore, createMemoryRateLimiter, createCompositeQuotaChecker, quotaFor, monthStartIso, getEnv } from '../../../../../lib/orquestador/adapters.ts';
 import { OdooAdapter } from '../../../../../lib/bff/odoo-adapter.ts';
+import type { AgentExecuteEnvelope } from '../../../../../lib/bff/backend-client.ts';
+import { BffError } from '../../../../../lib/bff/errors.ts';
 import { getGateCache } from '../../../../../lib/bff/tenant-status.ts';
 import { callLLM } from '../../../../../lib/orquestador/llm.ts';
 
@@ -10,13 +12,21 @@ export const prerender = false;
 // Deep module singletons — adapters inyectables, shared seam (no duplicación)
 // rateMap/idempotentMap viven aquí pero son gestionados por adapters (locality)
 const rateMap = new Map<string, { count: number; reset: number }>();
-const idempotentMap = new Map<string, { runId: string; output: unknown; status: string }>();
+const idempotentMap = new Map<string, { runId: string; output: unknown; status: string; code?: string; error?: string }>();
 
 function json(status: number, body: unknown, headers: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { 'Content-Type': 'application/json', ...headers },
   });
+}
+
+/** Misma forma de respuesta en hit y miss: el replay devuelve lo que el miss daría. */
+function outcomeResponse(status: string, code: string | undefined, error: string | undefined, output: unknown, runId: string, replayed: boolean) {
+  const headers: Record<string, string> = replayed ? { 'X-Idempotent-Replayed': 'true' } : {};
+  if (status === 'ok') return json(200, { status: 'ok', output, runId }, headers);
+  const c = code ?? (status === 'needs_tool' ? 'unknown_tool' : 'error');
+  return json(422, { status, code: c, error: error ?? 'Error', output, runId }, headers);
 }
 
 function getApiKey(request: Request, body: Record<string, unknown> | null): string | null {
@@ -131,7 +141,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   const idemKey = `${db}:${tool}:${requestId}`;
   const existing = idempotentMap.get(idemKey);
   if (existing) {
-    return json(200, { status: existing.status, output: existing.output, runId: existing.runId }, { 'X-Idempotent-Replayed': 'true' });
+    return outcomeResponse(existing.status, existing.code, existing.error, existing.output, existing.runId, true);
   }
 
   // Audit + quota increment (solo corridas ejecutadas: ni el replay ni el
@@ -141,14 +151,31 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   // Fiscal guard (ot.cobro) — falla cerrada, no improvisa
   if (tool === 'ot.cobro' && env.MODOOPS_FISCAL_ENABLED === '0') {
     const output = { reason: 'fiscal_not_enabled', draft: null };
-    idempotentMap.set(idemKey, { runId, output, status: 'needs_tool' });
+    idempotentMap.set(idemKey, { runId, output, status: 'needs_tool', code: 'fiscal_not_enabled', error: 'Fiscal no habilitado' });
     return json(422, { status: 'needs_tool', code: 'fiscal_not_enabled', error: 'Fiscal no habilitado', output, runId });
+  }
+
+  // Ejecución real en Tenant (spec 0008 + 4b): verdad en modoops.agent.run,
+  // Map local solo caché L1. Sin Odoo → 503 (no se finge ejecución).
+  // __fetchImpl es seam solo-tests (mirror __setBackendForTests).
+  const fetchImpl = (locals as { __fetchImpl?: typeof fetch })?.__fetchImpl;
+  const tenant = new OdooAdapter({ baseUrl: masterBaseUrl, db, fetchImpl });
+  let envelope: AgentExecuteEnvelope;
+  try {
+    envelope = await tenant.executeAgentTool(apiKey ?? "", tool as string, input, requestId as string);
+  } catch (e) {
+    const status = e instanceof BffError ? e.status : 502;
+    const code = e instanceof BffError ? e.code : "action_failed";
+    return json(status, { status: 'error', code, error: e instanceof Error ? e.message : 'Error ejecutando herramienta', runId });
   }
 
   await quotaStore.increment(db);
   await auditAgentRun(db, tool, requestId).catch(() => {});
+  idempotentMap.set(idemKey, { runId: envelope.runId ?? runId, output: envelope.output, status: envelope.status, code: envelope.code, error: envelope.error });
 
-  const output = { echo: input, tenantDb: db, tool, runId, ...(llmSource ? { llmSource, message } : {}) };
-  idempotentMap.set(idemKey, { runId, output, status: 'ok' });
-  return json(200, { status: 'ok', output, runId, ...(llmSource ? { llmSource } : {}) });
+  if (envelope.status === 'ok') {
+    const headers: Record<string, string> = envelope.replayed ? { 'X-Idempotent-Replayed': 'true' } : {};
+    return json(200, { status: 'ok', output: envelope.output, runId: envelope.runId ?? runId, ...(llmSource ? { llmSource } : {}) }, headers);
+  }
+  return outcomeResponse(envelope.status, envelope.code, envelope.error, envelope.output, envelope.runId ?? runId, false);
 };
