@@ -39,6 +39,8 @@ jobs:
           python -m pip install --upgrade pip
           # stdlib-only logic, but ensure pytest available for CI
           pip install pytest
+          # seam test tools/indice_codigo/test_frescor_crg.py shells out to this CLI
+          pip install code-review-graph
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f modoops_ia/requirements.txt ]; then pip install -r modoops_ia/requirements.txt; fi
 
