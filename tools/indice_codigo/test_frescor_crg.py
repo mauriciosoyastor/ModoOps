@@ -30,16 +30,21 @@ def _no_window_kwargs() -> dict:
 
 
 def run_crg(args: list[str], timeout: float = 120.0) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["code-review-graph", *args],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=timeout,
-        **_no_window_kwargs(),
-    )
+    try:
+        return subprocess.run(
+            ["code-review-graph", *args],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+            **_no_window_kwargs(),
+        )
+    except FileNotFoundError:
+        raise unittest.SkipTest(
+            "code-review-graph no instalado (pip install code-review-graph)"
+        )
 
 
 class IndiceCodigoSeamTests(unittest.TestCase):
