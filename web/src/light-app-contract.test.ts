@@ -133,8 +133,12 @@ describe('contrato light-app papel (#215)', () => {
     const text = read('pages/tenant/[slug]/app.astro');
     const header = text.slice(text.indexOf('<header'), text.indexOf('</header>'));
     expect(header).toContain('data-bloquear');
+    expect(header).toContain('puesto.persona');
     expect(header).toContain('puesto.aviso');
     expect(header).toContain('data-logout');
+    const candado = text.slice(text.indexOf('id="puesto-candado"'), text.indexOf('<div class="shell"'));
+    expect(candado).toContain('puesto.aviso');
+    expect(candado).toContain('puesto-candado__aviso');
     expect(header).not.toContain('tenant?.name');
     expect(header).not.toContain('tenant.state');
     expect(header).not.toContain('puesto.caja');
@@ -156,6 +160,16 @@ describe('contrato light-app papel (#215)', () => {
     expect(pill.slice(0, 280)).toContain('background: var(--mo-hero)');
     expect(pill.slice(0, 280)).toContain('color: var(--mo-on-hero)');
     expect(text).toContain('aria-label="Módulos"');
+    expect(text).toContain('grid-template-columns: auto minmax(0, 1fr) auto;');
+    expect(text).not.toContain('grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);');
+    expect(text).not.toContain("getElementById('puesto-candado')?.addEventListener('keydown'");
+  });
+
+  it('abrir la caja avisa que está abriendo y el fallo pide reintentar', () => {
+    const text = read('pages/tenant/[slug]/app.astro');
+    expect(text).toContain('Abriendo…');
+    expect(text).toContain('dataset.etiqueta');
+    expect(text).toContain('No se pudo abrir el punto de venta. Probá de nuevo.');
   });
 
   it('el Shell abre el Inicio en disposición Captura y confirma el cierre', () => {
