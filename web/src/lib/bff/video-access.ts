@@ -1,11 +1,9 @@
 import { getVideoAccessUrl, type BffEnv } from "./config.ts";
 
-export type VideoAccessResult = {
-  http: number;
-  code: "ok" | "unauthorized" | "action_failed";
-  body?: { mode: "link-externo"; url: string; target: "_blank" };
-  message?: string;
-};
+export type VideoAccessResult =
+  | { http: 200; code: "ok"; body: { mode: "link-externo"; url: string; target: "_blank" } }
+  | { http: 401; code: "unauthorized" }
+  | { http: 503; code: "action_failed"; message: string };
 
 /** Lógica pura del acceso Video-IA (testeable sin Astro; patrón `decide`). */
 export function resolveVideoAccess(args: { odooSessionId?: string; env?: BffEnv }): VideoAccessResult {

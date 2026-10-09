@@ -60,7 +60,7 @@ jobs:
       # Fuera del gate (follow-up ítems 8-9):
       # - modoops_admin/tests: 1 rojo pre-existente (Provisioning en log views)
       # - modoops_core/tests: requieren Odoo (import odoo en tests)
-      # - tsc --noEmit: errores pre-existentes (narrowing DecideResult, mocks)
+      # - tsc --noEmit: cero en web/tsconfig.json (issue #172). Sigue fuera del gate.
       # - eslint/ruff: sin config en el repo
 
       - name: Pure-module guard — no Odoo import in logic/

@@ -20,18 +20,21 @@ describe("Video-IA S1 — resolveVideoAccess", () => {
   it("sin sesión → 401 unauthorized", () => {
     const res = resolveVideoAccess({ odooSessionId: undefined, env: {} });
     expect(res.http).toBe(401);
+    if (res.http === 200) throw new Error("se esperaba un rechazo");
     expect(res.code).toBe("unauthorized");
   });
 
   it("con sesión pero sin URL → 503 action_failed (nunca placeholder silencioso)", () => {
     const res = resolveVideoAccess({ odooSessionId: "sid-123", env: {} });
     expect(res.http).toBe(503);
+    if (res.http === 200) throw new Error("se esperaba un rechazo");
     expect(res.code).toBe("action_failed");
   });
 
   it("con sesión y URL → 200 link-externo con target _blank", () => {
     const res = resolveVideoAccess({ odooSessionId: "sid-123", env: { VIDEO_ACCESS_URL: "https://video.stub/nuevo" } });
     expect(res.http).toBe(200);
+    if (res.http !== 200) throw new Error("se esperaba 200");
     expect(res.body).toEqual({ mode: "link-externo", url: "https://video.stub/nuevo", target: "_blank" });
   });
 });

@@ -12,6 +12,7 @@
 import { OdooAdapter } from "./odoo-adapter.ts";
 import { getBackendEnv, getEnv } from "./config.ts";
 import { BffError } from "./errors.ts";
+import type { TenantRow } from "./backend-client.ts";
 import { resolveTenantGate, type TenantGateResult, type TenantGateTenant } from "./tenant-gate.ts";
 
 export const DEFAULT_GATE_TTL_MS = 45_000;
@@ -102,7 +103,7 @@ export async function auditGateBlock(slug: string, login: string, deps: MasterDe
 }
 
 export type MasterApi = {
-  getTenantBySlug(sessionId: string, slug: string): Promise<{ id: number; state: string; abono_due_date: string | false } | null>;
+  getTenantBySlug(sessionId: string, slug: string): Promise<TenantRow | null>;
   auditTenantLog(sessionId: string, tenantId: number, action: string, detail?: string): Promise<void>;
   createLead(sessionId: string, vals: Record<string, unknown>): Promise<{ id: number }>;
   quotePreview(sessionId: string, vals: {

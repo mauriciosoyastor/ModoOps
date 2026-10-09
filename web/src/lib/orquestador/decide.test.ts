@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { decide } from "./decide.ts";
+import { decide, type DecideResult } from "./decide.ts";
+
+function rechazo(res: DecideResult): Exclude<DecideResult, { status: "ok" }> {
+  if (res.status === "ok") throw new Error("se esperaba un rechazo");
+  return res;
+}
 
 const okKey = async (db: string, key: string) => key === "secret-123";
 const badKey = async () => false;
@@ -21,7 +26,7 @@ describe("Orquestador decide — TDD seam", () => {
       isQuotaExceeded: quotaOk,
     });
     expect(res.http).toBe(401);
-    expect(res.code).toBe("unauthorized");
+    expect(rechazo(res).code).toBe("unauthorized");
   });
 
   it("blocks suspended", async () => {
@@ -36,7 +41,7 @@ describe("Orquestador decide — TDD seam", () => {
       isQuotaExceeded: quotaOk,
     });
     expect(res.http).toBe(403);
-    expect(res.error).toMatch(/mora/);
+    expect(rechazo(res).error).toMatch(/mora/);
   });
 
   it("blocks quota exceeded", async () => {
@@ -51,7 +56,7 @@ describe("Orquestador decide — TDD seam", () => {
       isQuotaExceeded: quotaExceeded,
     });
     expect(res.http).toBe(429);
-    expect(res.code).toBe("quota_exceeded");
+    expect(rechazo(res).code).toBe("quota_exceeded");
   });
 
   it("falla cerrada unknown tool", async () => {
@@ -82,7 +87,7 @@ describe("Orquestador decide — TDD seam", () => {
       isQuotaExceeded: quotaOk,
     });
     expect(res.http).toBe(422);
-    expect(res.code).toBe("invalid_input");
+    expect(rechazo(res).code).toBe("invalid_input");
   });
 
   it("ok", async () => {
@@ -127,6 +132,6 @@ describe("Orquestador decide — TDD seam", () => {
       checkRateLimit: async () => ({ allowed: false, code: "rate_limited", error: "rate limit Tenant 10/min", retryAfter: 30 }),
     });
     expect(res.http).toBe(429);
-    expect(res.code).toBe("rate_limited");
+    expect(rechazo(res).code).toBe("rate_limited");
   });
 });
