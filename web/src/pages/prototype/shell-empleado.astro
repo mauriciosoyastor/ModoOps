@@ -125,6 +125,42 @@ const SALUDO: Record<string, string> = {
       .mo-sheet__actions {
         justify-content: flex-end;
       }
+      #sheet-caja1,
+      #sheet-caja2,
+      #sheet-cobrar {
+        align-items: start;
+        align-content: start;
+        justify-items: center;
+        overflow: auto;
+        grid-template-rows: max-content max-content;
+      }
+      #sheet-caja1::after,
+      #sheet-caja2::after,
+      #sheet-cobrar::after {
+        content: "";
+        height: max(4.5rem, calc(env(safe-area-inset-bottom) + 3.5rem));
+      }
+      .mo-sheet--caja {
+        align-self: start;
+        box-sizing: border-box;
+        width: min(28rem, 100%);
+        min-height: 0;
+        height: auto;
+        background: var(--mo-card);
+        border: 1px solid var(--mo-line);
+        border-radius: var(--mo-radius);
+        padding: 1.15rem 1.2rem 1.05rem;
+      }
+      .mo-sheet--caja .mo-sheet__body,
+      .mo-sheet--caja .mo-field {
+        align-content: start;
+      }
+      .mo-sheet--caja .mo-sheet__body {
+        flex: 0 0 auto;
+      }
+      .mo-sheet--caja .mo-sheet__actions {
+        margin-top: 0;
+      }
       .sheet-list { display: grid; gap: 0.5rem; }
       /* Borde de acento: una acción principal por pestaña. El relleno de la tarjeta queda quieto. */
       .mo-tile--lead {
@@ -224,7 +260,7 @@ const SALUDO: Record<string, string> = {
     {tab === 'mostrador' && (
     <div class="mo-sheet-backdrop" id="sheet-cobrar" hidden>
       <div
-        class="mo-sheet"
+        class="mo-sheet mo-sheet--caja"
         role="dialog"
         aria-modal="true"
         aria-labelledby="sheet-cobrar-title"
@@ -268,7 +304,7 @@ const SALUDO: Record<string, string> = {
     {tab === 'mostrador' && (
     <>
     <div class="mo-sheet-backdrop" id="sheet-caja1" hidden>
-      <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja1-title">
+      <div class="mo-sheet mo-sheet--caja" role="dialog" aria-modal="true" aria-labelledby="sheet-caja1-title">
         <div class="mo-sheet__top">
           <h2 class="mo-sheet__title" id="sheet-caja1-title">Abrir caja 1</h2>
           <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
@@ -288,7 +324,7 @@ const SALUDO: Record<string, string> = {
       </div>
     </div>
     <div class="mo-sheet-backdrop" id="sheet-caja2" hidden>
-      <div class="mo-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-caja2-title">
+      <div class="mo-sheet mo-sheet--caja" role="dialog" aria-modal="true" aria-labelledby="sheet-caja2-title">
         <div class="mo-sheet__top">
           <h2 class="mo-sheet__title" id="sheet-caja2-title">Abrir caja 2</h2>
           <button type="button" class="mo-btn mo-btn--ghost" data-sheet-close>Cerrar</button>
