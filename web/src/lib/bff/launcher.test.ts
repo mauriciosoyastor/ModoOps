@@ -1,6 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 import { loadTenantLauncher } from "./launcher.ts";
 import { BffError } from "./errors.ts";
+import type { LauncherPayload, LauncherTile } from "./types.ts";
+
+const TILE: LauncherTile = {
+  id: 7,
+  label: "Taller",
+  hint: "",
+  icon: "wrench",
+  enter_label: "Entrar",
+  target_type: "hub",
+  client_tag: "",
+  accent_key: "flame-orange",
+  value: "taller",
+  action: false,
+};
 
 const TENANT = {
   id: 1,
@@ -22,7 +36,7 @@ const TENANT = {
 describe("loadTenantLauncher (G8)", () => {
   it("metadata vía master + tiles vía DB tenant", async () => {
     const getTenantBySlugMaster = vi.fn(async () => ({ ...TENANT }));
-    const getLauncherForDb = vi.fn(async () => ({ tiles: [{ id: 7, label: "Taller" }] }));
+    const getLauncherForDb = vi.fn(async (): Promise<LauncherPayload> => ({ tiles: [TILE] }));
     const res = await loadTenantLauncher("servigas", "sess-tenant", {
       getTenantBySlugMaster,
       getLauncherForDb,
@@ -36,7 +50,7 @@ describe("loadTenantLauncher (G8)", () => {
 
   it("tenant inexistente → not_found sin tocar la DB tenant", async () => {
     const getTenantBySlugMaster = vi.fn(async () => null);
-    const getLauncherForDb = vi.fn(async () => ({ tiles: [] }));
+    const getLauncherForDb = vi.fn(async (): Promise<LauncherPayload> => ({ tiles: [] }));
     await expect(
       loadTenantLauncher("fantasma", "sess-tenant", { getTenantBySlugMaster, getLauncherForDb })
     ).rejects.toMatchObject({ code: "not_found" });

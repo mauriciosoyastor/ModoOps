@@ -22,7 +22,12 @@ export type DecideArgs = {
 
 export type DecideResult =
   | { http: 200; status: "ok" }
-  | { http: number; status: "error" | "needs_tool"; error: string; code?: string; retryAfter?: number };
+  | { http: 422; status: "needs_tool"; error: string; code: "unknown_tool" }
+  | { http: 400; status: "error"; error: string; code: "invalid_db" | "missing_requestId" | "missing_tool" }
+  | { http: 401; status: "error"; error: string; code: "unauthorized" }
+  | { http: 403; status: "error"; error: string; code: "tenant_suspended" }
+  | { http: 422; status: "error"; error: string; code: "invalid_input" }
+  | { http: 429; status: "error"; error: string; code: string; retryAfter?: number };
 
 export async function decide(args: DecideArgs): Promise<DecideResult> {
   const { db, tool, input, requestId, apiKey, validateApiKey, isSuspended, isQuotaExceeded, toolExists, checkRateLimit } = args;

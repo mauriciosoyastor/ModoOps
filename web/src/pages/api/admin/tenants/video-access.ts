@@ -19,7 +19,8 @@ export const GET: APIRoute = async ({ cookies, locals }) => {
       // Ruta authenticated-only como todo /api/admin/* (middleware da 401 sin sesión).
       // Master-only es operativo (tile solo en panel master, S2); 403 con rol: diferido (no hay rol en SessionEntry).
       const fallback = res.code === "unauthorized" ? USER_ERROR_MESSAGES.unauthorized : USER_ERROR_MESSAGES.action_failed;
-      return bffErrorResponse(new BffError(res.code, res.http, res.message || fallback), cookies);
+      const message = res.http === 503 ? res.message || fallback : fallback;
+      return bffErrorResponse(new BffError(res.code, res.http, message), cookies);
     }
     return json(res.body);
   } catch (err) {

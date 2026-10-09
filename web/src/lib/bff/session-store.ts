@@ -286,13 +286,12 @@ export class SignedCookieSessionStore implements SessionStore {
     return entry;
   }
 
-  updateSession(): boolean {
-    // Sin estado servidor no hay nada que reescribir: el refresh lo hace un
-    // login nuevo. Nadie lo llama hoy (sin callers); false = no soportado.
+  updateSession(_bffSid: string, _session: SessionInfo, _odooSessionId?: string): boolean {
+    // Sin estado servidor no hay nada que reescribir: el refresh lo hace un login nuevo.
     return false;
   }
 
-  destroy(): void {
+  destroy(_bffSid: string): void {
     // Sin estado: el logout borra la cookie en el cliente (clearBffCookie).
   }
 }

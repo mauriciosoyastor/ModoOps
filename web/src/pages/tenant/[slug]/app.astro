@@ -83,7 +83,8 @@ const puesto = sesionDelPuesto({ persona: userName });
   <div class="mo-live" id="live-polite" aria-live="polite" aria-atomic="true"></div>
 
   <div id="puesto-candado" class="puesto-candado" hidden>
-    <div class="puesto-candado__lienzo">
+    <div class="puesto-candado__lienzo" role="dialog" aria-modal="true" aria-labelledby="puesto-candado-titulo">
+      <p id="puesto-candado-titulo" class="puesto-candado__aviso">{puesto.aviso}</p>
       <button type="button" class="puesto-candado__abrir" data-desbloquear aria-label="Desbloquear puesto">
         <svg width="72" height="72" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <rect x="5" y="11" width="14" height="9" rx="2"></rect>
@@ -96,24 +97,23 @@ const puesto = sesionDelPuesto({ persona: userName });
   <div class="shell" id="contenido">
     <header class="app-bar">
       <p class="app-bar__brand" translate="no">ModoOps</p>
-      <div class="app-bar__pills">
-        <nav class="app-bar__nav" aria-label="Módulos">
-          {inicio.nav.map((item) => (
-            <a class="app-link" href={item.href} aria-current={item.actual ? 'page' : undefined}>{item.label}</a>
-          ))}
-        </nav>
-        <div class="app-bar__sesion">
-          <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puesto.aviso}</p>
-          <a class="app-bar__accion" href={`/tenant/${slug}/configuracion`}>Configuración</a>
-          <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
-        </div>
+      <nav class="app-bar__nav" aria-label="Módulos">
+        {inicio.nav.map((item) => (
+          <a class="app-link" href={item.href} aria-current={item.actual ? 'page' : undefined}>{item.label}</a>
+        ))}
+      </nav>
+      <div class="app-bar__sesion">
+        {puesto.persona ? <p class="app-bar__persona" title={puesto.persona}>{puesto.persona}</p> : null}
+        <p class="app-bar__aviso" data-puesto-aviso role="status" tabindex="-1" hidden>{puesto.aviso}</p>
+        <a class="app-bar__accion" href={`/tenant/${slug}/configuracion`}>Configuración</a>
+        <button type="button" class="app-bar__candado" data-bloquear aria-pressed="false" aria-label={puesto.bloquear} data-abierto={puesto.bloquear} data-cerrado={puesto.desbloquear}>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="11" width="14" height="9" rx="2"></rect>
+            <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
+          </svg>
+        </button>
+        <button type="button" class="app-bar__accion" data-logout>{inicio.cerrarSesion}</button>
       </div>
-      <button type="button" class="app-bar__candado" data-bloquear aria-pressed="false" aria-label={puesto.bloquear} data-abierto={puesto.bloquear} data-cerrado={puesto.desbloquear}>
-        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="5" y="11" width="14" height="9" rx="2"></rect>
-          <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
-        </svg>
-      </button>
     </header>
 
     <div class="page" id="puesto-trabajo">
@@ -345,8 +345,8 @@ const puesto = sesionDelPuesto({ persona: userName });
   <style>
     .shell { min-height: 100dvh; }
     .app-bar {
-      display: flex;
-      flex-wrap: nowrap;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
       gap: 0.75rem 1rem;
       padding:
@@ -383,19 +383,24 @@ const puesto = sesionDelPuesto({ persona: userName });
       font-size: 0.85rem;
       color: var(--mo-muted);
     }
-    .app-bar__pills {
+    .app-bar__nav {
+      justify-self: center;
+      min-width: 0;
+      max-width: 100%;
       display: flex;
       flex-wrap: nowrap;
       align-items: center;
       gap: 0.15rem;
-      margin-left: auto;
+      margin: 0;
       padding: 0.2rem;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
       border: 1px solid var(--mo-line);
       border-radius: 999px;
       background: var(--mo-card);
     }
-    .app-bar__nav,
     .app-bar__sesion {
+      justify-self: end;
       display: flex;
       flex-wrap: nowrap;
       gap: 0.15rem;
@@ -404,6 +409,33 @@ const puesto = sesionDelPuesto({ persona: userName });
       padding: 0;
       border: 0;
       background: transparent;
+    }
+    .app-bar__persona {
+      margin: 0 0.35rem 0 0;
+      min-width: 0;
+      max-width: 14rem;
+      overflow: hidden;
+      font-size: 0.92rem;
+      font-weight: 650;
+      line-height: 1.3;
+      color: var(--mo-ink);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    @media (max-width: 720px) {
+      .app-bar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+          "brand sesion"
+          "nav nav";
+      }
+      .app-bar__brand { grid-area: brand; }
+      .app-bar__nav {
+        grid-area: nav;
+        justify-self: stretch;
+      }
+      .app-bar__sesion { grid-area: sesion; }
+      .app-bar__persona { max-width: 8rem; }
     }
     .app-link {
       display: inline-flex;
@@ -438,8 +470,21 @@ const puesto = sesionDelPuesto({ persona: userName });
       inset: 0;
       z-index: 110;
       display: grid;
-      place-items: center;
+      align-content: center;
+      justify-items: center;
+      gap: 1.25rem;
+      padding: 1.5rem;
       background: var(--mo-wash);
+    }
+    .puesto-candado__aviso {
+      margin: 0;
+      max-width: 28rem;
+      font-size: 1.05rem;
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--mo-ink);
+      text-align: center;
+      text-wrap: balance;
     }
     .puesto-candado__abrir {
       display: grid;
@@ -744,6 +789,11 @@ const puesto = sesionDelPuesto({ persona: userName });
       });
       const result = el.querySelector('#stock-result');
       if (result instanceof HTMLElement) result.hidden = true;
+      el.querySelectorAll('button[type="submit"]').forEach((node) => {
+        if (!(node instanceof HTMLButtonElement)) return;
+        node.disabled = false;
+        if (node.dataset.etiqueta) node.textContent = node.dataset.etiqueta;
+      });
     }
 
     function openSheet(id: string, fromUrl = false) {
@@ -863,7 +913,14 @@ const puesto = sesionDelPuesto({ persona: userName });
         const slugM = window.location.pathname.match(/^\/tenant\/([^/]+)\/app/);
         const homeSlug = slugM ? slugM[1] : '';
         const submit = (ev.target as HTMLFormElement).querySelector('button[type="submit"]') as HTMLButtonElement | null;
-        if (submit) submit.disabled = true;
+        if (submit && !submit.dataset.etiqueta) {
+          submit.dataset.etiqueta = (submit.textContent || 'Abrir caja').trim();
+        }
+        const etiqueta = submit?.dataset.etiqueta || 'Abrir caja';
+        if (submit) {
+          submit.disabled = true;
+          submit.textContent = 'Abriendo…';
+        }
         void fetch(`/api/tenant/${homeSlug}/caja`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -872,15 +929,33 @@ const puesto = sesionDelPuesto({ persona: userName });
           .then(async (res) => {
             const data = (await res.json().catch(() => null)) as { url?: string; error?: { message?: string } } | null;
             if (!res.ok || !data?.url) {
-              setErr(fieldId, errId, data?.error?.message || 'No se pudo abrir el punto de venta.', fondo);
-              if (submit) submit.disabled = false;
+              setErr(fieldId, errId, data?.error?.message || 'No se pudo abrir el punto de venta. Probá de nuevo.', fondo);
+              if (submit) {
+                submit.disabled = false;
+                submit.textContent = etiqueta;
+              }
               return;
             }
+            fondo.value = '';
             window.location.assign(data.url);
+            let salio = false;
+            const marcarSalida = () => {
+              salio = true;
+            };
+            window.addEventListener('pagehide', marcarSalida);
+            window.setTimeout(() => {
+              window.removeEventListener('pagehide', marcarSalida);
+              if (salio || !submit) return;
+              submit.disabled = false;
+              submit.textContent = etiqueta;
+            }, 500);
           })
           .catch(() => {
-            setErr(fieldId, errId, 'No se pudo abrir el punto de venta.', fondo);
-            if (submit) submit.disabled = false;
+            setErr(fieldId, errId, 'No se pudo abrir el punto de venta. Probá de nuevo.', fondo);
+            if (submit) {
+              submit.disabled = false;
+              submit.textContent = etiqueta;
+            }
           });
       });
     }

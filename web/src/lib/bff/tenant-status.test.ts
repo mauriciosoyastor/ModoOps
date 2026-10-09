@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import type { TenantRow } from "./backend-client.ts";
+import type { TenantGateTenant } from "./tenant-gate.ts";
 import {
   auditGateBlock,
   createGateCache,
@@ -26,7 +28,10 @@ describe("resolveGateTtlMs", () => {
 
 describe("createGateCache", () => {
   it("activo → 200 y cachea dentro del TTL", async () => {
-    const fetchState: TenantStateFetcher = vi.fn(async () => ({ state: "activo", abono_due_date: false }));
+    const fetchState: TenantStateFetcher = vi.fn(async (): Promise<TenantGateTenant | null> => ({
+      state: "activo",
+      abono_due_date: false,
+    }));
     let t = 1_000;
     const cache = createGateCache({ ttlMs: 45_000, now: () => t, fetchState });
     expect(await cache.getGate("servigas")).toEqual({ http: 200 });
@@ -51,7 +56,7 @@ describe("createGateCache", () => {
 
   it("expirado el TTL revalida", async () => {
     const fetchState: TenantStateFetcher = vi
-      .fn<[], Promise<{ state: string; abono_due_date: false }>>()
+      .fn<() => Promise<TenantGateTenant | null>>()
       .mockResolvedValueOnce({ state: "activo", abono_due_date: false })
       .mockResolvedValueOnce({ state: "suspendido", abono_due_date: false });
     let t = 0;
@@ -82,7 +87,10 @@ describe("createGateCache", () => {
   });
 
   it("invalidate fuerza revalidación", async () => {
-    const fetchState: TenantStateFetcher = vi.fn(async () => ({ state: "activo", abono_due_date: false }));
+    const fetchState: TenantStateFetcher = vi.fn(async (): Promise<TenantGateTenant | null> => ({
+      state: "activo",
+      abono_due_date: false,
+    }));
     const cache = createGateCache({ fetchState });
     await cache.getGate("servigas");
     cache.invalidate("servigas");
@@ -105,6 +113,25 @@ describe("getMasterCredentials (G4)", () => {
   });
 });
 
+function filaTenant(partial: { id: number; state: string }): TenantRow {
+  return {
+    id: partial.id,
+    name: "Tenant",
+    db_name: "modoops_x",
+    slug: "x",
+    vertical: "taller",
+    state: partial.state,
+    abono_due_date: false,
+    suspend_grace_until: false,
+    modules_installed: false,
+    modules_installed_count: 0,
+    phone: false,
+    situacion: false,
+    contrato_count: 0,
+    saldo_pendiente_usd: 0,
+  };
+}
+
 function masterFalso(tenant: { id: number; state: string } | null): MasterApi & { calls: string[] } {
   const calls: string[] = [];
   const api = {
@@ -118,7 +145,7 @@ function masterFalso(tenant: { id: number; state: string } | null): MasterApi & 
     },
     async getTenantBySlug() {
       calls.push("getTenantBySlug");
-      return tenant ? { ...tenant, abono_due_date: false as const } : null;
+      return tenant ? filaTenant(tenant) : null;
     },
     async auditTenantLog() {
       calls.push("auditTenantLog");
@@ -126,6 +153,17 @@ function masterFalso(tenant: { id: number; state: string } | null): MasterApi & 
     async createLead() {
       calls.push("createLead");
       return { id: 9 };
+    },
+    async quotePreview() {
+      calls.push("quotePreview");
+      return {
+        lista_cerrada: [],
+        precio: {},
+        propuesta: { comercial_md: "", validez: 0 },
+        errors: [],
+        warnings: [],
+        hash: "",
+      };
     },
   };
   return api;
@@ -146,7 +184,7 @@ describe("withMasterSession", () => {
 describe("getFreshGate", () => {
   it("invalida antes de leer (estricto para login)", async () => {
     const fetchState: TenantStateFetcher = vi
-      .fn<[], Promise<{ state: string; abono_due_date: false }>>()
+      .fn<() => Promise<TenantGateTenant | null>>()
       .mockResolvedValueOnce({ state: "activo", abono_due_date: false })
       .mockResolvedValueOnce({ state: "suspendido", abono_due_date: false });
     const cache = createGateCache({ ttlMs: 60_000, fetchState });

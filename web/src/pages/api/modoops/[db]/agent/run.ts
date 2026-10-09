@@ -126,15 +126,25 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     checkRateLimit,
   });
 
-  if (decision.http !== 200) {
+  if (decision.status !== "ok") {
     const headers: Record<string, string> = {};
-    if (decision.retryAfter) headers['Retry-After'] = String(decision.retryAfter);
-    // mapeo code -> body code para compatibilidad con tests existentes
-    const code = (decision as { code?: string }).code || (decision.http === 401 ? 'unauthorized' : decision.http === 403 ? 'tenant_suspended' : decision.http === 429 ? (decision.error?.includes('Techo') ? 'quota_exceeded' : 'rate_limited') : decision.status === 'needs_tool' ? 'unknown_tool' : 'error');
-    if (decision.status === 'needs_tool') {
-      return json(decision.http, { status: 'needs_tool', code, error: decision.error, reason: 'unknown_tool' }, headers);
+    const retryAfter = decision.status === "error" && decision.http === 429 ? decision.retryAfter : undefined;
+    if (retryAfter) headers["Retry-After"] = String(retryAfter);
+    const code = decision.code;
+    if (decision.status === "needs_tool") {
+      return json(decision.http, { status: "needs_tool", code, error: decision.error, reason: "unknown_tool" }, headers);
     }
-    return json(decision.http, { status: 'error', code, error: decision.error, ...(decision as { retryAfter?: number }).retryAfter ? { retryAfter: (decision as { retryAfter?: number }).retryAfter } : {}, ...(code === 'quota_exceeded' ? { quota: quotaFor(env, db) } : {}) }, headers);
+    return json(
+      decision.http,
+      {
+        status: "error",
+        code,
+        error: decision.error,
+        ...(retryAfter ? { retryAfter } : {}),
+        ...(code === "quota_exceeded" ? { quota: quotaFor(env, db) } : {}),
+      },
+      headers
+    );
   }
 
   // Proxy idempotente unique(tenant_db,tool,requestId) — truth en SQL, cache en Map (2 adapters, seam real)

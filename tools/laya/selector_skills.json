@@ -54,5 +54,53 @@
   {
     "id": "improve-codebase-architecture",
     "blurb": "Survey de arquitectura/deepening; no implementar el feature ahora."
+  },
+  {
+    "id": "poteto-mode",
+    "blurb": "Estilo pstack de punta a punta: rutear, subagentes con criterio, código simple y verificado. Cuando pidan poteto o un cambio no trivial."
+  },
+  {
+    "id": "architect",
+    "blurb": "Antes de codear algo no trivial: fijar tipos, firmas y módulos en los bordes. No para un fix de una función."
+  },
+  {
+    "id": "arena",
+    "blurb": "Varias soluciones en paralelo y quedarse con la mejor. Solo si hay diseños que compiten."
+  },
+  {
+    "id": "interrogate",
+    "blurb": "Revisión adversarial del diff ya escrito, para encontrar puntos ciegos. No reemplaza code-review."
+  },
+  {
+    "id": "pstack-tdd",
+    "blurb": "TDD de pstack (no pisa el tdd de matt): test que falla primero si hay un test local barato. Si el camino es caro o confuso, no."
+  },
+  {
+    "id": "how",
+    "blurb": "Cómo funciona X ahora: flujo, dueño y capa. No es el porqué histórico."
+  },
+  {
+    "id": "why",
+    "blurb": "Por qué X quedó así: decisión, tradeoff y evidencia. No es un walkthrough del código."
+  },
+  {
+    "id": "unslop",
+    "blurb": "Sacar muletillas de texto generado. Aplicalo a prosa que queda (PR, UI, docs)."
+  },
+  {
+    "id": "reflect",
+    "blurb": "Después de una sesión: aprendizajes del transcript hacia una skill que ya existe. Solo si piden reflect."
+  },
+  {
+    "id": "figure-it-out",
+    "blurb": "Playbook auditable cuando no entra uno más chico: migración grande o cambio en partes que alguien revisa después."
+  },
+  {
+    "id": "show-me-your-work",
+    "blurb": "Bitácora de decisiones (qué, por qué, evidencia, resultado) en un trabajo largo o sin supervisión."
+  },
+  {
+    "id": "setup-pstack",
+    "blurb": "Elegir qué modelo usa cada rol de pstack. No implementa el feature."
   }
 ]

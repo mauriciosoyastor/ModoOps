@@ -24,11 +24,7 @@ export const POST: APIRoute = async ({ cookies, request, locals }) => {
       const message = parsed.ok ? "Tenant inválido" : parsed.message;
       return bffErrorResponse(new BffError("validation_error", 400, message), cookies);
     }
-    const res = await getBackend().setTenantStateAction(
-      odooSessionId,
-      parsed.id,
-      parsed.method as "action_suspend" | "action_reactivate"
-    );
+    const res = await getBackend().setTenantStateAction(odooSessionId, parsed.id, parsed.method);
     return json(res);
   } catch (err) {
     return bffErrorResponse(err, cookies);

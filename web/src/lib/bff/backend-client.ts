@@ -72,6 +72,11 @@ export interface BackendClient {
   getHub(odooSessionId: string, app: string, section?: string): Promise<HubPayload>;
   getTenants(odooSessionId: string): Promise<TenantRow[]>;
   getTenantBySlug(odooSessionId: string, slug: string): Promise<TenantRow | null>;
+  setTenantStateAction(
+    odooSessionId: string,
+    tenantId: number,
+    method: "action_suspend" | "action_reactivate"
+  ): Promise<{ ok: true }>;
   // T5 login-tenant (prototipo): audita intentos en modoops.tenant.log
   auditTenantLog(odooSessionId: string, tenantId: number, action: string, detail?: string): Promise<void>;
   // Techo IA (spec 0008): conteo mensual de corridas (action='agent.run')
