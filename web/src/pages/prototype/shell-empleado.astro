@@ -133,6 +133,7 @@ const SALUDO: Record<string, string> = {
         justify-items: center;
         overflow: auto;
         grid-template-rows: max-content max-content;
+        scroll-padding-block-end: max(4.5rem, calc(env(safe-area-inset-bottom) + 3.5rem));
       }
       #sheet-caja1::after,
       #sheet-caja2::after,
@@ -147,9 +148,16 @@ const SALUDO: Record<string, string> = {
         min-height: 0;
         height: auto;
         background: var(--mo-card);
-        border: 1px solid var(--mo-line);
+        border: 1px solid color-mix(in srgb, var(--mo-ink) 35%, var(--mo-line-strong));
         border-radius: var(--mo-radius);
         padding: 1.15rem 1.2rem 1.05rem;
+      }
+      .mo-sheet--caja .mo-sheet__title {
+        text-wrap: balance;
+        line-height: 1.2;
+      }
+      .mo-sheet--caja .mo-sheet__hint {
+        text-wrap: pretty;
       }
       .mo-sheet--caja .mo-sheet__body,
       .mo-sheet--caja .mo-field {
@@ -160,6 +168,58 @@ const SALUDO: Record<string, string> = {
       }
       .mo-sheet--caja .mo-sheet__actions {
         margin-top: 0;
+      }
+      .mo-sheet--caja .sheet-field-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      @media (min-width: 480px) {
+        .mo-sheet--caja .sheet-field-row {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        }
+      }
+      .mo-sheet--caja fieldset.mo-field {
+        border: 0;
+        margin: 0;
+        padding: 0;
+        min-inline-size: 0;
+      }
+      .mo-sheet--caja .mo-field__control,
+      .mo-sheet--caja .mo-pill,
+      .mo-sheet--caja .mo-btn--ghost {
+        border-color: color-mix(in srgb, var(--mo-ink) 35%, var(--mo-line-strong));
+      }
+      .mo-sheet--caja .mo-field.is-invalid .mo-field__control {
+        border-color: var(--mo-danger);
+      }
+      .mo-sheet--caja .mo-field__control {
+        font-variant-numeric: tabular-nums;
+      }
+      .mo-sheet--caja .mo-field__error {
+        color: color-mix(in srgb, var(--mo-danger) 75%, var(--mo-ink));
+      }
+      .mo-sheet--caja .mo-btn--ghost {
+        background: var(--mo-canvas);
+      }
+      .mo-sheet--caja .pay-options .mo-pill {
+        min-height: 44px;
+        padding-inline: 0.85rem;
+      }
+      .mo-sheet--caja .mo-btn--primary {
+        background: color-mix(in srgb, var(--mo-accent) 65%, var(--mo-hero));
+        border-color: color-mix(in srgb, var(--mo-accent) 65%, var(--mo-hero));
+      }
+      .mo-sheet--caja :focus-visible {
+        outline-color: color-mix(in srgb, var(--mo-focus) 35%, var(--mo-ink));
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .mo-sheet--caja .mo-btn--ghost:hover {
+          background: var(--mo-canvas);
+          border-color: var(--mo-ink);
+        }
+        .mo-sheet--caja .mo-btn--primary:hover {
+          background: color-mix(in srgb, var(--mo-accent) 55%, var(--mo-hero));
+          border-color: color-mix(in srgb, var(--mo-accent) 55%, var(--mo-hero));
+        }
       }
       .sheet-list { display: grid; gap: 0.5rem; }
       /* Borde de acento: una acción principal por pestaña. El relleno de la tarjeta queda quieto. */
@@ -275,21 +335,21 @@ const SALUDO: Record<string, string> = {
           <div class="sheet-field-row">
             <div class="mo-field" id="field-ot">
               <label class="mo-field__label" for="ot-num">Nº de OT</label>
-              <input class="mo-field__control" id="ot-num" name="ot" type="text" inputmode="numeric" autocomplete="off" required placeholder="1042" />
+              <input class="mo-field__control" id="ot-num" name="ot" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" required placeholder="1042" aria-describedby="err-ot" />
               <p class="mo-field__error" id="err-ot" role="alert" hidden></p>
             </div>
             <div class="mo-field" id="field-monto">
               <label class="mo-field__label" for="ot-monto">Monto (USD)</label>
-              <input class="mo-field__control" id="ot-monto" name="monto" type="text" inputmode="decimal" autocomplete="off" required placeholder="50" />
+              <input class="mo-field__control" id="ot-monto" name="monto" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" required placeholder="50" aria-describedby="err-monto" />
               <p class="mo-field__error" id="err-monto" role="alert" hidden></p>
             </div>
           </div>
-          <fieldset class="mo-field" style="border:0;padding:0;margin:0">
+          <fieldset class="mo-field">
             <legend class="mo-field__label">Medio de pago</legend>
             <div class="pay-options mo-pill-group" role="radiogroup" aria-label="Medio de pago">
-              <label class="mo-pill"><input type="radio" name="pago" value="efectivo" checked style="margin-right:0.35rem" />Efectivo</label>
-              <label class="mo-pill"><input type="radio" name="pago" value="transferencia" style="margin-right:0.35rem" />Transferencia</label>
-              <label class="mo-pill"><input type="radio" name="pago" value="tarjeta" style="margin-right:0.35rem" />Tarjeta</label>
+              <label class="mo-pill"><input type="radio" name="pago" value="efectivo" checked />Efectivo</label>
+              <label class="mo-pill"><input type="radio" name="pago" value="transferencia" />Transferencia</label>
+              <label class="mo-pill"><input type="radio" name="pago" value="tarjeta" />Tarjeta</label>
             </div>
           </fieldset>
           <div class="mo-sheet__actions">
@@ -313,7 +373,7 @@ const SALUDO: Record<string, string> = {
         <form class="mo-sheet__body" id="form-caja1" novalidate>
           <div class="mo-field" id="field-fondo1">
             <label class="mo-field__label" for="fondo1">Fondo inicial (USD)</label>
-            <input class="mo-field__control" id="fondo1" name="fondo" type="text" inputmode="decimal" required placeholder="100" value="100" />
+            <input class="mo-field__control" id="fondo1" name="fondo" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" required placeholder="100" value="100" aria-describedby="err-fondo1" />
             <p class="mo-field__error" id="err-fondo1" role="alert" hidden></p>
           </div>
           <div class="mo-sheet__actions">
@@ -333,7 +393,7 @@ const SALUDO: Record<string, string> = {
         <form class="mo-sheet__body" id="form-caja2" novalidate>
           <div class="mo-field" id="field-fondo2">
             <label class="mo-field__label" for="fondo2">Fondo inicial (USD)</label>
-            <input class="mo-field__control" id="fondo2" name="fondo" type="text" inputmode="decimal" required placeholder="0" />
+            <input class="mo-field__control" id="fondo2" name="fondo" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" required placeholder="0" aria-describedby="err-fondo2" />
             <p class="mo-field__error" id="err-fondo2" role="alert" hidden></p>
           </div>
           <div class="mo-sheet__actions">
@@ -602,7 +662,11 @@ const SALUDO: Record<string, string> = {
       }
 
       function clearErr(fieldId, errId) {
-        document.getElementById(fieldId)?.classList.remove('is-invalid');
+        const field = document.getElementById(fieldId);
+        field?.classList.remove('is-invalid');
+        if (field?.closest('.mo-sheet--caja')) {
+          field.querySelector('input, select, textarea')?.removeAttribute('aria-invalid');
+        }
         const err = document.getElementById(errId);
         if (err) {
           err.hidden = true;
@@ -612,6 +676,7 @@ const SALUDO: Record<string, string> = {
 
       function setErr(fieldId, errId, msg, input) {
         document.getElementById(fieldId)?.classList.add('is-invalid');
+        if (input?.closest('.mo-sheet--caja')) input.setAttribute('aria-invalid', 'true');
         const err = document.getElementById(errId);
         if (err) {
           err.hidden = false;
